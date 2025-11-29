@@ -14,47 +14,68 @@ import {
   EyeOff, 
   GraduationCap, 
   Users,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle
 } from "lucide-react";
+
+// backend
+import { studentLogin, teacherLogin } from "@/services/authService";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("student");
+  const [error, setError] = useState("");
   
   const [studentForm, setStudentForm] = useState({
-    email: "",
+    username: "",
     password: ""
   });
   
   const [teacherForm, setTeacherForm] = useState({
-    email: "",
+    username: "",
     password: ""
   });
 
   const handleStudentLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
-    // Simulate login process
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Navigate to student dashboard
-    navigate('/student-dashboard');
-    setIsLoading(false);
+    try {
+      const response = await studentLogin(studentForm.username, studentForm.password);
+      
+      if (response.success) {
+        // Navigate to student dashboard
+        navigate('/student-dashboard');
+      }
+    } catch (err) {
+      setError(err.message || 'Invalid username or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTeacherLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
-    // Simulate login process
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Navigate to teacher dashboard
-    navigate('/teacher-dashboard');
-    setIsLoading(false);
+    try {
+      const response = await teacherLogin(teacherForm.username, teacherForm.password);
+      
+      if (response.success) {
+        // Navigate to teacher dashboard
+        navigate('/teacher-dashboard');
+      }
+    } catch (err) {
+      setError(err.message || 'Invalid username or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleStudentChange = (e) => {
@@ -108,6 +129,13 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="student" className="flex items-center space-x-2">
@@ -124,15 +152,15 @@ const Login = () => {
               <TabsContent value="student">
                 <form onSubmit={handleStudentLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="student-email">Email</Label>
+                    <Label htmlFor="student-username">Username</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-                        id="student-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={studentForm.email}
+                        id="student-username"
+                        name="username"
+                        type="text"
+                        placeholder="Enter your username"
+                        value={studentForm.username}
                         onChange={handleStudentChange}
                         className="pl-10"
                         required
@@ -183,15 +211,15 @@ const Login = () => {
               <TabsContent value="teacher">
                 <form onSubmit={handleTeacherLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="teacher-email">Email</Label>
+                    <Label htmlFor="teacher-username">Username</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-                        id="teacher-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={teacherForm.email}
+                        id="teacher-username"
+                        name="username"
+                        type="text"
+                        placeholder="Enter your username"
+                        value={teacherForm.username}
                         onChange={handleTeacherChange}
                         className="pl-10"
                         required
@@ -239,29 +267,8 @@ const Login = () => {
               </TabsContent>
             </Tabs>
 
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</p>
-              <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">
-                <div>
-                  <Badge variant="outline" className="mr-2">Student</Badge>
-                  Email: student@demo.com | Password: demo123
-                </div>
-                <div>
-                  <Badge variant="outline" className="mr-2">Teacher</Badge>
-                  Email: teacher@demo.com | Password: demo123
-                </div>
-              </div>
-            </div>
-
             {/* Links */}
             <div className="mt-6 text-center space-y-2">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link to="/get-started" className="text-emerald-600 hover:text-emerald-700 font-medium">
-                  Get Started
-                </Link>
-              </p>
               <p className="text-sm text-gray-600">
                 <Link to="/forgot-password" className="text-emerald-600 hover:text-emerald-700">
                   Forgot your password?
