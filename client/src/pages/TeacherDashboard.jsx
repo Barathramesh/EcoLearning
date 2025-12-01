@@ -2,11 +2,11 @@ import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  Trophy, 
-  GraduationCap, 
-  BookOpen, 
+import {
+  Users,
+  Trophy,
+  GraduationCap,
+  BookOpen,
   Star,
   Plus,
   TrendingUp,
@@ -123,10 +123,6 @@ const TeacherDashboard = () => {
                     <GraduationCap className="w-5 h-5" />
                     My Students
                   </CardTitle>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add Student
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -144,7 +140,7 @@ const TeacherDashboard = () => {
                               <Badge variant="secondary" className="text-xs">
                                 Level {student.level}
                               </Badge>
-                              <Badge 
+                              <Badge
                                 variant={student.status === 'needs-attention' ? 'destructive' : 'outline'}
                                 className="text-xs"
                               >
@@ -177,19 +173,17 @@ const TeacherDashboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {institutionLeaderboard.map((school) => (
-                      <div 
+                      <div
                         key={school.rank}
-                        className={`flex items-center justify-between p-3 rounded-lg ${
-                          school.isCurrentSchool ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                        }`}
+                        className={`flex items-center justify-between p-3 rounded-lg ${school.isCurrentSchool ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                          }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                            school.rank === 1 ? 'bg-yellow-500' :
-                            school.rank === 2 ? 'bg-gray-400' :
-                            school.rank === 3 ? 'bg-orange-500' :
-                            'bg-gray-300'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${school.rank === 1 ? 'bg-yellow-500' :
+                              school.rank === 2 ? 'bg-gray-400' :
+                                school.rank === 3 ? 'bg-orange-500' :
+                                  'bg-gray-300'
+                            }`}>
                             {school.rank}
                           </div>
                           <div>
@@ -223,19 +217,17 @@ const TeacherDashboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {topGlobalStudents.map((student) => (
-                      <div 
+                      <div
                         key={student.rank}
-                        className={`flex items-center justify-between p-2 rounded-lg ${
-                          student.isMyStudent ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-                        }`}
+                        className={`flex items-center justify-between p-2 rounded-lg ${student.isMyStudent ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                          }`}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                            student.rank === 1 ? 'bg-yellow-500' :
-                            student.rank === 2 ? 'bg-gray-400' :
-                            student.rank === 3 ? 'bg-orange-500' :
-                            'bg-gray-300'
-                          }`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${student.rank === 1 ? 'bg-yellow-500' :
+                              student.rank === 2 ? 'bg-gray-400' :
+                                student.rank === 3 ? 'bg-orange-500' :
+                                  'bg-gray-300'
+                            }`}>
                             {student.rank}
                           </div>
                           <div>
