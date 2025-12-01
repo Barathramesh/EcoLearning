@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Leaf, Award, BookOpen, Users, Mail, Globe, Camera, Gamepad2, Brain, LogOut, Trophy, User, Upload, Shield, BarChart3, AlertTriangle, School, Settings } from "lucide-react";
+import { Menu, X, Leaf, Award, BookOpen, Users, Mail, Globe, Camera, Gamepad2, Brain, LogOut, Trophy, User, Upload, Shield, BarChart3, AlertTriangle, School, Settings, FileCheck, ClipboardCheck } from "lucide-react";
 
 const Navigation = ({ userType = null, onLogout = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +38,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
     { name: "Classes", path: "/teacher/classes", icon: Users, group: "management" },
     { name: "Students", path: "/teacher/students", icon: User, group: "management" },
     { name: "Assignments", path: "/teacher/assignments", icon: BookOpen, group: "content" },
+    { name: "Review", path: "/teacher/assignment-review", icon: ClipboardCheck, group: "content" },
     { name: "Analytics", path: "/teacher/analytics", icon: Award, group: "insights" },
   ];
 

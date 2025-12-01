@@ -26,6 +26,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const AI = () => {
   const [chatInput, setChatInput] = useState("");
@@ -34,26 +35,29 @@ const AI = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const chatRef = useRef(null);
   
-  // Gemini API configuration
+  // Initialize Gemini AI
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const genAI = useRef(null);
+  const model = useRef(null);
+  
+  // Initialize on component mount
+  useEffect(() => {
+    if (GEMINI_API_KEY) {
+      genAI.current = new GoogleGenerativeAI(GEMINI_API_KEY);
+      model.current = genAI.current.getGenerativeModel({ model: "gemini-pro" });
+      console.log('Gemini AI initialized with gemini-pro model');
+    } else {
+      console.error('Gemini API key is missing!');
+    }
+  }, [GEMINI_API_KEY]);
   
   const [chatHistory, setChatHistory] = useState([
     {
       type: "ai",
       message: "Hi! I'm EcoBot, your AI environmental science tutor powered by Google Gemini. Ask me anything about climate change, ecosystems, renewable energy, or upload an image for analysis!",
-      timestamp: "2 minutes ago"
-    },
-    {
-      type: "user",
-      message: "What is the greenhouse effect?",
-      timestamp: "1 minute ago"
-    },
-    {
-      type: "ai",
-      message: "The greenhouse effect is a natural process where certain gases in Earth's atmosphere trap heat from the sun, keeping our planet warm enough to support life. However, human activities have increased these greenhouse gases, leading to enhanced warming. Would you like me to explain the different greenhouse gases?",
-      timestamp: "1 minute ago"
+      timestamp: "Just now"
     }
   ]);
 
@@ -142,61 +146,95 @@ const AI = () => {
     }
   };
 
-  // Send message to Gemini API
+  // Fallback responses for common environmental topics when API is unavailable
+  const getFallbackResponse = (message) => {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('climate change') || lowerMessage.includes('global warming')) {
+      return "🌍 **Climate Change** is the long-term alteration of temperature and weather patterns. Human activities, particularly burning fossil fuels, have been the main driver since the 1800s.\n\n**Key Points:**\n• Global temperatures have risen about 1.1°C since pre-industrial times\n• Main causes: CO2 emissions, deforestation, industrial processes\n• Effects: Rising sea levels, extreme weather, ecosystem disruption\n• Solutions: Renewable energy, reforestation, sustainable practices\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    if (lowerMessage.includes('solar') || lowerMessage.includes('renewable energy')) {
+      return "☀️ **Solar Energy** converts sunlight into electricity using photovoltaic cells.\n\n**How it works:**\n1. Sunlight hits solar panels containing silicon cells\n2. Photons knock electrons loose, creating electrical current\n3. Inverters convert DC to AC power for home use\n\n**Benefits:**\n• Clean, renewable energy source\n• Reduces electricity bills\n• Low maintenance costs\n• 25+ year lifespan\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    if (lowerMessage.includes('rainforest') || lowerMessage.includes('forest') || lowerMessage.includes('deforestation')) {
+      return "🌳 **Rainforests** are vital ecosystems covering only 6% of Earth but hosting 50% of all species!\n\n**Why they matter:**\n• Produce 20% of world's oxygen\n• Absorb massive amounts of CO2\n• Home to millions of species\n• Provide medicines and resources\n\n**Threats:**\n• Deforestation for agriculture\n• Logging and mining\n• Climate change\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    if (lowerMessage.includes('ocean') || lowerMessage.includes('marine') || lowerMessage.includes('sea')) {
+      return "🌊 **Ocean Conservation** is crucial as oceans cover 71% of Earth and regulate our climate.\n\n**Key Issues:**\n• Ocean acidification from CO2 absorption\n• Plastic pollution (8 million tons yearly)\n• Overfishing depleting fish stocks\n• Coral bleaching from warming waters\n\n**Solutions:**\n• Reduce plastic use\n• Support sustainable fishing\n• Marine protected areas\n• Carbon emission reduction\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    if (lowerMessage.includes('carbon footprint') || lowerMessage.includes('reduce')) {
+      return "👣 **Reducing Your Carbon Footprint** - Practical steps:\n\n**Transportation:**\n• Walk, bike, or use public transit\n• Consider electric vehicles\n• Combine trips\n\n**Home:**\n• Switch to LED bulbs\n• Use renewable energy\n• Improve insulation\n\n**Lifestyle:**\n• Eat less meat\n• Buy local products\n• Reduce, reuse, recycle\n• Avoid single-use plastics\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    if (lowerMessage.includes('greenhouse') || lowerMessage.includes('co2') || lowerMessage.includes('carbon dioxide')) {
+      return "🏭 **The Greenhouse Effect** is a natural process that warms Earth's surface.\n\n**How it works:**\n1. Sun's energy reaches Earth\n2. Earth absorbs and re-emits heat\n3. Greenhouse gases trap some heat\n4. This keeps Earth warm enough for life\n\n**Main Greenhouse Gases:**\n• Carbon Dioxide (CO2) - 76%\n• Methane (CH4) - 16%\n• Nitrous Oxide (N2O) - 6%\n\n**The Problem:** Human activities have increased these gases, causing enhanced warming.\n\n*Note: I'm currently using offline mode. For more detailed answers, please try again later.*";
+    }
+    
+    return "🌱 Thank you for your environmental science question!\n\nI'm currently experiencing high demand and cannot process your request right now.\n\n**Please try again in a few minutes**, or ask about these topics:\n• Climate change & global warming\n• Renewable energy & solar power\n• Rainforests & deforestation\n• Ocean conservation\n• Reducing carbon footprint\n• Greenhouse effect\n\n*Tip: The API quota resets every minute, so please wait and try again!*";
+  };
+
+  // Send message to Gemini using SDK
   const sendToGemini = async (message, imageFile = null) => {
     try {
       setIsLoading(true);
       
-      let requestBody = {
-        contents: [{
-          parts: []
-        }]
-      };
-
-      // Add text part
-      if (message.trim()) {
-        requestBody.contents[0].parts.push({
-          text: `As an environmental science tutor, please answer this question in a clear, educational way: ${message}`
-        });
+      // Check if model is initialized
+      if (!model.current) {
+        console.error('Gemini model not initialized!');
+        return getFallbackResponse(message);
       }
-
-      // Add image part if provided
-      if (imageFile) {
-        const base64Image = await convertToBase64(imageFile);
-        requestBody.contents[0].parts.push({
-          inline_data: {
-            mime_type: imageFile.type,
-            data: base64Image
-          }
-        });
-        
-        // Add context for image analysis
-        if (!message.trim()) {
-          requestBody.contents[0].parts.push({
-            text: "Please analyze this image from an environmental science perspective. Identify any plants, animals, ecosystems, or environmental features you can see, and provide educational information about them."
-          });
-        }
-      }
-
-      const response = await fetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I apologize, but I couldn't process your request. Please try again.";
       
-      return aiResponse;
+      // Start or continue chat
+      if (!chatRef.current) {
+        chatRef.current = model.current.startChat({
+          history: [],
+          generationConfig: {
+            maxOutputTokens: 1000,
+          },
+        });
+      }
+
+      let prompt = "";
+      
+      // Handle image if provided
+      if (imageFile) {
+        // For images, we need to use generateContent directly with the image
+        const base64Image = await convertToBase64(imageFile);
+        const imagePart = {
+          inlineData: {
+            data: base64Image,
+            mimeType: imageFile.type,
+          },
+        };
+        
+        const textPrompt = message.trim() 
+          ? `As an environmental science tutor, please answer this question about the image: ${message}`
+          : "Please analyze this image from an environmental science perspective. Identify any plants, animals, ecosystems, or environmental features you can see, and provide educational information about them.";
+        
+        // Use generateContent for image analysis
+        const result = await model.current.generateContent([textPrompt, imagePart]);
+        const response = await result.response;
+        return response.text();
+      }
+      
+      // For text-only messages, use chat
+      prompt = `As an environmental science tutor, please answer this question in a clear, educational way: ${message}`;
+      
+      console.log('Sending message to Gemini...');
+      const result = await chatRef.current.sendMessage(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      console.log('Gemini response received');
+      return text;
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      return "I'm sorry, I'm having trouble connecting right now. Please check your internet connection and try again.";
+      console.error('Error calling Gemini:', error);
+      
+      // Check if it's a quota error (429)
+      if (error.message.includes('429') || error.message.includes('quota') || error.message.includes('RATE_LIMIT')) {
+        return getFallbackResponse(message);
+      }
+      
+      return getFallbackResponse(message);
     } finally {
       setIsLoading(false);
     }
