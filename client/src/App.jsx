@@ -80,6 +80,7 @@ const App = () => (
           <Route path="/admin/analytics" element={<SystemAnalytics />} />
           <Route path="/admin/moderation" element={<ContentModeration />} />
           <Route path="/admin/settings" element={<SystemSettings />} />
+          <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
