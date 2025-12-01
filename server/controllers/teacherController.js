@@ -14,7 +14,6 @@ const generateRandomPassword = (length = 8) => {
   return password;
 };
 
-
 // Teacher Login
 export const teacherLogin = async (req, res) => {
   try {
@@ -63,73 +62,15 @@ export const teacherLogin = async (req, res) => {
   }
 };
 
-// Teacher Registration
-export const teacherRegister = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    const { Name, password, email, phone, teacherId } = req.body;
-
-    // Check if teacher already exists
-    const existingTeacher = await Teacher.findOne({ 
-      $or: [{ email }, { phone }, { teacherId }]
-    });
-    
-    if (existingTeacher) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Teacher already exists with this email, phone, or teacherId' 
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new teacher
-    const teacher = await Teacher.create({
-      Name,
-      email,
-      phone,
-      teacherId,
-      password: hashedPassword
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful',
-      data: {
-        user: {
-          id: teacher._id,
-          Name: teacher.Name,
-          teacherId: teacher.teacherId,
-          email: teacher.email,
-          role: 'teacher'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Teacher registration error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error during registration' 
-    });
-  }
-};
-
-// ==================== STUDENT MANAGEMENT BY TEACHER ====================
-
-// Create student manually (by teacher)
+// Create student manually
 export const createStudent = async (req, res) => {
   try {
-    console.log('Request body:', req.body); // Debug log
+    console.log('Request body:', req.body);
     
     const { name, rollNumber, email, phone, address, school, studentClass, joiningDate, teacherId } = req.body;
     
     // Use studentClass or class from request body
-    const classValue = studentClass || req.body.class || 'Default';
+    const classValue = studentClass || 'Default';
 
     // Validate required fields
     if (!name || !rollNumber || !email || !phone || !teacherId) {
@@ -140,35 +81,37 @@ export const createStudent = async (req, res) => {
     }
 
     // Check if student already exists
-    const existingStudent = await Student.findOne({
-      $or: [{ rollNumber }, { email }]
-    });
+    const existingStudent = await Student.findOne({ rollNumber});
     
     if (existingStudent) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Student already exists with this roll number or email' 
+        message: 'Student already exists with this roll number' 
       });
     }
 
+    // Generate password automatically
+    const plainPassword = generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
     const student = await Student.create({
-      name,
-      rollNumber,
-      email,
-      phone,
-      address,
-      school,
-      class: classValue,
+      name, rollNumber, email, phone, address, school, class: classValue,
       joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
       teacherId,
-      credentialsGenerated: false
+      passwordHash: hashedPassword,
+      plainPassword: plainPassword,
+      credentialsGenerated: true
     });
 
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
-      data: student
+      data: {
+        ...student.toObject(),
+        generatedPassword: plainPassword // Return password so teacher can share it
+      }
     });
+
   } catch (error) {
     console.error('Create student error:', error);
     res.status(500).json({ 
@@ -178,13 +121,12 @@ export const createStudent = async (req, res) => {
   }
 };
 
-// Import multiple students from CSV/Excel file (by teacher)
+// Import multiple students from CSV/Excel file
 export const importStudentsFromFile = async (req, res) => {
   try {
     const { teacherId } = req.body;
 
     console.log('File upload received:', req.file ? req.file.originalname : 'No file');
-    console.log('Teacher ID:', teacherId);
 
     if (!req.file) {
       return res.status(400).json({ 
@@ -250,14 +192,12 @@ export const importStudentsFromFile = async (req, res) => {
           continue;
         }
 
-        const existingStudent = await Student.findOne({
-          $or: [{ rollNumber: studentData.rollNumber }, { email: studentData.email }]
-        });
+        const existingStudent = await Student.findOne({ rollNumber: studentData.rollNumber });
 
         if (existingStudent) {
           results.failed.push({
             rollNumber: studentData.rollNumber,
-            reason: 'Student already exists with this roll number or email'
+            reason: 'Student already exists with this roll number'
           });
           continue;
         }
@@ -282,7 +222,14 @@ export const importStudentsFromFile = async (req, res) => {
         });
 
         console.log('Student created:', student._id);
-        results.success.push(student);
+        results.success.push({
+          _id: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          username: student.rollNumber,
+          password: plainPassword
+        });
       } catch (err) {
         console.error('Error creating student:', err);
         results.failed.push({
@@ -295,7 +242,8 @@ export const importStudentsFromFile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `Imported ${results.success.length} students. ${results.failed.length} failed.`,
-      data: results
+      data: results,
+      credentials: results.success // Include credentials for display
     });
   } catch (error) {
     console.error('Import students from file error:', error);
@@ -306,7 +254,7 @@ export const importStudentsFromFile = async (req, res) => {
   }
 };
 
-// Import multiple students from JSON (by teacher - used by frontend)
+// Import multiple students from JSON (parsed CSV from frontend)
 export const importStudents = async (req, res) => {
   try {
     const { students, teacherId } = req.body;
@@ -315,6 +263,13 @@ export const importStudents = async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         message: 'No students data provided' 
+      });
+    }
+
+    if (!teacherId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Teacher ID is required' 
       });
     }
 
@@ -337,20 +292,33 @@ export const importStudents = async (req, res) => {
           continue;
         }
 
+        // Generate password automatically
+        const plainPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
         const student = await Student.create({
           name: studentData.name,
           rollNumber: studentData.rollNumber,
           email: studentData.email,
-          phone: studentData.phone,
+          phone: studentData.phone || '',
           address: studentData.address || '',
           school: studentData.school || '',
           class: studentData.studentClass || 'Default',
           joiningDate: studentData.joiningDate ? new Date(studentData.joiningDate) : new Date(),
           teacherId,
-          credentialsGenerated: false
+          passwordHash: hashedPassword,
+          plainPassword: plainPassword,
+          credentialsGenerated: true
         });
 
-        results.success.push(student);
+        results.success.push({
+          _id: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          username: student.rollNumber,
+          password: plainPassword
+        });
       } catch (err) {
         results.failed.push({
           rollNumber: studentData.rollNumber,
@@ -362,7 +330,8 @@ export const importStudents = async (req, res) => {
     res.status(201).json({
       success: true,
       message: `Imported ${results.success.length} students. ${results.failed.length} failed.`,
-      data: results
+      data: results,
+      credentials: results.success // Include credentials for display
     });
   } catch (error) {
     console.error('Import students error:', error);
