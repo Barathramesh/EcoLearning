@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
 import {
@@ -15,85 +15,164 @@ import {
   MapPin,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  FileText,
+  ChevronDown
 } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const ClassManagement = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCreateClass, setShowCreateClass] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [manageDropdownId, setManageDropdownId] = useState(null);
 
-  const [classes, setClasses] = useState([
-    {
-      id: 1,
-      name: "Environmental Science 101",
-      subject: "Environmental Science",
-      grade: "9th Grade",
-      section: "A",
-      students: 28,
-      maxStudents: 30,
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Climate Change Studies",
-      subject: "Earth Science",
-      grade: "11th Grade",
-      section: "B",
-      students: 24,
-      maxStudents: 25,
-      status: "active"
-    },
-    {
-      id: 3,
-      name: "Ecology & Biodiversity",
-      subject: "Biology",
-      grade: "10th Grade",
-      section: "A",
-      students: 22,
-      maxStudents: 30,
-      status: "active"
-    },
-    {
-      id: 4,
-      name: "Sustainable Living",
-      subject: "Life Skills",
-      grade: "12th Grade",
-      section: "C",
-      students: 18,
-      maxStudents: 20,
-      status: "archived"
+  // Get teacher info from localStorage
+  const getTeacherInfo = () => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    console.log('Stored user:', storedUser); // Debug log
+    return {
+      teacherId: storedUser.teacherId || storedUser.id || storedUser._id,
+      teacherName: storedUser.Name || storedUser.name || 'Teacher'
+    };
+  };
+
+  // Fetch classes from database
+  const fetchClasses = async () => {
+    try {
+      const { teacherId } = getTeacherInfo();
+      if (!teacherId) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/class/teacher/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setClasses(data.data.map(cls => ({
+          id: cls._id,
+          grade: cls.grade,
+          section: cls.section,
+          subject: cls.subject,
+          teacherName: cls.teacherName,
+          totalStudents: cls.totalStudents || 0,
+          status: 'active'
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    fetchClasses();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setManageDropdownId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const [newClass, setNewClass] = useState({
-    name: '',
-    subject: '',
     grade: '',
-    section: ''
+    section: '',
+    subject: ''
   });
 
-  const handleCreateClass = () => {
-    if (!newClass.name || !newClass.subject || !newClass.grade || !newClass.section) return;
+  const handleCreateClass = async () => {
+    if (!newClass.grade || !newClass.section || !newClass.subject) {
+      alert('Please fill in all fields');
+      return;
+    }
 
-    const cls = {
-      id: classes.length + 1,
-      ...newClass,
-      students: 0,
-      maxStudents: 30,
-      status: "active"
-    };
+    try {
+      const { teacherId, teacherName } = getTeacherInfo();
+      
+      if (!teacherId) {
+        alert('Teacher ID not found. Please log in again.');
+        return;
+      }
+      
+      console.log('Creating class with:', { grade: newClass.grade, section: newClass.section, subject: newClass.subject, teacherId, teacherName });
+      
+      const response = await fetch(`${API_BASE_URL}/class/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grade: newClass.grade,
+          section: newClass.section,
+          subject: newClass.subject,
+          teacherId,
+          teacherName
+        })
+      });
 
-    setClasses([...classes, cls]);
-    setShowCreateClass(false);
-    setNewClass({ name: '', subject: '', grade: '', section: '' });
+      const data = await response.json();
+      console.log('Response:', data);
+
+      if (data.success) {
+        // Add the new class to state
+        setClasses([...classes, {
+          id: data.data._id,
+          grade: data.data.grade,
+          section: data.data.section,
+          subject: data.data.subject,
+          teacherName: data.data.teacherName,
+          totalStudents: data.data.totalStudents || 0,
+          status: 'active'
+        }]);
+        setShowCreateClass(false);
+        setNewClass({ grade: '', section: '', subject: '' });
+      } else {
+        alert(data.message || 'Failed to create class');
+      }
+    } catch (error) {
+      console.error('Error creating class:', error);
+      alert('Failed to create class');
+    }
+  };
+
+  const handleDeleteClass = async (classId, e) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this class?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/class/${classId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setClasses(classes.filter(cls => cls.id !== classId));
+      } else {
+        alert(data.message || 'Failed to delete class');
+      }
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      alert('Failed to delete class');
+    }
   };
 
   const filteredClasses = classes.filter(cls =>
-    cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cls.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cls.grade.toLowerCase().includes(searchTerm.toLowerCase())
+    cls.section.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cls.teacherName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status) => {
@@ -185,6 +264,16 @@ const ClassManagement = () => {
         </div>
 
         {/* Classes Grid */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+            Loading classes...
+          </div>
+        ) : filteredClasses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+            <p>No classes found.</p>
+            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>Click "Create New Class" to add your first class.</p>
+          </div>
+        ) : (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
@@ -204,79 +293,163 @@ const ClassManagement = () => {
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
               }}
               onClick={() => setSelectedClass(cls)}
             >
               {/* Class Header */}
               <div style={{ marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-                  {cls.name}
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
+                    Grade {cls.grade} - Section {cls.section}
+                  </h3>
+                  <button
+                    onClick={(e) => handleDeleteClass(cls.id, e)}
+                    style={{
+                      padding: '0.25rem',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#ef4444'
+                    }}
+                    title="Delete Class"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <span style={{
                     fontSize: '0.875rem',
                     fontWeight: '600',
-                    color: '#4b5563',
-                    backgroundColor: '#f3f4f6',
+                    color: '#059669',
+                    backgroundColor: '#d1fae5',
                     padding: '0.25rem 0.5rem',
                     borderRadius: '0.25rem'
                   }}>
-                    {cls.grade}
-                  </span>
-                  <span style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#4b5563',
-                    backgroundColor: '#f3f4f6',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '0.25rem'
-                  }}>
-                    Section {cls.section}
+                    {cls.subject}
                   </span>
                 </div>
-                <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                  {cls.subject}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <BookOpen size={16} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    Teacher: {cls.teacherName}
+                  </span>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Users size={16} style={{ color: '#6b7280' }} />
                   <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {cls.students} Students
+                    {cls.totalStudents} Students
                   </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex' }}>
+              <div style={{ position: 'relative' }}>
                 <button
-                  onClick={() => navigate('/teacher/student-management')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setManageDropdownId(manageDropdownId === cls.id ? null : cls.id);
+                  }}
                   style={{
-                    flex: 1,
-                    padding: '0.5rem',
+                    width: '100%',
+                    padding: '0.75rem',
                     backgroundColor: '#3b82f6',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.375rem',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
+                    fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem'
                   }}
                 >
-                  <Eye size={16} />
-                  View Details
+                  <Settings size={16} />
+                  Manage Class
+                  <ChevronDown size={16} style={{ 
+                    transform: manageDropdownId === cls.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s'
+                  }} />
                 </button>
+                
+                {/* Dropdown Menu */}
+                {manageDropdownId === cls.id && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '0.25rem',
+                    backgroundColor: 'white',
+                    borderRadius: '0.375rem',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    border: '1px solid #e5e7eb',
+                    zIndex: 10,
+                    overflow: 'hidden'
+                  }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setManageDropdownId(null);
+                        navigate(`/teacher/assignments?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        backgroundColor: 'white',
+                        border: 'none',
+                        borderBottom: '1px solid #e5e7eb',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#374151'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                    >
+                      <FileText size={16} style={{ color: '#8b5cf6' }} />
+                      Assignment
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setManageDropdownId(null);
+                        navigate(`/teacher/student-management?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        backgroundColor: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#374151'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                    >
+                      <Users size={16} style={{ color: '#059669' }} />
+                      View Students
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
+        )}
 
         {/* Quick Stats */}
         <div style={{
@@ -292,8 +465,8 @@ const ClassManagement = () => {
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>{classes.filter(c => c.status === 'active').length}</div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Active Classes</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>{classes.length}</div>
+            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Classes</div>
           </div>
 
           <div style={{
@@ -305,7 +478,7 @@ const ClassManagement = () => {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>
-              {classes.reduce((total, cls) => total + cls.students, 0)}
+              {classes.reduce((total, cls) => total + cls.totalStudents, 0)}
             </div>
             <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Students</div>
           </div>
@@ -344,49 +517,31 @@ const ClassManagement = () => {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
-                Class Name
-              </label>
-              <input
-                type="text"
-                value={newClass.name}
-                onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
-                placeholder="e.g. Advanced Biology"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
-                Subject
-              </label>
-              <input
-                type="text"
-                value={newClass.subject}
-                onChange={(e) => setNewClass({ ...newClass, subject: e.target.value })}
-                placeholder="e.g. Science"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
                 Grade
               </label>
               <input
                 type="text"
                 value={newClass.grade}
                 onChange={(e) => setNewClass({ ...newClass, grade: e.target.value })}
-                placeholder="e.g. 10th Grade"
+                placeholder="e.g. 10th"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
+                Section
+              </label>
+              <input
+                type="text"
+                value={newClass.section}
+                onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
+                placeholder="e.g. A"
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -398,13 +553,13 @@ const ClassManagement = () => {
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
-                Section
+                Subject
               </label>
               <input
                 type="text"
-                value={newClass.section}
-                onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
-                placeholder="e.g. A"
+                value={newClass.subject}
+                onChange={(e) => setNewClass({ ...newClass, subject: e.target.value })}
+                placeholder="e.g. Environmental Science"
                 style={{
                   width: '100%',
                   padding: '0.5rem',

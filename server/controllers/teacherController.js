@@ -65,8 +65,6 @@ export const teacherLogin = async (req, res) => {
 // Create student manually
 export const createStudent = async (req, res) => {
   try {
-    console.log('Request body:', req.body);
-    
     const { name, rollNumber, email, phone, address, school, studentClass, joiningDate, teacherId } = req.body;
     
     // Use studentClass or class from request body
@@ -126,8 +124,6 @@ export const importStudentsFromFile = async (req, res) => {
   try {
     const { teacherId } = req.body;
 
-    console.log('File upload received:', req.file ? req.file.originalname : 'No file');
-
     if (!req.file) {
       return res.status(400).json({ 
         success: false, 
@@ -147,8 +143,6 @@ export const importStudentsFromFile = async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(worksheet);
-
-    console.log('Parsed data from file:', JSON.stringify(data, null, 2));
 
     if (!data || data.length === 0) {
       return res.status(400).json({ 
@@ -181,8 +175,6 @@ export const importStudentsFromFile = async (req, res) => {
           studentClass: trimmedRow.class || trimmedRow.Class || trimmedRow.CLASS || 'Default',
           joiningDate: trimmedRow.joiningDate || trimmedRow.JoiningDate || trimmedRow['Joining Date'] || new Date()
         };
-
-        console.log('Processing student:', studentData);
 
         if (!studentData.name || !studentData.rollNumber || !studentData.email) {
           results.failed.push({
@@ -221,7 +213,6 @@ export const importStudentsFromFile = async (req, res) => {
           credentialsGenerated: true
         });
 
-        console.log('Student created:', student._id);
         results.success.push({
           _id: student._id,
           name: student.name,

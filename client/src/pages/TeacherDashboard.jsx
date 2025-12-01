@@ -15,33 +15,71 @@ import {
   BarChart
 } from "lucide-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const TeacherDashboard = () => {
   // Get logged-in user from localStorage
   const [user, setUser] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   
+  // Get teacher ID from localStorage
+  const getTeacherId = () => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    return storedUser.teacherId || storedUser.id;
+  };
+
+  // Fetch students from database
+  const fetchStudents = async () => {
+    try {
+      const teacherId = getTeacherId();
+      if (!teacherId) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/teacher/students/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setStudents(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    fetchStudents();
   }, []);
 
   // Teacher data with user info from localStorage
   const teacherData = {
     name: user?.Name || user?.name || "Teacher",
     institution: "Green Valley High School",
-    studentsCount: 120,
+    studentsCount: students.length,
     classesCount: 5,
     institutionRank: 2
   };
 
-  const myStudents = [
-    { name: "Alex Johnson", points: 2847, level: 12, progress: 85, status: "active" },
-    { name: "Emma Wilson", points: 2634, level: 11, progress: 78, status: "active" },
-    { name: "David Kim", points: 2489, level: 10, progress: 92, status: "active" },
-    { name: "Sofia Martinez", points: 2156, level: 9, progress: 65, status: "needs-attention" },
-    { name: "Ryan Chen", points: 1934, level: 8, progress: 71, status: "active" }
-  ];
+  // Map students from database to display format
+  const myStudents = students.slice(0, 5).map(student => ({
+    name: student.name,
+    rollNumber: student.rollNumber,
+    email: student.email,
+    school: student.school || 'N/A',
+    class: student.class || 'N/A',
+    points: student.points || 0,
+    level: student.level || 1,
+    progress: student.progress || 0,
+    status: student.credentialsGenerated ? 'active' : 'pending'
+  }));
 
   const institutionLeaderboard = [
     { rank: 1, school: "Eco Academy", avgPoints: 3245, students: 150 },
@@ -136,6 +174,14 @@ const TeacherDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {loading ? (
+                    <div className="text-center py-8 text-gray-500">Loading students...</div>
+                  ) : myStudents.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No students found.</p>
+                      <p className="text-sm mt-2">Add students from the Student Management page.</p>
+                    </div>
+                  ) : (
                   <div className="space-y-3">
                     {myStudents.map((student, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -149,24 +195,25 @@ const TeacherDashboard = () => {
                             <p className="font-semibold text-gray-800">{student.name}</p>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">
-                                Level {student.level}
+                                {student.rollNumber}
                               </Badge>
                               <Badge
-                                variant={student.status === 'needs-attention' ? 'destructive' : 'outline'}
+                                variant={student.status === 'pending' ? 'destructive' : 'outline'}
                                 className="text-xs"
                               >
-                                {student.status === 'needs-attention' ? 'Needs Attention' : 'Active'}
+                                {student.status === 'pending' ? 'Pending' : 'Active'}
                               </Badge>
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-gray-800">{student.points.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">{student.progress}% progress</p>
+                          <p className="font-bold text-gray-800">{student.school}</p>
+                          <p className="text-sm text-gray-500">{student.class}</p>
                         </div>
                       </div>
                     ))}
                   </div>
+                  )}
                   <Button variant="outline" className="w-full mt-4">
                     View All Students
                   </Button>
