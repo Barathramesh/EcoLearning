@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
 import {
     Users,
@@ -25,7 +25,8 @@ import {
     Calendar,
     ChevronDown,
     ChevronUp,
-    MoreVertical
+    MoreVertical,
+    ArrowLeft
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -95,6 +96,7 @@ const MOCK_STUDENTS = [
 
 const StudentManagement = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -108,6 +110,14 @@ const StudentManagement = () => {
     const [editingStudent, setEditingStudent] = useState(null);
     const [expandedStudentId, setExpandedStudentId] = useState(null);
     const fileInputRef = useRef(null);
+
+    // Get class filter from URL params
+    const classFilter = {
+        classId: searchParams.get('classId'),
+        grade: searchParams.get('grade'),
+        section: searchParams.get('section')
+    };
+    const isFilteredByClass = classFilter.grade && classFilter.section;
 
     const [newStudent, setNewStudent] = useState({
         name: '',
@@ -140,20 +150,31 @@ const StudentManagement = () => {
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}/teacher/students/${teacherId}`);
+            let url = `${API_BASE_URL}/teacher/students/${teacherId}`;
+            
+            // If filtered by class, fetch students for that specific class
+            if (isFilteredByClass && classFilter.classId) {
+                url = `${API_BASE_URL}/class/${classFilter.classId}/students`;
+            }
+
+            const response = await fetch(url);
             const data = await response.json();
 
-            if (data.success && data.data.length > 0) {
-                setStudents(data.data);
+            if (data.success) {
+                // Handle response from class endpoint (students are in data.data.students)
+                const studentsList = data.data.students || data.data || [];
+                if (studentsList.length > 0) {
+                    setStudents(studentsList);
+                } else {
+                    setStudents([]);
+                }
             } else {
-                // Fallback to mock data if no students found (for demonstration)
-                console.log('No students found from API, using mock data for reference');
-                setStudents(MOCK_STUDENTS);
+                console.log('No students found');
+                setStudents([]);
             }
         } catch (error) {
             console.error('Error fetching students:', error);
-            // Fallback to mock data on error
-            setStudents(MOCK_STUDENTS);
+            setStudents([]);
         } finally {
             setLoading(false);
         }
@@ -161,7 +182,7 @@ const StudentManagement = () => {
 
     useEffect(() => {
         fetchStudents();
-    }, []);
+    }, [searchParams]);
 
     // Create student manually
     const handleCreateStudent = async (e) => {
@@ -484,15 +505,43 @@ const StudentManagement = () => {
         <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
             <Navigation userType="teacher" />
             <div style={{ padding: '1rem', paddingTop: '5rem', maxWidth: '1400px', margin: '0 auto' }}>
+                {/* Back button when filtered by class */}
+                {isFilteredByClass && (
+                    <button
+                        onClick={() => navigate('/teacher/classes')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: 'white',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '0.5rem',
+                            cursor: 'pointer',
+                            marginBottom: '1rem',
+                            color: '#374151'
+                        }}
+                    >
+                        <ArrowLeft size={18} />
+                        Back to Classes
+                    </button>
+                )}
+
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
                             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-                                Student Management
+                                {isFilteredByClass 
+                                    ? `Students - Grade ${classFilter.grade} Section ${classFilter.section}`
+                                    : 'Student Management'
+                                }
                             </h1>
                             <p style={{ color: '#6b7280' }}>
-                                Add, import, and manage student credentials
+                                {isFilteredByClass 
+                                    ? `Viewing students in Grade ${classFilter.grade} - Section ${classFilter.section}`
+                                    : 'Add, import, and manage student credentials'
+                                }
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
