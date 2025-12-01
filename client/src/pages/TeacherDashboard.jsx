@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +16,19 @@ import {
 } from "lucide-react";
 
 const TeacherDashboard = () => {
-  // Mock teacher data
+  // Get logged-in user from localStorage
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Teacher data with user info from localStorage
   const teacherData = {
-    name: "Dr. Sarah Miller",
+    name: user?.Name || user?.name || "Teacher",
     institution: "Green Valley High School",
     studentsCount: 120,
     classesCount: 5,

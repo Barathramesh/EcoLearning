@@ -3,7 +3,7 @@ import api from './api';
 // Student Authentication
 export const studentLogin = async (rollNumber, password) => {
   try {
-    const response = await api.post('/api/student/login', {
+    const response = await api.post('/student/login', {
       rollNumber,
       password,
     });
@@ -23,7 +23,7 @@ export const studentLogin = async (rollNumber, password) => {
 // Teacher Authentication
 export const teacherLogin = async (teacherId, password) => {
   try {
-    const response = await api.post('/api/teacher/login', {
+    const response = await api.post('/teacher/login', {
       teacherId,
       password,
     });

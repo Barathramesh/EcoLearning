@@ -122,10 +122,10 @@ const StudentManagement = () => {
 
     const [importData, setImportData] = useState([]);
 
-    // Get teacher ID from localStorage
+    // Get teacher ID from localStorage (use teacherId for API calls)
     const getTeacherId = () => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        return user.id;
+        return user.teacherId || user.id;
     };
 
     // Fetch students
@@ -168,7 +168,7 @@ const StudentManagement = () => {
         e.preventDefault();
         try {
             const teacherId = getTeacherId();
-            const response = await fetch(`${API_BASE_URL}/teacher/students/create`, {
+            const response = await fetch(`${API_BASE_URL}/teacher/create-students`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...newStudent, teacherId })
@@ -189,6 +189,19 @@ const StudentManagement = () => {
                     school: '',
                     joiningDate: ''
                 });
+                
+                // Show generated credentials to teacher
+                if (data.data.generatedPassword) {
+                    setGeneratedCredentials([{
+                        _id: data.data._id,
+                        name: data.data.name,
+                        rollNumber: data.data.rollNumber,
+                        email: data.data.email,
+                        username: data.data.rollNumber,
+                        password: data.data.generatedPassword
+                    }]);
+                    setShowCredentialsModal(true);
+                }
             } else {
                 alert(data.message);
             }
@@ -207,45 +220,83 @@ const StudentManagement = () => {
     };
 
     // Import students from CSV/Excel
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target.result;
-            const lines = text.split('\n').filter(line => line.trim());
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const fileName = file.name.toLowerCase();
+        const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
 
-            const parsedData = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(v => v.trim());
-                if (values.length >= 4) { // At least name, rollNumber, email, phone
-                    const student = {
-                        name: values[headers.indexOf('name')] || values[0],
-                        rollNumber: values[headers.indexOf('rollnumber')] || values[headers.indexOf('roll number')] || values[1],
-                        studentClass: values[headers.indexOf('class')] || values[headers.indexOf('studentclass')] || values[2] || '',
-                        email: values[headers.indexOf('email')] || values[3],
-                        phone: values[headers.indexOf('phone')] || values[headers.indexOf('phone number')] || values[4],
-                        address: values[headers.indexOf('address')] || values[5] || '',
-                        school: values[headers.indexOf('school')] || values[6] || '',
-                        joiningDate: values[headers.indexOf('joiningdate')] || values[headers.indexOf('joining date')] || values[7] || ''
-                    };
-                    parsedData.push(student);
+        if (isExcel) {
+            // For Excel files, send directly to backend for parsing
+            try {
+                const teacherId = getTeacherId();
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('teacherId', teacherId);
+
+                const response = await fetch(`${API_BASE_URL}/teacher/import-students-file`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    fetchStudents();
+                    
+                    // Show credentials modal with imported students' credentials
+                    if (data.credentials && data.credentials.length > 0) {
+                        setGeneratedCredentials(data.credentials);
+                        setShowCredentialsModal(true);
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    alert(data.message || 'Failed to import students');
                 }
+            } catch (error) {
+                console.error('Error importing Excel file:', error);
+                alert('Failed to import Excel file');
             }
+        } else {
+            // For CSV files, parse on client side and show preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target.result;
+                const lines = text.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
 
-            setImportData(parsedData);
-            setShowImportModal(true);
-        };
-        reader.readAsText(file);
+                const parsedData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    if (values.length >= 4) { // At least name, rollNumber, email, phone
+                        const student = {
+                            name: values[headers.indexOf('name')] || values[0],
+                            rollNumber: values[headers.indexOf('rollnumber')] || values[headers.indexOf('roll number')] || values[1],
+                            studentClass: values[headers.indexOf('class')] || values[headers.indexOf('studentclass')] || values[2] || '',
+                            email: values[headers.indexOf('email')] || values[3],
+                            phone: values[headers.indexOf('phone')] || values[headers.indexOf('phone number')] || values[4],
+                            address: values[headers.indexOf('address')] || values[5] || '',
+                            school: values[headers.indexOf('school')] || values[6] || '',
+                            joiningDate: values[headers.indexOf('joiningdate')] || values[headers.indexOf('joining date')] || values[7] || ''
+                        };
+                        parsedData.push(student);
+                    }
+                }
+
+                setImportData(parsedData);
+                setShowImportModal(true);
+            };
+            reader.readAsText(file);
+        }
         e.target.value = ''; // Reset file input
     };
 
     const handleImportStudents = async () => {
         try {
             const teacherId = getTeacherId();
-            const response = await fetch(`${API_BASE_URL}/teacher/students/import`, {
+            const response = await fetch(`${API_BASE_URL}/teacher/import-students`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ students: importData, teacherId })
@@ -254,10 +305,17 @@ const StudentManagement = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert(data.message);
                 fetchStudents();
                 setShowImportModal(false);
                 setImportData([]);
+                
+                // Show credentials modal with imported students' credentials
+                if (data.credentials && data.credentials.length > 0) {
+                    setGeneratedCredentials(data.credentials);
+                    setShowCredentialsModal(true);
+                } else {
+                    alert(data.message);
+                }
             } else {
                 alert(data.message);
             }
@@ -275,7 +333,7 @@ const StudentManagement = () => {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/teacher/students/generate-credentials`, {
+            const response = await fetch(`${API_BASE_URL}/teacher/generate-credentials`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ studentIds: selectedStudents })
@@ -460,7 +518,7 @@ const StudentManagement = () => {
                                 type="file"
                                 ref={fileInputRef}
                                 onChange={handleFileUpload}
-                                accept=".csv,.txt"
+                                accept=".csv,.txt,.xlsx,.xls"
                                 style={{ display: 'none' }}
                             />
                             <button
@@ -479,7 +537,7 @@ const StudentManagement = () => {
                                 }}
                             >
                                 <Upload size={18} />
-                                Import CSV
+                                Import CSV/Excel
                             </button>
                         </div>
                     </div>

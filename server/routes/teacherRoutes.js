@@ -2,9 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { 
   teacherLogin, 
-  teacherRegister,
   createStudent, 
-  importStudents,
   importStudentsFromFile, 
   getStudentsByTeacher, 
   generateCredentials,
@@ -35,11 +33,10 @@ const upload = multer({
 
 // Teacher authentication
 teacherRouter.post('/login', teacherLogin);
-teacherRouter.post('/register', teacherRegister);
+// teacherRouter.post('/register', teacherRegister);
 
 // Teacher manages students
 teacherRouter.post('/create-students', createStudent);
-teacherRouter.post('/import-students', importStudents);
 teacherRouter.post('/import-students-file', upload.single('file'), importStudentsFromFile);
 teacherRouter.get('/students/:teacherId', getStudentsByTeacher);
 teacherRouter.post('/generate-credentials', generateCredentials);
