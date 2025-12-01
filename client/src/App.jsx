@@ -31,6 +31,7 @@ import ClassManagement from "./pages/teacher/ClassManagement";
 import StudentProgressTracking from "./pages/teacher/StudentProgressTracking";
 import AssignmentCreation from "./pages/teacher/AssignmentCreation";
 import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
+import StudentManagement from "./pages/teacher/StudentManagement";
 
 // Admin module imports
 import UserManagement from "./pages/admin/UserManagement";
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<ClassManagement />} />
           <Route path="/teacher/students" element={<StudentProgressTracking />} />
+          <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignments" element={<AssignmentCreation />} />
           <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
           <Route path="/admin/users" element={<UserManagement />} />

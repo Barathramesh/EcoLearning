@@ -8,6 +8,11 @@ export const studentLogin = async (rollNumber, password) => {
       password,
     });
     
+    // Store user data in localStorage
+    if (response.data.success) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    
     return response.data;
 
   } catch (error) {
@@ -22,6 +27,11 @@ export const teacherLogin = async (teacherId, password) => {
       teacherId,
       password,
     });
+    
+    // Store user data in localStorage
+    if (response.data.success) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
     
     return response.data;
 

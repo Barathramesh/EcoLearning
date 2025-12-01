@@ -12,19 +12,32 @@ export const studentLogin = async (req, res) => {
 
     const { rollNumber, password } = req.body;
     const student = await Student.findOne({ rollNumber });
+    
     if (!student) {
       return res.status(401).json({ 
         success: false, 
-        message: 'No rollnumber found' 
+        message: 'Invalid username or password' 
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, student.password);
+    if (!student.credentialsGenerated || !student.passwordHash) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Credentials not generated yet. Contact your teacher.' 
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, student.passwordHash);
     if (!isPasswordValid) {
       return res.status(401).json({ 
         success: false, 
-        message: 'Invalid password' 
+        message: 'Invalid username or password' 
       });
+    }
+
+    // Clear plain password after first login
+    if (student.plainPassword) {
+      await Student.findByIdAndUpdate(student._id, { plainPassword: null });
     }
 
     res.status(200).json({
@@ -36,6 +49,10 @@ export const studentLogin = async (req, res) => {
           name: student.name,
           rollNumber: student.rollNumber,
           email: student.email,
+          phone: student.phone,
+          address: student.address,
+          school: student.school,
+          joiningDate: student.joiningDate,
           role: 'student'
         }
       }
@@ -45,63 +62,6 @@ export const studentLogin = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Server error during login' 
-    });
-  }
-};
-
-
-//  Student Registration
-export const studentRegister = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    const { name, class: studentClass, rollNumber, email, phone, joinDate, address, password } = req.body;
-
-    const existingStudent = await Student.findOne({
-      $or: [{ rollNumber }, { email }]
-    });
-    
-    if (existingStudent) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Student already exists with this roll number or email' 
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const student = await Student.create({
-      name,
-      class: studentClass,
-      rollNumber,
-      email,
-      phone,
-      joinDate,
-      address,
-      password: hashedPassword,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful',
-      data: {
-        user: {
-          id: student._id,
-          name: student.name,
-          rollNumber: student.rollNumber,
-          email: student.email,
-          role: 'student'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Student registration error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error during registration' 
     });
   }
 };
