@@ -33,6 +33,8 @@ import AssignmentCreation from "./pages/teacher/AssignmentCreation";
 import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
 import StudentManagement from "./pages/teacher/StudentManagement";
 
+import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
+
 // Admin module imports
 import UserManagement from "./pages/admin/UserManagement";
 import SystemAnalytics from "./pages/admin/SystemAnalytics";
@@ -81,6 +83,7 @@ const App = () => (
           <Route path="/admin/moderation" element={<ContentModeration />} />
           <Route path="/admin/settings" element={<SystemSettings />} />
           <Route path="/teacher/student-management" element={<StudentManagement />} />
+          <Route path="/teacher/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

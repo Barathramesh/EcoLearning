@@ -4,20 +4,11 @@ import Navigation from '../../components/Navigation';
 import {
   Users,
   Plus,
-  Settings,
   Search,
   Filter,
-  MoreVertical,
-  UserPlus,
   BookOpen,
-  Calendar,
-  Clock,
-  MapPin,
-  Edit,
   Trash2,
-  Eye,
-  FileText,
-  ChevronDown
+  Eye
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -30,12 +21,10 @@ const ClassManagement = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [manageDropdownId, setManageDropdownId] = useState(null);
 
   // Get teacher info from localStorage
   const getTeacherInfo = () => {
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    console.log('Stored user:', storedUser); // Debug log
     return {
       teacherId: storedUser.teacherId || storedUser.id || storedUser._id,
       teacherName: storedUser.Name || storedUser.name || 'Teacher'
@@ -78,13 +67,6 @@ const ClassManagement = () => {
       setUser(JSON.parse(storedUser));
     }
     fetchClasses();
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => setManageDropdownId(null);
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const [newClass, setNewClass] = useState({
@@ -348,12 +330,12 @@ const ClassManagement = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ position: 'relative' }}>
+              {/* Action Button */}
+              <div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setManageDropdownId(manageDropdownId === cls.id ? null : cls.id);
+                    navigate(`/teacher/student-management?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
                   }}
                   style={{
                     width: '100%',
@@ -371,80 +353,9 @@ const ClassManagement = () => {
                     gap: '0.5rem'
                   }}
                 >
-                  <Settings size={16} />
-                  Manage Class
-                  <ChevronDown size={16} style={{ 
-                    transform: manageDropdownId === cls.id ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s'
-                  }} />
+                  <Eye size={16} />
+                  View Details
                 </button>
-                
-                {/* Dropdown Menu */}
-                {manageDropdownId === cls.id && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    marginTop: '0.25rem',
-                    backgroundColor: 'white',
-                    borderRadius: '0.375rem',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                    border: '1px solid #e5e7eb',
-                    zIndex: 10,
-                    overflow: 'hidden'
-                  }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setManageDropdownId(null);
-                        navigate(`/teacher/assignments?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        backgroundColor: 'white',
-                        border: 'none',
-                        borderBottom: '1px solid #e5e7eb',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: '#374151'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                    >
-                      <FileText size={16} style={{ color: '#8b5cf6' }} />
-                      Assignment
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setManageDropdownId(null);
-                        navigate(`/teacher/student-management?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        backgroundColor: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: '#374151'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                    >
-                      <Users size={16} style={{ color: '#059669' }} />
-                      View Students
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           ))}

@@ -26,7 +26,9 @@ import {
     ChevronDown,
     ChevronUp,
     MoreVertical,
-    ArrowLeft
+    ArrowLeft,
+    FileText,
+    ClipboardList
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -110,6 +112,8 @@ const StudentManagement = () => {
     const [editingStudent, setEditingStudent] = useState(null);
     const [expandedStudentId, setExpandedStudentId] = useState(null);
     const fileInputRef = useRef(null);
+    const [assignments, setAssignments] = useState([]);
+    const [loadingAssignments, setLoadingAssignments] = useState(false);
 
     // Get class filter from URL params
     const classFilter = {
@@ -180,8 +184,33 @@ const StudentManagement = () => {
         }
     };
 
+    // Fetch assignments for the class
+    const fetchAssignments = async () => {
+        if (!isFilteredByClass || !classFilter.classId) return;
+        
+        setLoadingAssignments(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignment/class/${classFilter.classId}`);
+            const data = await response.json();
+            
+            if (Array.isArray(data)) {
+                setAssignments(data);
+            } else {
+                setAssignments([]);
+            }
+        } catch (error) {
+            console.error('Error fetching assignments:', error);
+            setAssignments([]);
+        } finally {
+            setLoadingAssignments(false);
+        }
+    };
+
     useEffect(() => {
         fetchStudents();
+        if (isFilteredByClass) {
+            fetchAssignments();
+        }
     }, [searchParams]);
 
     // Create student manually
@@ -588,6 +617,26 @@ const StudentManagement = () => {
                                 <Upload size={18} />
                                 Import CSV/Excel
                             </button>
+                            {isFilteredByClass && (
+                                <button
+                                    onClick={() => navigate(`/teacher/assignments?classId=${classFilter.classId}&grade=${classFilter.grade}&section=${classFilter.section}`)}
+                                    style={{
+                                        backgroundColor: '#8b5cf6',
+                                        color: 'white',
+                                        padding: '0.75rem 1rem',
+                                        borderRadius: '0.5rem',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    <FileText size={18} />
+                                    Create Assignment
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -875,6 +924,215 @@ const StudentManagement = () => {
                                 )}
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* Assignments Section - Only shown when filtered by class */}
+                {isFilteredByClass && (
+                    <div style={{ marginTop: '2rem' }}>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <ClipboardList size={20} />
+                                Class Assignments ({assignments.length})
+                            </h2>
+                        </div>
+                        
+                        {/* Assignments List - Card Grid */}
+                        {loadingAssignments ? (
+                            <div style={{
+                                backgroundColor: 'white',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #e5e7eb',
+                                padding: '2rem',
+                                textAlign: 'center',
+                                color: '#6b7280'
+                            }}>
+                                <p>Loading assignments...</p>
+                            </div>
+                        ) : assignments.length > 0 ? (
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                                gap: '1rem' 
+                            }}>
+                                {assignments.map((assignment) => {
+                                    const isActive = new Date(assignment.dueDate) >= new Date();
+                                    const typeLabels = {
+                                        'traditional': 'Traditional Assignment',
+                                        'project-based': 'Project-Based',
+                                        'quiz-assessment': 'Quiz & Assessment',
+                                        'multimedia': 'Multimedia Project'
+                                    };
+                                    const submissionProgress = assignment.totalStudents > 0 
+                                        ? (assignment.submissions / assignment.totalStudents) * 100 
+                                        : 0;
+                                    
+                                    return (
+                                        <div 
+                                            key={assignment._id}
+                                            style={{
+                                                backgroundColor: 'white',
+                                                borderRadius: '1rem',
+                                                border: '1px solid #e5e7eb',
+                                                padding: '1.5rem',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                                            }}
+                                        >
+                                            {/* Header with Title and Status */}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                                                <h3 style={{ fontWeight: '600', color: '#1f2937', fontSize: '1.25rem', flex: 1, paddingRight: '0.5rem' }}>
+                                                    {assignment.title}
+                                                </h3>
+                                                <span style={{
+                                                    fontSize: '0.8rem',
+                                                    color: isActive ? '#16a34a' : '#6b7280',
+                                                    backgroundColor: isActive ? '#dcfce7' : '#f3f4f6',
+                                                    padding: '0.375rem 0.875rem',
+                                                    borderRadius: '9999px',
+                                                    fontWeight: '500',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    {isActive ? 'Active' : 'Draft'}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Subject */}
+                                            <p style={{ fontSize: '1rem', color: '#16a34a', marginBottom: '1.25rem' }}>
+                                                {assignment.subject}
+                                            </p>
+                                            
+                                            {/* Due Date and Type Row */}
+                                            <div style={{ display: 'flex', gap: '3rem', marginBottom: '1rem' }}>
+                                                <div>
+                                                    <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Due Date</p>
+                                                    <p style={{ fontSize: '1rem', color: '#374151', fontWeight: '500' }}>
+                                                        {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('en-US', { 
+                                                            month: 'short', 
+                                                            day: 'numeric', 
+                                                            year: 'numeric' 
+                                                        }) : 'Not set'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Type</p>
+                                                    <p style={{ fontSize: '1rem', color: '#374151', fontWeight: '500' }}>
+                                                        {typeLabels[assignment.type] || assignment.type}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Submissions and Avg Score Row */}
+                                            <div style={{ display: 'flex', gap: '3rem', marginBottom: '1rem' }}>
+                                                <div>
+                                                    <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Submissions</p>
+                                                    <p style={{ fontSize: '1rem', color: '#374151', fontWeight: '500' }}>
+                                                        {assignment.submissions || 0}/{assignment.totalStudents || 0}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Avg Score</p>
+                                                    <p style={{ fontSize: '1rem', color: '#374151', fontWeight: '500' }}>
+                                                        {assignment.avgScore || 0}%
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Progress Bar */}
+                                            <div style={{ 
+                                                height: '8px', 
+                                                backgroundColor: '#e5e7eb', 
+                                                borderRadius: '9999px', 
+                                                marginBottom: '1.25rem',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{ 
+                                                    height: '100%', 
+                                                    width: `${submissionProgress}%`, 
+                                                    backgroundColor: '#22c55e',
+                                                    borderRadius: '9999px',
+                                                    transition: 'width 0.3s ease'
+                                                }} />
+                                            </div>
+                                            
+                                            {/* Action Buttons */}
+                                            <div style={{ display: 'flex', gap: '0.625rem' }}>
+                                                <button
+                                                    onClick={() => navigate(`/teacher/assignment/${assignment._id}/submissions?classId=${classFilter.classId}&grade=${classFilter.grade}&section=${classFilter.section}`)}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '0.75rem',
+                                                        backgroundColor: '#22c55e',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '0.5rem',
+                                                        cursor: 'pointer',
+                                                        fontWeight: '500',
+                                                        fontSize: '0.9rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '0.5rem'
+                                                    }}
+                                                >
+                                                    <Eye size={18} />
+                                                    View
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate(`/teacher/assignments/edit/${assignment._id}`)}
+                                                    style={{
+                                                        padding: '0.75rem',
+                                                        backgroundColor: 'white',
+                                                        color: '#6b7280',
+                                                        border: '1px solid #e5e7eb',
+                                                        borderRadius: '0.5rem',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`${window.location.origin}/assignment/${assignment._id}`);
+                                                        alert('Assignment link copied!');
+                                                    }}
+                                                    style={{
+                                                        padding: '0.75rem',
+                                                        backgroundColor: 'white',
+                                                        color: '#6b7280',
+                                                        border: '1px solid #e5e7eb',
+                                                        borderRadius: '0.5rem',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <Copy size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div style={{
+                                backgroundColor: 'white',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #e5e7eb',
+                                padding: '2rem',
+                                textAlign: 'center',
+                                color: '#6b7280'
+                            }}>
+                                <FileText size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                                <p style={{ marginBottom: '0.5rem' }}>No assignments created for this class yet.</p>
+                                <p style={{ fontSize: '0.875rem' }}>
+                                    Click "Create Assignment" button above to create your first assignment for Grade {classFilter.grade} - Section {classFilter.section}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
 
