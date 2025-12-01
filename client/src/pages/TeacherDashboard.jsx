@@ -89,14 +89,6 @@ const TeacherDashboard = () => {
     { rank: 5, school: "Sustainable Learning Center", avgPoints: 2489, students: 140 }
   ];
 
-  const topGlobalStudents = [
-    { rank: 1, name: "Maya Patel", school: "Eco Academy", points: 4567 },
-    { rank: 2, name: "James Liu", school: "Nature's Way School", points: 4234 },
-    { rank: 3, name: "Zara Ahmed", school: "Earth Science Institute", points: 3987 },
-    { rank: 4, name: "Carlos Rodriguez", school: "Sustainable Learning", points: 3845 },
-    { rank: 5, name: "Alex Johnson", school: "Green Valley High", points: 3678, isMyStudent: true }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <Navigation />
@@ -264,44 +256,6 @@ const TeacherDashboard = () => {
 
             {/* Right Column */}
             <div className="space-y-6">
-              {/* Global Student Leaderboard */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5" />
-                    Top Global Students
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {topGlobalStudents.map((student) => (
-                      <div
-                        key={student.rank}
-                        className={`flex items-center justify-between p-2 rounded-lg ${student.isMyStudent ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-                          }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${student.rank === 1 ? 'bg-yellow-500' :
-                              student.rank === 2 ? 'bg-gray-400' :
-                                student.rank === 3 ? 'bg-orange-500' :
-                                  'bg-gray-300'
-                            }`}>
-                            {student.rank}
-                          </div>
-                          <div>
-                            <p className={`text-sm font-semibold ${student.isMyStudent ? 'text-green-700' : 'text-gray-800'}`}>
-                              {student.name} {student.isMyStudent && '⭐'}
-                            </p>
-                            <p className="text-xs text-gray-500">{student.school}</p>
-                          </div>
-                        </div>
-                        <p className="text-sm font-bold text-gray-800">{student.points.toLocaleString()}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Quick Actions */}
               <Card>
                 <CardHeader>

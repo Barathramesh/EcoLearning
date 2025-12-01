@@ -5,6 +5,7 @@ import connectDB from './config/database.js';
 import studentRoutes from './routes/studentRouter.js';
 import teacherRouter from './routes/teacherRoutes.js';
 import classRouter from './routes/classRoutes.js';
+import assignmentRouter from './routes/assignmentRoutes.js';
 
 const app = express();
 const port = process.env.PORT;
@@ -19,6 +20,7 @@ app.get('/', (req, res) => res.send("API is Working"));
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRoutes);
 app.use('/api/class', classRouter);
+app.use('/api/assignment', assignmentRouter);
 
 
 
