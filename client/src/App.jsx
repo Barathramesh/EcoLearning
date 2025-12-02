@@ -17,6 +17,7 @@ import AI from "./pages/student/AI";
 import Profile from "./pages/student/Profile";
 import Leaderboard from "./pages/student/Leaderboard";
 import UploadAssignment from "./pages/student/UploadAssignment";
+import ChangePassword from "./pages/student/ChangePassword";
 import SaveTheTreesGame from "./pages/student/SaveTheTreesGame";
 import EcoQuestAdventure from "./pages/student/EcoQuestAdventure";
 import OceanCleanupHero from "./pages/student/OceanCleanupHero";
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/student/games" element={<Games />} />
           <Route path="/student/lessons" element={<Lessons />} />
           <Route path="/student/upload-assignment" element={<UploadAssignment />} />
+          <Route path="/student/change-password" element={<ChangePassword />} />
           <Route path="/student/ai" element={<AI />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/leaderboard" element={<Leaderboard />} />

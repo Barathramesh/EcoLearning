@@ -6,6 +6,7 @@ import studentRoutes from './routes/studentRouter.js';
 import teacherRouter from './routes/teacherRoutes.js';
 import classRouter from './routes/classRoutes.js';
 import assignmentRouter from './routes/assignmentRoutes.js';
+import submissionRouter from './routes/submissionRoutes.js';
 
 const app = express();
 const port = process.env.PORT;
@@ -21,6 +22,7 @@ app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRoutes);
 app.use('/api/class', classRouter);
 app.use('/api/assignment', assignmentRouter);
+app.use('/api/submission', submissionRouter);
 
 
 

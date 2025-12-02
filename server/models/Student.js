@@ -13,6 +13,7 @@ const studentSchema = new mongoose.Schema({
   passwordHash: { type: String }, // Hashed password (generated randomly)
   plainPassword: { type: String }, // Store plain password temporarily for display (cleared after first login)
   credentialsGenerated: { type: Boolean, default: false },
+  isFirstLogin: { type: Boolean, default: true }, // Track if student needs to change password
   teacherId: { type: String, required: true }, // Teacher ID who created the student (e.g., "Ajay123")
   createdAt: { type: Date, default: Date.now }
 }, {

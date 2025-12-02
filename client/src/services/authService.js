@@ -20,6 +20,27 @@ export const studentLogin = async (rollNumber, password) => {
   }
 };
 
+// Student Change Password (First Login)
+export const studentChangePassword = async (rollNumber, oldPassword, newPassword) => {
+  try {
+    const response = await api.post('/student/change-password', {
+      rollNumber,
+      oldPassword,
+      newPassword,
+    });
+    
+    // Store updated user data in localStorage
+    if (response.data.success) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    
+    return response.data;
+
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Password change failed' };
+  }
+};
+
 // Teacher Authentication
 export const teacherLogin = async (teacherId, password) => {
   try {
