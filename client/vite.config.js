@@ -5,16 +5,17 @@ import path from "path";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 3000, 
+    port: 3000,
+  },
   plugins: [react()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },}
+  },
   build: {
-    outDir: "dist", 
-    chunkSizeWarningLimit: 1500, 
+    outDir: "dist",
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {

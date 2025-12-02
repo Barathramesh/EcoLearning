@@ -8,6 +8,7 @@ import connectDB from './config/database.js';
 import studentRoutes from './routes/studentRouter.js';
 import teacherRouter from './routes/teacherRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
+import videoRouter from './routes/videoRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,7 @@ app.get('/', (req, res) => res.send("API is Working"));
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRoutes);
 app.use('/api/assignment', assignmentRoutes);
+app.use('/api/video', videoRouter);
 
 
 
