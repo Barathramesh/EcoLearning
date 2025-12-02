@@ -11,12 +11,21 @@ class AIGradingService {
     this.apiKey = process.env.GEMINI_API_KEY;
     // Using gemini-2.0-flash model (latest stable version as of Dec 2024)
     this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    this.maxRetries = 3;
+    this.baseDelay = 2000; // 2 seconds base delay
   }
 
   /**
-   * Send request to Gemini API
+   * Sleep for specified milliseconds
    */
-  async callGeminiAPI(prompt) {
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Send request to Gemini API with retry logic for rate limiting
+   */
+  async callGeminiAPI(prompt, retryCount = 0) {
     try {
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
         method: 'POST',
@@ -34,6 +43,18 @@ class AIGradingService {
         })
       });
 
+      // Handle rate limiting (429) with retry
+      if (response.status === 429) {
+        if (retryCount < this.maxRetries) {
+          const delay = this.baseDelay * Math.pow(2, retryCount); // Exponential backoff
+          console.log(`Rate limited (429). Retrying in ${delay/1000}s... (attempt ${retryCount + 1}/${this.maxRetries})`);
+          await this.sleep(delay);
+          return this.callGeminiAPI(prompt, retryCount + 1);
+        } else {
+          throw new Error('Rate limit exceeded. Please try again in a few minutes.');
+        }
+      }
+
       if (!response.ok) {
         throw new Error(`Gemini API error: ${response.status}`);
       }
@@ -41,6 +62,13 @@ class AIGradingService {
       const data = await response.json();
       return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     } catch (error) {
+      // Retry on network errors too
+      if (retryCount < this.maxRetries && error.message.includes('fetch')) {
+        const delay = this.baseDelay * Math.pow(2, retryCount);
+        console.log(`Network error. Retrying in ${delay/1000}s... (attempt ${retryCount + 1}/${this.maxRetries})`);
+        await this.sleep(delay);
+        return this.callGeminiAPI(prompt, retryCount + 1);
+      }
       console.error('Gemini API Error:', error);
       throw error;
     }
@@ -327,13 +355,18 @@ Respond in this exact JSON format only:
     const classLevel = className || '';
     
     try {
-      // Run all checks in parallel
-      const [answerVerification, topicRelevance, contentQuality, originality] = await Promise.all([
-        this.verifyAnswer(studentContent, expectedAnswer, keyPoints, title, subject, classLevel),
-        this.checkTopicRelevance(studentContent, title, subject),
-        this.analyzeContentQuality(studentContent, title, subject, classLevel),
-        this.checkOriginality(studentContent)
-      ]);
+      // Run checks SEQUENTIALLY to avoid rate limiting (429 errors)
+      // Add small delays between calls
+      const answerVerification = await this.verifyAnswer(studentContent, expectedAnswer, keyPoints, title, subject, classLevel);
+      await this.sleep(500); // 500ms delay between API calls
+      
+      const topicRelevance = await this.checkTopicRelevance(studentContent, title, subject);
+      await this.sleep(500);
+      
+      const contentQuality = await this.analyzeContentQuality(studentContent, title, subject, classLevel);
+      await this.sleep(500);
+      
+      const originality = await this.checkOriginality(studentContent);
 
       // STRICT SCORING LOGIC
       let contentScore = answerVerification.contentAccuracy || 0;
@@ -482,7 +515,7 @@ Respond in this exact JSON format only:
     
     // Start with what went wrong (if anything)
     if (!answerVerification.isCorrect || contentScore < 50) {
-      feedback += `⚠️ **Your answer needs improvement.**\n\n`;
+      feedback += `⚠ **Your answer needs improvement.**\n\n`;
       
       if (!topicRelevance.isRelevant) {
         feedback += `❌ **Problem:** Your answer was about "${topicRelevance.topicMatch}" but the question asked about something different.\n\n`;
@@ -532,7 +565,7 @@ Respond in this exact JSON format only:
     if (contentQuality.improvements && contentQuality.improvements.length > 0) {
       feedback += `💡 **Tips to improve:**\n`;
       contentQuality.improvements.slice(0, 2).forEach(imp => {
-        feedback += `• ${imp}\n`;
+        feedback +=` • ${imp}\n`;
       });
       feedback += `\n`;
     }

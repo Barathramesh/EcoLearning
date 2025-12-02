@@ -1,6 +1,7 @@
 import Assignment from '../models/Assignment.js';
 import Class from '../models/Class.js';
 import Student from '../models/Student.js';
+import fetch from 'node-fetch';
 
 // Create a new assignment
 export const createAssignment = async (req, res) => {
@@ -168,5 +169,235 @@ export const getAssignmentsByGradeSection = async (req, res) => {
   } catch (error) {
     console.error('Error fetching assignments:', error);
     res.status(500).json({ message: 'Error fetching assignments', error: error.message });
+  }
+};
+
+// Generate expected answer using Gemini AI
+export const generateExpectedAnswer = async (req, res) => {
+  try {
+    const { title, description, subject, maxPoints } = req.body;
+
+    if (!title || !subject) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and subject are required'
+      });
+    }
+
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: 'Gemini API key not configured'
+      });
+    }
+
+    const prompt = `You are an expert teacher creating a model answer for an environmental science assignment.
+
+Assignment Details:
+- Title: ${title}
+- Subject: ${subject}
+- Description: ${description || 'Not provided'}
+- Maximum Points: ${maxPoints || 100}
+
+Please generate:
+1. A comprehensive expected answer (300-500 words) that would receive full marks
+2. 5 key points that should be included in a good answer
+
+Format your response as JSON:
+{
+  "expectedAnswer": "The detailed model answer here...",
+  "keyPoints": ["Key point 1", "Key point 2", "Key point 3", "Key point 4", "Key point 5"]
+}
+
+Focus on environmental science concepts and ensure the answer is educational and appropriate for students.`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiText) {
+      throw new Error('No response from Gemini API');
+    }
+
+    // Parse the JSON response from AI
+    let parsedResponse;
+    try {
+      // Extract JSON from the response (handle markdown code blocks)
+      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResponse = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
+    } catch (parseError) {
+      // If parsing fails, use the raw text as expected answer
+      parsedResponse = {
+        expectedAnswer: aiText,
+        keyPoints: []
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      expectedAnswer: parsedResponse.expectedAnswer || aiText,
+      keyPoints: parsedResponse.keyPoints || []
+    });
+
+  } catch (error) {
+    console.error('Error generating expected answer:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating expected answer',
+      error: error.message
+    });
+  }
+};
+
+// Extract text from image using Gemini Vision API
+export const extractTextFromImage = async (req, res) => {
+  try {
+    const { image, filename, mimeType } = req.body;
+
+    console.log('Extract text request received:', { 
+      hasImage: !!image, 
+      imageLength: image?.length || 0,
+      filename,
+      mimeType 
+    });
+
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        message: 'Image data is required'
+      });
+    }
+
+    // Clean the base64 data - remove any data URL prefix if present
+    let cleanImage = image;
+    if (image.includes(',')) {
+      cleanImage = image.split(',')[1];
+    }
+    // Remove any whitespace or newlines
+    cleanImage = cleanImage.replace(/\s/g, '');
+
+    console.log('Cleaned image length:', cleanImage.length);
+
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not found in environment');
+      return res.status(500).json({
+        success: false,
+        message: 'Gemini API key not configured'
+      });
+    }
+
+    // Detect MIME type from base64 header
+    let detectedMimeType = mimeType || 'image/jpeg';
+    if (cleanImage.startsWith('/9j/')) {
+      detectedMimeType = 'image/jpeg';
+    } else if (cleanImage.startsWith('iVBOR')) {
+      detectedMimeType = 'image/png';
+    } else if (cleanImage.startsWith('R0lGO')) {
+      detectedMimeType = 'image/gif';
+    } else if (cleanImage.startsWith('UklGR')) {
+      detectedMimeType = 'image/webp';
+    }
+
+    console.log('Detected MIME type:', detectedMimeType);
+
+    const prompt = `Extract ALL text from this image. Return ONLY the extracted text, nothing else.`;
+
+    console.log('Calling Gemini API...');
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                inline_data: {
+                  mime_type: detectedMimeType,
+                  data: cleanImage
+                }
+              },
+              { text: prompt }
+            ]
+          }]
+        })
+      }
+    );
+
+    console.log('Gemini API response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Gemini API error:', errorData);
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const extractedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Calculate word count
+    const wordCount = extractedText.trim().split(/\s+/).filter(w => w.length > 0).length;
+    
+    // Estimate quality based on word count
+    let quality = 'good';
+    let confidence = 85;
+    let tips = [];
+
+    if (wordCount < 10) {
+      quality = 'poor';
+      confidence = 40;
+      tips = ['Image may be blurry or too dark', 'Try taking a clearer photo', 'Ensure good lighting'];
+    } else if (wordCount < 30) {
+      quality = 'fair';
+      confidence = 65;
+      tips = ['Some text may be unclear', 'Consider retaking if text is missing'];
+    } else {
+      confidence = 90;
+      tips = ['Text extracted successfully'];
+    }
+
+    res.status(200).json({
+      success: true,
+      text: extractedText.trim(),
+      wordCount,
+      confidence,
+      quality,
+      tips
+    });
+
+  } catch (error) {
+    console.error('Error extracting text from image:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error extracting text from image',
+      error: error.message
+    });
   }
 };

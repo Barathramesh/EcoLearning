@@ -4,7 +4,13 @@ import Navigation from '../../components/Navigation';
 import { 
   FileText,
   ArrowLeft,
-  Send
+  Send,
+  Sparkles,
+  Plus,
+  X,
+  HelpCircle,
+  Wand2,
+  Loader2
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -14,6 +20,8 @@ const AssignmentCreation = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState([]);
+  const [showAISettings, setShowAISettings] = useState(true);
+  const [generatingAnswer, setGeneratingAnswer] = useState(false);
   
   // Get class info from URL params
   const classFilter = {
@@ -30,7 +38,17 @@ const AssignmentCreation = () => {
     className: classFilter.grade && classFilter.section ? `Grade ${classFilter.grade} - Section ${classFilter.section}` : '',
     maxPoints: 100,
     type: 'traditional',
-    dueDate: ''
+    dueDate: '',
+    // AI Grading fields
+    expectedAnswer: '',
+    keyPoints: [''],
+    enableAIGrading: true,
+    gradingCriteria: {
+      uniqueness: 25,
+      contentAccuracy: 40,
+      relevance: 20,
+      quality: 15
+    }
   });
 
   const subjects = [
@@ -108,6 +126,83 @@ const AssignmentCreation = () => {
     }));
   };
 
+  // Key Points handlers
+  const addKeyPoint = () => {
+    setAssignmentData(prev => ({
+      ...prev,
+      keyPoints: [...prev.keyPoints, '']
+    }));
+  };
+
+  const removeKeyPoint = (index) => {
+    setAssignmentData(prev => ({
+      ...prev,
+      keyPoints: prev.keyPoints.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateKeyPoint = (index, value) => {
+    setAssignmentData(prev => ({
+      ...prev,
+      keyPoints: prev.keyPoints.map((kp, i) => i === index ? value : kp)
+    }));
+  };
+
+  const handleCriteriaChange = (field, value) => {
+    const numValue = parseInt(value) || 0;
+    setAssignmentData(prev => ({
+      ...prev,
+      gradingCriteria: {
+        ...prev.gradingCriteria,
+        [field]: numValue
+      }
+    }));
+  };
+
+  // Generate Expected Answer with AI
+  const generateExpectedAnswerWithAI = async () => {
+    if (!assignmentData.title.trim()) {
+      alert('Please enter the Assignment Title first so AI can generate a relevant answer.');
+      return;
+    }
+    if (!assignmentData.subject) {
+      alert('Please select a Subject first.');
+      return;
+    }
+
+    setGeneratingAnswer(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/assignment/generate-answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          subject: assignmentData.subject,
+          maxPoints: assignmentData.maxPoints
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAssignmentData(prev => ({
+          ...prev,
+          expectedAnswer: data.expectedAnswer,
+          keyPoints: data.keyPoints && data.keyPoints.length > 0 ? data.keyPoints : prev.keyPoints
+        }));
+        alert('✨ Expected answer generated successfully! You can edit it if needed.');
+      } else {
+        alert(data.message || 'Failed to generate expected answer. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating expected answer:', error);
+      alert('Error generating expected answer. Please check your connection and try again.');
+    } finally {
+      setGeneratingAnswer(false);
+    }
+  };
+
   const handlePublish = async () => {
     // Validate required fields
     if (!assignmentData.title || !assignmentData.classId || !assignmentData.subject || !assignmentData.dueDate) {
@@ -115,15 +210,25 @@ const AssignmentCreation = () => {
       return;
     }
 
+    // Validate AI grading fields if enabled
+    if (assignmentData.enableAIGrading && !assignmentData.expectedAnswer.trim()) {
+      alert('Please provide an Expected Answer for AI grading, or disable AI grading.');
+      return;
+    }
+
     setLoading(true);
     try {
       const { teacherId, teacherName } = getTeacherInfo();
+      
+      // Filter out empty key points
+      const filteredKeyPoints = assignmentData.keyPoints.filter(kp => kp.trim() !== '');
       
       const response = await fetch(`${API_BASE_URL}/assignment/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...assignmentData,
+          keyPoints: filteredKeyPoints,
           teacherId,
           teacherName,
           status: 'published'
@@ -189,7 +294,7 @@ const AssignmentCreation = () => {
           </h1>
           <p style={{ color: '#6b7280' }}>
             {classFilter.grade && classFilter.section 
-              ? `Creating assignment for Grade ${classFilter.grade} - Section ${classFilter.section}`
+              ?  `Creating assignment for Grade ${classFilter.grade} - Section ${classFilter.section}`
               : 'Fill in the details to create a new assignment'
             }
           </p>
@@ -361,6 +466,248 @@ const AssignmentCreation = () => {
                 fontSize: '1rem'
               }}
             />
+          </div>
+
+          {/* AI Grading Section */}
+          <div style={{
+            backgroundColor: '#f5f3ff',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            border: '1px solid #c4b5fd'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#5b21b6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Sparkles size={24} />
+                AI Auto-Grading Settings
+              </h3>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={assignmentData.enableAIGrading}
+                  onChange={(e) => setAssignmentData(prev => ({ ...prev, enableAIGrading: e.target.checked }))}
+                  style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+                />
+                <span style={{ fontWeight: '500', color: '#374151' }}>Enable AI Grading</span>
+              </label>
+            </div>
+
+            {assignmentData.enableAIGrading && (
+              <>
+                {/* Expected Answer */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500', color: '#374151' }}>
+                      Expected Answer / Model Answer <span style={{ color: '#ef4444' }}>*</span>
+                      <HelpCircle size={16} style={{ color: '#9ca3af' }} title="The AI will compare student answers against this model answer" />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateExpectedAnswerWithAI}
+                      disabled={generatingAnswer}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        backgroundColor: generatingAnswer ? '#c4b5fd' : '#7c3aed',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        cursor: generatingAnswer ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      {generatingAnswer ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 size={16} />
+                          Generate with AI
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    name="expectedAnswer"
+                    value={assignmentData.expectedAnswer}
+                    onChange={handleInputChange}
+                    placeholder="Enter the ideal/model answer or click 'Generate with AI' to auto-generate based on the assignment title and subject..."
+                    rows={6}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      resize: 'vertical'
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    💡 Click "Generate with AI" to auto-generate an expected answer, or write your own. The AI will use this to grade student submissions.
+                  </p>
+                </div>
+
+                {/* Key Points */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
+                    Key Points to Cover
+                    <HelpCircle size={16} style={{ color: '#9ca3af' }} title="Specific concepts students should mention in their answer" />
+                  </label>
+                  {assignmentData.keyPoints.map((point, index) => (
+                    <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={point}
+                        onChange={(e) => updateKeyPoint(index, e.target.value)}
+                        placeholder={`Key point ${index + 1}...`}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.95rem'
+                        }}
+                      />
+                      {assignmentData.keyPoints.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeKeyPoint(index)}
+                          style={{
+                            padding: '0.5rem',
+                            backgroundColor: '#fee2e2',
+                            border: 'none',
+                            borderRadius: '0.5rem',
+                            cursor: 'pointer',
+                            color: '#dc2626'
+                          }}
+                        >
+                          <X size={18} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addKeyPoint}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#ddd6fe',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      color: '#5b21b6',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    <Plus size={16} />
+                    Add Key Point
+                  </button>
+                </div>
+
+                {/* Grading Criteria Weights */}
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontWeight: '500', color: '#374151' }}>
+                    Grading Criteria Weights
+                    <HelpCircle size={16} style={{ color: '#9ca3af' }} title="Adjust how much each criterion affects the final grade (must total 100)" />
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div style={{ backgroundColor: 'white', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                        Content Accuracy
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={assignmentData.gradingCriteria.contentAccuracy}
+                          onChange={(e) => handleCriteriaChange('contentAccuracy', e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                        <span style={{ fontWeight: '600', color: '#5b21b6', minWidth: '3rem' }}>{assignmentData.gradingCriteria.contentAccuracy}%</span>
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: 'white', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                        Originality / Uniqueness
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={assignmentData.gradingCriteria.uniqueness}
+                          onChange={(e) => handleCriteriaChange('uniqueness', e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                        <span style={{ fontWeight: '600', color: '#5b21b6', minWidth: '3rem' }}>{assignmentData.gradingCriteria.uniqueness}%</span>
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: 'white', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                        Topic Relevance
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={assignmentData.gradingCriteria.relevance}
+                          onChange={(e) => handleCriteriaChange('relevance', e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                        <span style={{ fontWeight: '600', color: '#5b21b6', minWidth: '3rem' }}>{assignmentData.gradingCriteria.relevance}%</span>
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: 'white', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                        Writing Quality
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={assignmentData.gradingCriteria.quality}
+                          onChange={(e) => handleCriteriaChange('quality', e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                        <span style={{ fontWeight: '600', color: '#5b21b6', minWidth: '3rem' }}>{assignmentData.gradingCriteria.quality}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem', textAlign: 'center' }}>
+                    Total Weight: <strong style={{ color: 
+                      (assignmentData.gradingCriteria.contentAccuracy + 
+                       assignmentData.gradingCriteria.uniqueness + 
+                       assignmentData.gradingCriteria.relevance + 
+                       assignmentData.gradingCriteria.quality) === 100 ? '#059669' : '#dc2626'
+                    }}>
+                      {assignmentData.gradingCriteria.contentAccuracy + 
+                       assignmentData.gradingCriteria.uniqueness + 
+                       assignmentData.gradingCriteria.relevance + 
+                       assignmentData.gradingCriteria.quality}%
+                    </strong>
+                    {(assignmentData.gradingCriteria.contentAccuracy + 
+                      assignmentData.gradingCriteria.uniqueness + 
+                      assignmentData.gradingCriteria.relevance + 
+                      assignmentData.gradingCriteria.quality) !== 100 && 
+                      <span style={{ color: '#dc2626' }}> (should be 100%)</span>
+                    }
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Publish Button */}

@@ -1,7 +1,8 @@
 import Submission from '../models/Submission.js';
 import Assignment from '../models/Assignment.js';
+import aiGradingService from '../services/aiGradingService.js';
 
-// Submit an assignment
+// Submit an assignment with AI grading
 export const submitAssignment = async (req, res) => {
   try {
     const { assignmentId, studentId, studentName, studentRollNumber, content, files } = req.body;
@@ -21,7 +22,7 @@ export const submitAssignment = async (req, res) => {
     // Check if submission is late
     const isLate = new Date() > new Date(assignment.dueDate);
 
-    // Create submission
+    // Create initial submission
     const submission = new Submission({
       assignmentId,
       studentId,
@@ -39,9 +40,99 @@ export const submitAssignment = async (req, res) => {
       $inc: { submissions: 1 }
     });
 
+    // AI Grading (if enabled and content exists)
+    let aiGradingResult = null;
+    if (assignment.enableAIGrading !== false && content && content.trim().length > 10) {
+      try {
+        console.log('Starting AI grading for submission:', submission._id);
+        
+        // Get previous submissions for uniqueness comparison
+        const previousSubmissions = await Submission.find({ 
+          assignmentId, 
+          _id: { $ne: submission._id } 
+        }).select('content').limit(10);
+
+        // Run AI grading
+        aiGradingResult = await aiGradingService.gradeAssignment(
+          content,
+          assignment,
+          previousSubmissions
+        );
+
+        if (aiGradingResult.success) {
+          // Update submission with AI grading results
+          submission.status = 'ai-graded';
+          submission.grade = aiGradingResult.grade;
+          submission.score = aiGradingResult.score;
+          submission.feedback = aiGradingResult.feedback || '';
+          submission.gradedAt = new Date();
+          submission.gradedBy = 'AI Auto-Grader';
+          
+          // Map AI grading result to submission model structure
+          submission.aiGrading = {
+            isGraded: true,
+            gradedAt: new Date(),
+            scores: aiGradingResult.aiGrading?.scores || {},
+            analysis: {
+              isCorrect: aiGradingResult.aiGrading?.analysis?.isCorrect,
+              wrongFacts: aiGradingResult.aiGrading?.analysis?.wrongFacts || [],
+              keyPointsCovered: aiGradingResult.aiGrading?.analysis?.keyPointsCovered || [],
+              keyPointsMissing: aiGradingResult.aiGrading?.analysis?.keyPointsMissing || [],
+              strengths: aiGradingResult.aiGrading?.analysis?.strengths || [],
+              improvements: aiGradingResult.aiGrading?.analysis?.improvements || [],
+              topicMatch: aiGradingResult.aiGrading?.analysis?.topicMatch || ''
+            },
+            flags: aiGradingResult.aiGrading?.flags || [],
+            studentFeedback: aiGradingResult.feedback || '',
+            confidence: aiGradingResult.aiGrading?.confidence || 0
+          };
+
+          await submission.save();
+
+          // Update assignment average score
+          const allGradedSubmissions = await Submission.find({ 
+            assignmentId,
+            score: { $ne: null }
+          });
+
+          if (allGradedSubmissions.length > 0) {
+            const totalScore = allGradedSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0);
+            const avgScore = totalScore / allGradedSubmissions.length;
+
+            await Assignment.findByIdAndUpdate(assignmentId, {
+              avgScore: Math.round(avgScore * 10) / 10
+            });
+          }
+
+          console.log('AI grading completed. Grade:', aiGradingResult.grade, 'Score:', aiGradingResult.score);
+        }
+      } catch (aiError) {
+        console.error('AI grading error:', aiError);
+        // Don't fail the submission if AI grading fails
+        submission.aiGrading = {
+          isGraded: false,
+          flags: [{
+            type: 'grading_error',
+            severity: 'medium',
+            message: 'AI grading temporarily unavailable. Teacher will grade manually.'
+          }]
+        };
+        await submission.save();
+      }
+    }
+
     res.status(201).json({ 
       message: 'Assignment submitted successfully',
-      submission 
+      submission,
+      aiGrading: aiGradingResult ? {
+        graded: aiGradingResult.success,
+        grade: aiGradingResult.grade,
+        score: aiGradingResult.score,
+        maxPoints: aiGradingResult.maxPoints,
+        feedback: aiGradingResult.feedback || aiGradingResult.aiGrading?.feedback,
+        scores: aiGradingResult.aiGrading?.scores,
+        analysis: aiGradingResult.aiGrading?.analysis
+      } : null
     });
   } catch (error) {
     console.error('Error submitting assignment:', error);
@@ -209,7 +300,8 @@ export const getStudentAssignmentsWithStatus = async (req, res) => {
           status: submission.status,
           grade: submission.grade,
           score: submission.score,
-          feedback: submission.feedback
+          feedback: submission.feedback,
+          aiGrading: submission.aiGrading
         } : null
       };
     });

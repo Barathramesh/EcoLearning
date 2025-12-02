@@ -37,8 +37,6 @@ import StudentManagement from "./pages/teacher/StudentManagement";
 import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
 import VideoGeneration from "./pages/teacher/VideoGeneration";
 
-import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
-
 // Admin module imports
 import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
