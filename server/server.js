@@ -15,6 +15,7 @@ import videoRouter from './routes/videoRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import adminRouter from './routes/adminRoutes.js';
 
 const app = express();
 const port = process.env.PORT;
@@ -42,6 +43,7 @@ app.use('/api/assignment', assignmentRouter);
 app.use('/api/submission', submissionRouter);
 app.use('/api/ai-chat', aiChatRouter);
 app.use('/api/video', videoRouter);
+app.use('/api/admin', adminRouter);
 
 
 

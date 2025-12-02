@@ -28,26 +28,7 @@ import {
   User,
   MessageSquare,
   AlertTriangle,
-  Loader2,
-  Camera,
-  ScanLine,
-  Eye,
-  X,
-  RotateCcw,
-  Sparkles,
-  Wand2,
-  TrendingUp,
-  ChevronDown,
-  ChevronUp,
-  Bot,
-  BarChart3,
-  ThumbsUp,
-  Target,
-  Edit3,
-  Lightbulb,
-  Zap,
-  Info,
-  FileCheck
+  Loader2
 } from "lucide-react";
 import axios from "axios";
 
@@ -68,25 +49,7 @@ const UploadAssignment = () => {
   const [submitProgress, setSubmitProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   
-  // AI Grading Result State
-  const [showGradingResult, setShowGradingResult] = useState(false);
-  const [gradingResult, setGradingResult] = useState(null);
-  
-  // OCR State
-  const [isOcrMode, setIsOcrMode] = useState(false);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImages, setCapturedImages] = useState([]);
-  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
-  const [ocrResults, setOcrResults] = useState([]);
-  const [ocrError, setOcrError] = useState(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [previewImage, setPreviewImage] = useState(null);
-  
   const fileInputRef = useRef(null);
-  const ocrImageInputRef = useRef(null);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
   useEffect(() => {
     // Get student data from localStorage
@@ -374,10 +337,6 @@ const UploadAssignment = () => {
     setSelectedAssignment(assignment);
     setSubmissionContent("");
     setSubmissionFiles([]);
-    setIsOcrMode(false);
-    setCapturedImages([]);
-    setOcrResults([]);
-    setOcrError(null);
     setIsSubmitDialogOpen(true);
   };
 
@@ -393,13 +352,13 @@ const UploadAssignment = () => {
     // Simulate upload progress
     const progressInterval = setInterval(() => {
       setSubmitProgress(prev => {
-        if (prev >= 70) {
+        if (prev >= 90) {
           clearInterval(progressInterval);
-          return 70;
+          return 90;
         }
         return prev + 10;
       });
-    }, 200);
+    }, 150);
 
     try {
       // Prepare file data (in real app, you'd upload to storage and get URLs)
@@ -410,9 +369,7 @@ const UploadAssignment = () => {
         fileSize: f.size
       }));
 
-      setSubmitProgress(75);
-      
-      const response = await axios.post(`${API_URL}/submission/submit`, {
+      await axios.post(`${API_URL}/submission/submit`, {
         assignmentId: selectedAssignment._id,
         studentId: studentData.id,
         studentName: studentData.name,
@@ -424,20 +381,11 @@ const UploadAssignment = () => {
       clearInterval(progressInterval);
       setSubmitProgress(100);
 
-      // Check if AI grading result is available
-      if (response.data.aiGrading && response.data.aiGrading.graded) {
-        setGradingResult(response.data.aiGrading);
-        setShowGradingResult(true);
-        setIsSubmitDialogOpen(false);
-      } else {
-        // No AI grading, just close dialog
-        setIsSubmitDialogOpen(false);
-      }
-
       // Refresh assignments
       await fetchAssignments(studentData);
 
       setTimeout(() => {
+        setIsSubmitDialogOpen(false);
         setIsSubmitting(false);
         setSubmitProgress(0);
       }, 500);
@@ -471,9 +419,7 @@ const UploadAssignment = () => {
   const pendingAssignments = assignments.filter(a => !a.hasSubmitted && !a.isPastDue);
   const overdueAssignments = assignments.filter(a => !a.hasSubmitted && a.isPastDue);
   const submittedAssignments = assignments.filter(a => a.hasSubmitted);
-  const gradedAssignments = submittedAssignments.filter(a => 
-    a.submission?.status === 'graded' || a.submission?.status === 'ai-graded'
-  );
+  const gradedAssignments = submittedAssignments.filter(a => a.submission?.status === 'graded');
 
   if (loading) {
     return (
@@ -614,9 +560,9 @@ const UploadAssignment = () => {
           {/* Submitted Assignments Tab */}
           <TabsContent value="submitted">
             <div className="space-y-4">
-              {submittedAssignments.filter(a => a.submission?.status !== 'graded' && a.submission?.status !== 'ai-graded').length > 0 ? (
+              {submittedAssignments.filter(a => a.submission?.status !== 'graded').length > 0 ? (
                 submittedAssignments
-                  .filter(a => a.submission?.status !== 'graded' && a.submission?.status !== 'ai-graded')
+                  .filter(a => a.submission?.status !== 'graded')
                   .map((assignment) => (
                     <SubmittedCard 
                       key={assignment._id} 
@@ -634,114 +580,23 @@ const UploadAssignment = () => {
             </div>
           </TabsContent>
 
-          {/* Graded Assignments Tab - Table View */}
+          {/* Graded Assignments Tab */}
           <TabsContent value="graded">
-            <div className="space-y-6">
+            <div className="space-y-4">
               {gradedAssignments.length > 0 ? (
-                <>
-                  {/* Summary Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-4 border border-green-200">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-500 rounded-lg">
-                          <CheckCircle className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-black text-green-700">{gradedAssignments.length}</p>
-                          <p className="text-xs text-green-600">Total Graded</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500 rounded-lg">
-                          <TrendingUp className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-black text-blue-700">
-                            {gradedAssignments.length > 0 
-                              ? Math.round(gradedAssignments.filter(a => a.submission?.score).reduce((acc, a) => acc + (a.submission?.score || 0), 0) / gradedAssignments.filter(a => a.submission?.score).length) || 0
-                              : 0}%
-                          </p>
-                          <p className="text-xs text-blue-600">Avg Score</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-500 rounded-lg">
-                          <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-black text-purple-700">
-                            {gradedAssignments.filter(a => a.submission?.status === 'ai-graded').length}
-                          </p>
-                          <p className="text-xs text-purple-600">AI Graded</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-amber-500 rounded-lg">
-                          <Star className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-2xl font-black text-amber-700">
-                            {gradedAssignments.filter(a => a.submission?.grade?.startsWith('A')).length}
-                          </p>
-                          <p className="text-xs text-amber-600">A Grades</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Grades Table */}
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                    {/* Table Header */}
-                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Award className="w-5 h-5" />
-                        Your Graded Assignments
-                      </h3>
-                    </div>
-                    
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Assignment</th>
-                            <th className="text-left px-4 py-4 text-sm font-semibold text-gray-600">Subject</th>
-                            <th className="text-center px-4 py-4 text-sm font-semibold text-gray-600">Grade</th>
-                            <th className="text-center px-4 py-4 text-sm font-semibold text-gray-600">Score</th>
-                            <th className="text-center px-4 py-4 text-sm font-semibold text-gray-600">Status</th>
-                            <th className="text-left px-4 py-4 text-sm font-semibold text-gray-600">Submitted</th>
-                            <th className="text-center px-4 py-4 text-sm font-semibold text-gray-600">Details</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {gradedAssignments.map((assignment, index) => (
-                            <GradedTableRow 
-                              key={assignment._id} 
-                              assignment={assignment}
-                              index={index}
-                              getTypeColor={getTypeColor}
-                              getGradeColor={getGradeColor}
-                              formatDate={formatDate}
-                            />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
+                gradedAssignments.map((assignment) => (
+                  <GradedCard 
+                    key={assignment._id} 
+                    assignment={assignment}
+                    getTypeColor={getTypeColor}
+                    getGradeColor={getGradeColor}
+                    formatDate={formatDate}
+                  />
+                ))
               ) : (
-                <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-100">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Award className="w-10 h-10 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Graded Assignments Yet</h3>
-                  <p className="text-gray-500">Your graded assignments will appear here once your teacher reviews them.</p>
+                <div className="text-center py-12 text-gray-500">
+                  <Award className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-xl">No graded assignments yet.</p>
                 </div>
               )}
             </div>
@@ -750,11 +605,8 @@ const UploadAssignment = () => {
       </div>
 
       {/* Submit Dialog */}
-      <Dialog open={isSubmitDialogOpen} onOpenChange={(open) => {
-        if (!open) stopCamera();
-        setIsSubmitDialogOpen(open);
-      }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">Submit Assignment</DialogTitle>
           </DialogHeader>
@@ -782,274 +634,47 @@ const UploadAssignment = () => {
                 )}
               </div>
 
-              {/* Mode Toggle */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
-                <Button
-                  variant={!isOcrMode ? "default" : "ghost"}
-                  className={`flex-1 ${!isOcrMode ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                  onClick={() => { setIsOcrMode(false); stopCamera(); }}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Type Answer
-                </Button>
-                <Button
-                  variant={isOcrMode ? "default" : "ghost"}
-                  className={`flex-1 ${isOcrMode ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
-                  onClick={() => setIsOcrMode(true)}
-                >
-                  <ScanLine className="w-4 h-4 mr-2" />
-                  Scan Handwritten
-                </Button>
-              </div>
-
-              {/* OCR Mode */}
-              {isOcrMode ? (
-                <div className="space-y-4">
-                  {/* OCR Instructions */}
-                  <Alert className="bg-purple-50 border-purple-200">
-                    <Sparkles className="h-4 w-4 text-purple-600" />
-                    <AlertDescription className="text-purple-800">
-                      <strong>OCR Mode:</strong> Capture or upload photos of your handwritten assignment. 
-                      Our AI will extract the text automatically!
-                    </AlertDescription>
-                  </Alert>
-
-                  {/* Camera / Upload Options */}
-                  {!isCameraOpen && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button
-                        onClick={startCamera}
-                        className="h-24 flex-col gap-2 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
-                      >
-                        <Camera className="w-8 h-8" />
-                        <span>Open Camera</span>
-                      </Button>
-                      <Button
-                        onClick={() => ocrImageInputRef.current?.click()}
-                        variant="outline"
-                        className="h-24 flex-col gap-2 border-2 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50"
-                      >
-                        <Upload className="w-8 h-8 text-purple-500" />
-                        <span className="text-purple-700">Upload Images</span>
-                      </Button>
-                      <input
-                        ref={ocrImageInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleOcrImageUpload}
-                        className="hidden"
-                      />
-                    </div>
-                  )}
-
-                  {/* Camera View */}
-                  {isCameraOpen && (
-                    <div className="space-y-3">
-                      <div className="relative bg-black rounded-lg overflow-hidden">
-                        <video
-                          ref={videoRef}
-                          autoPlay
-                          playsInline
-                          className="w-full h-64 object-cover"
-                        />
-                        <canvas ref={canvasRef} className="hidden" />
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                          <Button
-                            onClick={captureImage}
-                            className="rounded-full w-14 h-14 bg-white hover:bg-gray-100"
-                          >
-                            <Camera className="w-6 h-6 text-purple-600" />
-                          </Button>
-                          <Button
-                            onClick={stopCamera}
-                            variant="destructive"
-                            className="rounded-full w-14 h-14"
-                          >
-                            <X className="w-6 h-6" />
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-center text-sm text-gray-500">
-                        Position your handwritten document clearly and tap the camera button to capture
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Captured Images Grid */}
-                  {capturedImages.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-lg font-semibold flex items-center gap-2">
-                          <Image className="w-5 h-5" />
-                          Captured Pages ({capturedImages.length})
-                        </Label>
-                        <Button
-                          onClick={() => ocrImageInputRef.current?.click()}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Upload className="w-4 h-4 mr-1" />
-                          Add More
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-3">
-                        {capturedImages.map((img, index) => (
-                          <div key={img.id} className="relative group">
-                            <img
-                              src={img.data}
-                              alt={`Page ${index + 1}`}
-                              className={`w-full h-32 object-cover rounded-lg border-2 cursor-pointer transition-all ${
-                                img.processed ? 'border-green-400' : 'border-gray-200'
-                              } hover:border-purple-400`}
-                              onClick={() => setPreviewImage(img)}
-                            />
-                            <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                              Page {index + 1}
-                            </div>
-                            {img.processed && (
-                              <div className="absolute top-1 right-8 bg-green-500 text-white p-1 rounded">
-                                <CheckCircle className="w-3 h-3" />
-                              </div>
-                            )}
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeCapturedImage(img.id)}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              className="absolute bottom-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => setPreviewImage(img)}
-                            >
-                              <Eye className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Process OCR Button */}
-                      <Button
-                        onClick={processAllImagesWithOcr}
-                        disabled={isProcessingOcr || capturedImages.length === 0}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                      >
-                        {isProcessingOcr ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Processing Page {currentImageIndex + 1} of {capturedImages.length}...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="w-4 h-4 mr-2" />
-                            Extract Text from {capturedImages.length} {capturedImages.length === 1 ? 'Image' : 'Images'}
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* OCR Results */}
-                  {ocrResults.length > 0 && (
-                    <div className="space-y-3">
-                      <Label className="text-lg font-semibold">OCR Results</Label>
-                      {ocrResults.map((result, index) => (
-                        <div key={result.imageId} className={`p-3 rounded-lg border ${
-                          result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                        }`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">Page {index + 1}</span>
-                            {result.success && (
-                              <Badge className={getConfidenceColor(result.confidence)}>
-                                {result.confidence}% confidence
-                              </Badge>
-                            )}
-                          </div>
-                          {result.success ? (
-                            <p className="text-sm text-gray-700">
-                              {result.wordCount} words extracted • Quality: {result.quality}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-red-600">{result.error}</p>
-                          )}
-                          {result.tips && result.tips.length > 0 && (
-                            <div className="mt-2 text-xs text-gray-500">
-                              💡 {result.tips[0]}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* OCR Error */}
-                  {ocrError && (
-                    <Alert className="border-red-200 bg-red-50">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-red-800">{ocrError}</AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              ) : null}
-
-              {/* Content Input (shown in both modes) */}
+              {/* Content Input */}
               <div className="space-y-2">
-                <Label className="text-lg font-semibold">
-                  {isOcrMode ? 'Extracted & Additional Text' : 'Your Answer / Notes'}
-                </Label>
+                <Label className="text-lg font-semibold">Your Answer / Notes</Label>
                 <Textarea
-                  placeholder={isOcrMode 
-                    ? "Text extracted from your handwritten pages will appear here. You can also edit or add more content..."
-                    : "Write your assignment answer, notes, or description here..."
-                  }
+                  placeholder="Write your assignment answer, notes, or description here..."
                   value={submissionContent}
                   onChange={(e) => setSubmissionContent(e.target.value)}
                   className="min-h-32"
                 />
-                {submissionContent && (
-                  <p className="text-xs text-gray-500 text-right">
-                    {submissionContent.split(/\s+/).filter(w => w).length} words
-                  </p>
-                )}
               </div>
 
-              {/* File Upload (not in OCR mode) */}
-              {!isOcrMode && (
-                <div className="space-y-2">
-                  <Label className="text-lg font-semibold">Upload Files (Optional)</Label>
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
-                      dragActive 
-                        ? 'border-green-400 bg-green-50' 
-                        : 'border-gray-300 hover:border-green-400 hover:bg-green-50'
-                    }`}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 mb-1">
-                      Drag and drop files or <span className="text-green-600 font-semibold">browse</span>
-                    </p>
-                    <p className="text-sm text-gray-500">Max 10MB per file</p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      onChange={handleFileInput}
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mov"
-                    />
-                  </div>
+              {/* File Upload */}
+              <div className="space-y-2">
+                <Label className="text-lg font-semibold">Upload Files (Optional)</Label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
+                    dragActive 
+                      ? 'border-green-400 bg-green-50' 
+                      : 'border-gray-300 hover:border-green-400 hover:bg-green-50'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 mb-1">
+                    Drag and drop files or <span className="text-green-600 font-semibold">browse</span>
+                  </p>
+                  <p className="text-sm text-gray-500">Max 10MB per file</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileInput}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mov"
+                  />
                 </div>
-              )}
+              </div>
 
               {/* File List */}
               {submissionFiles.length > 0 && (
@@ -1093,10 +718,7 @@ const UploadAssignment = () => {
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => {
-                stopCamera();
-                setIsSubmitDialogOpen(false);
-              }}
+              onClick={() => setIsSubmitDialogOpen(false)}
               disabled={isSubmitting}
             >
               Cancel
@@ -1119,433 +741,6 @@ const UploadAssignment = () => {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Preview Dialog */}
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Image Preview</DialogTitle>
-          </DialogHeader>
-          {previewImage && (
-            <div className="space-y-4">
-              <img
-                src={previewImage.data}
-                alt="Preview"
-                className="w-full max-h-[60vh] object-contain rounded-lg"
-              />
-              {previewImage.processed && previewImage.text && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <Label className="text-sm font-semibold mb-2 block">Extracted Text:</Label>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{previewImage.text}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* AI Grading Result Dialog - Beautiful Student-Friendly UI */}
-      <Dialog open={showGradingResult} onOpenChange={setShowGradingResult}>
-        <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0 bg-gradient-to-b from-slate-50 to-white">
-          {/* Animated Header with Grade */}
-          {gradingResult && (
-            <>
-              <div className="relative overflow-hidden">
-                {/* Dynamic Background based on Grade */}
-                <div className={`absolute inset-0 ${
-                  gradingResult.grade?.startsWith('A') ? 'bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600' :
-                  gradingResult.grade?.startsWith('B') ? 'bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600' :
-                  gradingResult.grade?.startsWith('C') ? 'bg-gradient-to-br from-amber-400 via-orange-500 to-yellow-500' :
-                  gradingResult.grade?.startsWith('D') ? 'bg-gradient-to-br from-orange-500 via-red-400 to-rose-500' :
-                  'bg-gradient-to-br from-red-500 via-rose-500 to-pink-600'
-                }`}></div>
-                
-                {/* Floating Shapes Animation */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute top-4 left-10 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
-                  <div className="absolute bottom-8 right-16 w-16 h-16 bg-white/10 rounded-full animate-bounce" style={{animationDuration: '3s'}}></div>
-                  <div className="absolute top-12 right-24 w-8 h-8 bg-white/20 rounded-full animate-ping" style={{animationDuration: '2s'}}></div>
-                </div>
-                
-                <div className="relative px-8 py-10 text-center text-white">
-                  {/* AI Badge */}
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-                    <Bot className="w-4 h-4" />
-                    AI-Powered Analysis Complete
-                  </div>
-                  
-                  {/* Main Grade Display */}
-                  <div className="flex flex-col items-center">
-                    <div className="relative mb-4">
-                      {/* Glowing Ring */}
-                      <div className="absolute inset-0 w-36 h-36 rounded-full bg-white/30 animate-pulse blur-md"></div>
-                      {/* Grade Circle */}
-                      <div className="relative w-36 h-36 rounded-full bg-white shadow-2xl flex items-center justify-center">
-                        <div className="text-center">
-                          <span className={`text-5xl font-black ${
-                            gradingResult.grade?.startsWith('A') ? 'text-emerald-500' :
-                            gradingResult.grade?.startsWith('B') ? 'text-blue-500' :
-                            gradingResult.grade?.startsWith('C') ? 'text-amber-500' :
-                            gradingResult.grade?.startsWith('D') ? 'text-orange-500' :
-                            'text-red-500'
-                          }`}>{gradingResult.grade}</span>
-                          <p className="text-xs text-gray-500 font-medium">GRADE</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Score Display */}
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-6xl font-black">{gradingResult.score}</span>
-                      <span className="text-2xl font-medium text-white/70">/ {gradingResult.maxPoints}</span>
-                    </div>
-                    
-                    {/* Motivational Message */}
-                    <div className="flex items-center gap-2 text-xl font-semibold">
-                      {gradingResult.grade?.startsWith('A') ? (
-                        <><Star className="w-6 h-6 text-yellow-300 fill-yellow-300" /> Outstanding Performance!</>
-                      ) : gradingResult.grade?.startsWith('B') ? (
-                        <><ThumbsUp className="w-6 h-6" /> Great Work! Keep it up!</>
-                      ) : gradingResult.grade?.startsWith('C') ? (
-                        <><Target className="w-6 h-6" /> Good effort! Room to grow!</>
-                      ) : gradingResult.grade?.startsWith('D') ? (
-                        <><TrendingUp className="w-6 h-6" /> You can do better!</>
-                      ) : (
-                        <><BookOpen className="w-6 h-6" /> Let's work on this together!</>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                {/* Score Breakdown - Visual Meter Style */}
-                {gradingResult.scores && (
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100">
-                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-indigo-500" />
-                        📊 Your Performance Breakdown
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">See how you performed in each area</p>
-                    </div>
-                    
-                    <div className="p-5 space-y-5">
-                      {/* Content Accuracy */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                              <FileCheck className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800">Content Accuracy</p>
-                              <p className="text-xs text-gray-500">Is your information correct?</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-2xl font-black ${
-                              gradingResult.scores.contentAccuracy >= 80 ? 'text-emerald-500' :
-                              gradingResult.scores.contentAccuracy >= 60 ? 'text-blue-500' :
-                              gradingResult.scores.contentAccuracy >= 40 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{gradingResult.scores.contentAccuracy}%</span>
-                          </div>
-                        </div>
-                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              gradingResult.scores.contentAccuracy >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                              gradingResult.scores.contentAccuracy >= 60 ? 'bg-gradient-to-r from-blue-400 to-blue-500' :
-                              gradingResult.scores.contentAccuracy >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500'
-                            }`}
-                            style={{ width: `${gradingResult.scores.contentAccuracy}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      
-                      {/* Originality */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                              <Sparkles className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800">Originality</p>
-                              <p className="text-xs text-gray-500">How unique is your work?</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-2xl font-black ${
-                              gradingResult.scores.uniqueness >= 80 ? 'text-emerald-500' :
-                              gradingResult.scores.uniqueness >= 60 ? 'text-purple-500' :
-                              gradingResult.scores.uniqueness >= 40 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{gradingResult.scores.uniqueness}%</span>
-                          </div>
-                        </div>
-                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              gradingResult.scores.uniqueness >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                              gradingResult.scores.uniqueness >= 60 ? 'bg-gradient-to-r from-purple-400 to-purple-500' :
-                              gradingResult.scores.uniqueness >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500'
-                            }`}
-                            style={{ width: `${gradingResult.scores.uniqueness}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      
-                      {/* Topic Relevance */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                              <Target className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800">Topic Relevance</p>
-                              <p className="text-xs text-gray-500">Did you stay on topic?</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-2xl font-black ${
-                              gradingResult.scores.relevance >= 80 ? 'text-emerald-500' :
-                              gradingResult.scores.relevance >= 60 ? 'text-green-500' :
-                              gradingResult.scores.relevance >= 40 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{gradingResult.scores.relevance}%</span>
-                          </div>
-                        </div>
-                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              gradingResult.scores.relevance >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                              gradingResult.scores.relevance >= 60 ? 'bg-gradient-to-r from-green-400 to-green-500' :
-                              gradingResult.scores.relevance >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500'
-                            }`}
-                            style={{ width: `${gradingResult.scores.relevance}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      
-                      {/* Writing Quality */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                              <Edit3 className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-800">Writing Quality</p>
-                              <p className="text-xs text-gray-500">Grammar & presentation</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-2xl font-black ${
-                              gradingResult.scores.quality >= 80 ? 'text-emerald-500' :
-                              gradingResult.scores.quality >= 60 ? 'text-orange-500' :
-                              gradingResult.scores.quality >= 40 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{gradingResult.scores.quality}%</span>
-                          </div>
-                        </div>
-                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              gradingResult.scores.quality >= 80 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                              gradingResult.scores.quality >= 60 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
-                              gradingResult.scores.quality >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500'
-                            }`}
-                            style={{ width: `${gradingResult.scores.quality}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Strengths & Improvements - Side by Side */}
-                {gradingResult.feedback && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* What You Did Well */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-200 overflow-hidden">
-                      <div className="px-4 py-3 bg-emerald-100/50 border-b border-emerald-200">
-                        <h4 className="font-bold text-emerald-800 flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
-                            <ThumbsUp className="w-4 h-4 text-white" />
-                          </div>
-                          💪 Your Strengths
-                        </h4>
-                      </div>
-                      <div className="p-4">
-                        <ul className="space-y-3">
-                          {gradingResult.feedback.split('\n').filter(line => 
-                            line.includes('✓') || line.includes('strength') || line.includes('good') || line.includes('well') || line.includes('Strength')
-                          ).slice(0, 3).map((strength, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-emerald-800">
-                              <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                              <span>{strength.replace(/^[-•✓]\s*/, '')}</span>
-                            </li>
-                          ))}
-                          {/* Default strengths if parsing fails */}
-                          {gradingResult.feedback.split('\n').filter(line => 
-                            line.includes('✓') || line.includes('strength') || line.includes('good') || line.includes('well')
-                          ).length === 0 && (
-                            <>
-                              <li className="flex items-start gap-2 text-sm text-emerald-800">
-                                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                <span>You attempted the assignment on time</span>
-                              </li>
-                              <li className="flex items-start gap-2 text-sm text-emerald-800">
-                                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                <span>Shows understanding of the topic</span>
-                              </li>
-                            </>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                    
-                    {/* Areas to Improve */}
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 overflow-hidden">
-                      <div className="px-4 py-3 bg-amber-100/50 border-b border-amber-200">
-                        <h4 className="font-bold text-amber-800 flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
-                            <Lightbulb className="w-4 h-4 text-white" />
-                          </div>
-                          💡 Areas to Improve
-                        </h4>
-                      </div>
-                      <div className="p-4">
-                        <ul className="space-y-3">
-                          {gradingResult.feedback.split('\n').filter(line => 
-                            line.includes('improve') || line.includes('suggest') || line.includes('could') || line.includes('should') || line.includes('Improve') || line.includes('Focus')
-                          ).slice(0, 3).map((suggestion, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
-                              <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                              <span>{suggestion.replace(/^[-•]\s*/, '')}</span>
-                            </li>
-                          ))}
-                          {/* Default suggestions if parsing fails */}
-                          {gradingResult.feedback.split('\n').filter(line => 
-                            line.includes('improve') || line.includes('suggest') || line.includes('could') || line.includes('should')
-                          ).length === 0 && (
-                            <li className="flex items-start gap-2 text-sm text-amber-800">
-                              <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                              <span>Review the feedback below for specific suggestions</span>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Detailed AI Feedback */}
-                {gradingResult.feedback && (
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-100">
-                      <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                        <Bot className="w-5 h-5 text-blue-500" />
-                        🤖 Detailed AI Feedback
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">Here's what our AI found in your submission</p>
-                    </div>
-                    <div className="p-5">
-                      <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-                        {gradingResult.feedback.split('\n').map((paragraph, i) => (
-                          paragraph.trim() && (
-                            <p key={i} className="mb-3 last:mb-0 flex items-start gap-2">
-                              {paragraph.includes('✓') || paragraph.toLowerCase().includes('strength') || paragraph.toLowerCase().includes('good') ? (
-                                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
-                              ) : paragraph.toLowerCase().includes('improve') || paragraph.toLowerCase().includes('suggest') ? (
-                                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 mt-2 flex-shrink-0"></span>
-                              ) : (
-                                <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
-                              )}
-                              <span>{paragraph}</span>
-                            </p>
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Tips Card */}
-                <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-5 text-white">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <Zap className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-lg mb-2">💡 Quick Tips for Next Time</h4>
-                      <ul className="space-y-2 text-sm text-white/90">
-                        {gradingResult.score < 60 && (
-                          <>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Review the topic materials before attempting
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Take more time to organize your thoughts
-                            </li>
-                          </>
-                        )}
-                        {gradingResult.score >= 60 && gradingResult.score < 80 && (
-                          <>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Add more specific examples to support your points
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Double-check your grammar before submitting
-                            </li>
-                          </>
-                        )}
-                        {gradingResult.score >= 80 && (
-                          <>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Excellent work! Keep up this quality
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              Consider adding citations for even better scores
-                            </li>
-                          </>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Note */}
-                <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">About AI Grading</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      This grade was generated by AI analysis. Your teacher may review and adjust the final grade based on additional criteria. Don't worry if the AI missed something - your teacher will have the final say!
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={() => setShowGradingResult(false)}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-green-200 transition-all hover:scale-[1.02]"
-                  >
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Got it, Thanks!
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
         </DialogContent>
       </Dialog>
     </div>
@@ -1663,254 +858,62 @@ const SubmittedCard = ({ assignment, getTypeColor, formatDate }) => {
   );
 };
 
-// Graded Table Row Component with Expandable Details
-const GradedTableRow = ({ assignment, index, getTypeColor, getGradeColor, formatDate }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isAIGraded = assignment.submission?.status === 'ai-graded';
-  const grade = assignment.submission?.grade;
-  const score = assignment.submission?.score;
-  
-  const getGradeBgColor = (grade) => {
-    if (!grade) return 'bg-gray-100 text-gray-600';
-    if (grade.startsWith('A')) return 'bg-gradient-to-br from-emerald-400 to-green-500 text-white';
-    if (grade.startsWith('B')) return 'bg-gradient-to-br from-blue-400 to-indigo-500 text-white';
-    if (grade.startsWith('C')) return 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white';
-    if (grade.startsWith('D')) return 'bg-gradient-to-br from-orange-400 to-red-400 text-white';
-    return 'bg-gradient-to-br from-red-400 to-red-600 text-white';
-  };
-
-  const getScoreBarColor = (score) => {
-    if (score >= 90) return 'from-emerald-400 to-green-500';
-    if (score >= 80) return 'from-blue-400 to-indigo-500';
-    if (score >= 70) return 'from-yellow-400 to-amber-500';
-    if (score >= 60) return 'from-orange-400 to-orange-500';
-    return 'from-red-400 to-red-500';
-  };
-
+// Graded Card Component
+const GradedCard = ({ assignment, getTypeColor, getGradeColor, formatDate }) => {
   return (
-    <>
-      <tr className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-        {/* Assignment Name */}
-        <td className="px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              grade?.startsWith('A') ? 'bg-emerald-100' :
-              grade?.startsWith('B') ? 'bg-blue-100' :
-              grade?.startsWith('C') ? 'bg-yellow-100' :
-              'bg-gray-100'
-            }`}>
-              <BookOpen className={`w-5 h-5 ${
-                grade?.startsWith('A') ? 'text-emerald-600' :
-                grade?.startsWith('B') ? 'text-blue-600' :
-                grade?.startsWith('C') ? 'text-yellow-600' :
-                'text-gray-600'
-              }`} />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-800">{assignment.title}</p>
-              <p className="text-xs text-gray-500">{assignment.type}</p>
-            </div>
-          </div>
-        </td>
-        
-        {/* Subject */}
-        <td className="px-4 py-4">
-          <Badge className="bg-blue-100 text-blue-700 border-0">{assignment.subject}</Badge>
-        </td>
-        
-        {/* Grade */}
-        <td className="px-4 py-4 text-center">
-          {grade ? (
-            <span className={`inline-flex items-center justify-center w-12 h-12 rounded-xl font-black text-xl shadow-lg ${getGradeBgColor(grade)}`}>
-              {grade}
-            </span>
-          ) : (
-            <span className="text-gray-400">-</span>
-          )}
-        </td>
-        
-        {/* Score */}
-        <td className="px-4 py-4">
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-gray-800">{score ?? '-'}</span>
-              <span className="text-sm text-gray-400">/{assignment.maxPoints}</span>
-            </div>
-            {score !== null && score !== undefined && (
-              <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full bg-gradient-to-r ${getScoreBarColor(score)} rounded-full transition-all duration-500`}
-                  style={{ width: `${(score / assignment.maxPoints) * 100}%` }}
-                />
-              </div>
-            )}
-          </div>
-        </td>
-        
-        {/* Status */}
-        <td className="px-4 py-4 text-center">
-          {isAIGraded ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
-              <Bot className="w-3 h-3" />
-              AI Graded
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-              <CheckCircle className="w-3 h-3" />
-              Graded
-            </span>
-          )}
-        </td>
-        
-        {/* Submitted Date */}
-        <td className="px-4 py-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            {formatDate(assignment.submission?.submittedAt)}
-          </div>
-        </td>
-        
-        {/* Expand Button */}
-        <td className="px-4 py-4 text-center">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-2 rounded-lg transition-all ${
-              isExpanded 
-                ? 'bg-green-100 text-green-700' 
-                : 'hover:bg-gray-100 text-gray-500'
-            }`}
-          >
-            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-          </button>
-        </td>
-      </tr>
-      
-      {/* Expanded Details Row */}
-      {isExpanded && (
-        <tr>
-          <td colSpan={7} className="px-6 py-0">
-            <div className="py-6 border-t border-gray-100 bg-gradient-to-br from-gray-50 to-white">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Left Column - AI Analysis */}
-                {assignment.submission?.aiGrading?.scores && (
-                  <div className="bg-white rounded-xl p-5 border border-purple-200 shadow-sm">
-                    <h4 className="font-semibold text-purple-700 mb-4 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      AI Performance Analysis
-                    </h4>
-                    <div className="space-y-4">
-                      {/* Score Bars */}
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600">Content Accuracy</span>
-                            <span className="font-bold text-blue-600">{assignment.submission.aiGrading.scores.contentAccuracy}%</span>
-                          </div>
-                          <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-700"
-                              style={{ width: `${assignment.submission.aiGrading.scores.contentAccuracy}%` }}
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600">Originality</span>
-                            <span className="font-bold text-purple-600">{assignment.submission.aiGrading.scores.uniqueness}%</span>
-                          </div>
-                          <div className="h-3 bg-purple-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-700"
-                              style={{ width: `${assignment.submission.aiGrading.scores.uniqueness}%` }}
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600">Topic Relevance</span>
-                            <span className="font-bold text-green-600">{assignment.submission.aiGrading.scores.relevance}%</span>
-                          </div>
-                          <div className="h-3 bg-green-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-700"
-                              style={{ width: `${assignment.submission.aiGrading.scores.relevance}%` }}
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600">Writing Quality</span>
-                            <span className="font-bold text-orange-600">{assignment.submission.aiGrading.scores.quality}%</span>
-                          </div>
-                          <div className="h-3 bg-orange-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-700"
-                              style={{ width: `${assignment.submission.aiGrading.scores.quality}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Overall Score Circle */}
-                      <div className="flex items-center justify-center pt-4 border-t border-purple-100">
-                        <div className="text-center">
-                          <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg ${getGradeBgColor(grade)}`}>
-                            <span className="text-2xl font-black">{assignment.submission.aiGrading.scores.overall || score}%</span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">Overall Score</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Right Column - Feedback */}
-                <div className="space-y-4">
-                  {/* Teacher/AI Feedback */}
-                  {assignment.submission?.feedback && (
-                    <div className="bg-white rounded-xl p-5 border border-green-200 shadow-sm">
-                      <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        {isAIGraded ? 'AI Feedback' : 'Teacher Feedback'}
-                      </h4>
-                      <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 leading-relaxed max-h-48 overflow-y-auto">
-                        {assignment.submission.feedback}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Quick Stats */}
-                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-                    <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5" />
-                      Assignment Details
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500 text-xs">Max Points</p>
-                        <p className="font-bold text-gray-800">{assignment.maxPoints}</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500 text-xs">Points Earned</p>
-                        <p className="font-bold text-gray-800">{score || '-'}</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500 text-xs">Due Date</p>
-                        <p className="font-bold text-gray-800">{formatDate(assignment.dueDate)}</p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-gray-500 text-xs">Graded By</p>
-                        <p className="font-bold text-gray-800">{isAIGraded ? '🤖 AI' : '👨‍🏫 Teacher'}</p>
-                      </div>
-                    </div>
-                  </div>
+    <Card className="mb-4 shadow-lg border-2 border-green-200">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-start gap-3 mb-2">
+              <CheckCircle className="w-6 h-6 mt-1 text-green-500" />
+              <div>
+                <h3 className="font-bold text-xl text-gray-800">{assignment.title}</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge className="bg-blue-100 text-blue-800">{assignment.subject}</Badge>
+                  <Badge className={getTypeColor(assignment.type)}>{assignment.type}</Badge>
+                  <Badge className="bg-green-100 text-green-800">Graded</Badge>
                 </div>
               </div>
             </div>
-          </td>
-        </tr>
-      )}
-    </>
+            
+            {assignment.submission?.feedback && (
+              <div className="mt-4 ml-9 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                <div className="flex items-start gap-2">
+                  <MessageSquare className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-green-800 mb-1">Teacher Feedback:</p>
+                    <p className="text-green-700">{assignment.submission.feedback}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex flex-wrap items-center gap-4 mt-4 ml-9 text-sm text-gray-500">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                Submitted: {formatDate(assignment.submission?.submittedAt)}
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-end gap-2">
+            <div className="text-center">
+              {assignment.submission?.grade && (
+                <div className={`px-6 py-3 rounded-lg text-2xl font-bold ${getGradeColor(assignment.submission.grade)}`}>
+                  {assignment.submission.grade}
+                </div>
+              )}
+              {assignment.submission?.score !== null && (
+                <p className="text-sm text-gray-600 mt-2">
+                  <span className="font-bold text-lg text-gray-800">{assignment.submission.score}</span>/{assignment.maxPoints} points
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -36,22 +36,6 @@ const assignmentSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  // Expected answer for AI verification
-  expectedAnswer: {
-    type: String,
-    default: ''
-  },
-  // Key points that should be covered in the answer
-  keyPoints: [{
-    type: String
-  }],
-  // Grading rubric for AI
-  gradingCriteria: {
-    uniqueness: { type: Number, default: 25 },     // Weight for uniqueness (0-100)
-    contentAccuracy: { type: Number, default: 40 }, // Weight for content accuracy
-    relevance: { type: Number, default: 20 },       // Weight for topic relevance
-    quality: { type: Number, default: 15 }          // Weight for writing quality
-  },
   totalStudents: {
     type: Number,
     default: 0
@@ -76,11 +60,6 @@ const assignmentSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'published', 'closed'],
     default: 'published'
-  },
-  // Enable/disable AI auto-grading
-  enableAIGrading: {
-    type: Boolean,
-    default: true
   },
   createdAt: {
     type: Date,
