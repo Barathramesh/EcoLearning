@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Settings, 
@@ -32,19 +32,67 @@ import Navigation from '../../components/Navigation';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    name: "Alex Green",
-    email: "alex.green@student.edu",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    school: "Green Valley High School",
-    grade: "11th Grade",
-    joinDate: "September 2024",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    school: "",
+    class: "",
+    rollNumber: "",
+    joinDate: "",
     bio: "Passionate about environmental science and sustainability. Love learning about ecosystems and climate solutions!",
     avatar: "/placeholder.svg"
   });
 
   const [editData, setEditData] = useState({ ...profileData });
+
+  // Load user data from localStorage (comes from backend on login)
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const formattedDate = user.joiningDate 
+            ? new Date(user.joiningDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            : 'N/A';
+          
+          setProfileData({
+            name: user.name || 'Student',
+            email: user.email || 'N/A',
+            phone: user.phone || 'N/A',
+            address: user.address || 'N/A',
+            school: user.school || 'N/A',
+            class: user.class || 'N/A',
+            rollNumber: user.rollNumber || 'N/A',
+            joinDate: formattedDate,
+            bio: user.bio || "Passionate about environmental science and sustainability. Love learning about ecosystems and climate solutions!",
+            avatar: user.avatar || "/placeholder.svg"
+          });
+          setEditData({
+            name: user.name || 'Student',
+            email: user.email || 'N/A',
+            phone: user.phone || 'N/A',
+            address: user.address || 'N/A',
+            school: user.school || 'N/A',
+            class: user.class || 'N/A',
+            rollNumber: user.rollNumber || 'N/A',
+            joinDate: formattedDate,
+            bio: user.bio || "Passionate about environmental science and sustainability. Love learning about ecosystems and climate solutions!",
+            avatar: user.avatar || "/placeholder.svg"
+          });
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const achievements = [
     {
@@ -147,6 +195,20 @@ const Profile = () => {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+        <Navigation userType="student" />
+        <main className="pt-20 pb-16 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
       <Navigation userType="student" />
@@ -190,7 +252,7 @@ const Profile = () => {
                     
                     <div>
                       <h2 className="text-xl font-semibold text-gray-800">{profileData.name}</h2>
-                      <p className="text-gray-600">{profileData.grade}</p>
+                      <p className="text-gray-600">{profileData.class}</p>
                     </div>
                   </div>
 
@@ -207,12 +269,22 @@ const Profile = () => {
 
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{profileData.location}</span>
+                      <span className="text-sm text-gray-700">{profileData.address}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <School className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-700">{profileData.school}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <BookOpen className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">Class: {profileData.class}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <BadgeIcon className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700">Roll No: {profileData.rollNumber}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
