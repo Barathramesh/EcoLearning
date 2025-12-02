@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import adminService from '../../services/adminService';
+import AdminNavbar from '../../components/admin/AdminNavbar';
 import { 
   Users, 
   UserPlus, 
@@ -24,116 +27,220 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Activity
+  Activity,
+  LogOut
 } from 'lucide-react';
 
 const UserManagement = () => {
-  const [selectedUserType, setSelectedUserType] = useState('all');
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showCreateTeacher, setShowCreateTeacher] = useState(false);
   const [selectedView, setSelectedView] = useState('overview');
+  const [admins, setAdmins] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [currentAdmin, setCurrentAdmin] = useState(null);
 
-  // Mock user data
-  const users = [
-    {
-      id: 1,
-      name: "Dr. Sarah Miller",
-      email: "sarah.miller@greenvalleys.edu",
-      type: "teacher",
-      institution: "Green Valley High School",
-      status: "active",
-      lastLogin: "2025-09-21T08:30:00",
-      joinDate: "2024-01-15",
-      studentsCount: 120,
-      classesCount: 5,
-      phone: "+1-555-0123",
-      department: "Environmental Science",
-      verified: true,
-      permissions: ["create_assignments", "manage_students", "view_analytics"]
-    },
-    {
-      id: 2,
-      name: "Alex Johnson",
-      email: "alex.johnson@student.greenvalleys.edu",
-      type: "student",
-      institution: "Green Valley High School",
-      status: "active",
-      lastLogin: "2025-09-21T14:15:00",
-      joinDate: "2024-08-25",
-      level: 12,
-      totalPoints: 2847,
-      grade: "11th Grade",
-      phone: "+1-555-0124",
-      teacher: "Dr. Sarah Miller",
-      verified: true,
-      permissions: ["access_ar", "submit_assignments", "view_progress"]
-    },
-    {
-      id: 3,
-      name: "Emma Wilson",
-      email: "emma.wilson@student.greenvalleys.edu",
-      type: "student",
-      institution: "Green Valley High School",
-      status: "active",
-      lastLogin: "2025-09-21T16:45:00",
-      joinDate: "2024-08-25",
-      level: 11,
-      totalPoints: 2634,
-      grade: "11th Grade",
-      phone: "+1-555-0125",
-      teacher: "Dr. Sarah Miller",
-      verified: true,
-      permissions: ["access_ar", "submit_assignments", "view_progress"]
-    },
-    {
-      id: 4,
-      name: "Prof. Michael Chen",
-      email: "michael.chen@ecotech.edu",
-      type: "teacher",
-      institution: "EcoTech Institute",
-      status: "active",
-      lastLogin: "2025-09-20T10:20:00",
-      joinDate: "2023-09-01",
-      studentsCount: 85,
-      classesCount: 3,
-      phone: "+1-555-0126",
-      department: "Climate Science",
-      verified: true,
-      permissions: ["create_assignments", "manage_students", "view_analytics", "admin_access"]
-    },
-    {
-      id: 5,
-      name: "David Kim",
-      email: "david.kim@student.ecotech.edu",
-      type: "student",
-      institution: "EcoTech Institute",
-      status: "suspended",
-      lastLogin: "2025-09-15T12:00:00",
-      joinDate: "2024-01-10",
-      level: 8,
-      totalPoints: 1234,
-      grade: "10th Grade",
-      phone: "+1-555-0127",
-      teacher: "Prof. Michael Chen",
-      verified: false,
-      permissions: ["limited_access"]
-    },
-    {
-      id: 6,
-      name: "Admin John Roberts",
-      email: "john.roberts@ecolearn.admin",
-      type: "admin",
-      institution: "EcoLearn Platform",
-      status: "active",
-      lastLogin: "2025-09-21T07:00:00",
-      joinDate: "2023-01-01",
-      phone: "+1-555-0128",
-      department: "Platform Administration",
-      verified: true,
-      permissions: ["full_access", "user_management", "system_settings", "content_moderation"]
+  // Form state for creating new teacher
+  const [newTeacher, setNewTeacher] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    teacherId: '',
+    password: ''
+  });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
+
+  // Check if admin is logged in
+  useEffect(() => {
+    const adminData = localStorage.getItem('admin');
+    if (adminData) {
+      setCurrentAdmin(JSON.parse(adminData));
     }
-  ];
+  }, []);
+
+  // Fetch all data from API
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Fetch admins, teachers, and students in parallel
+      const [adminsRes, teachersRes, studentsRes] = await Promise.all([
+        adminService.getAll(),
+        adminService.getAllTeachers(),
+        adminService.getAllStudents()
+      ]);
+      
+      if (adminsRes.success) setAdmins(adminsRes.data);
+      if (teachersRes.success) setTeachers(teachersRes.data);
+      if (studentsRes.success) setStudents(studentsRes.data);
+      
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to fetch data. Make sure the server is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  // Create new teacher
+  const handleCreateTeacher = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    
+    if (!newTeacher.name || !newTeacher.email || !newTeacher.phone || !newTeacher.teacherId || !newTeacher.password) {
+      setError('All fields are required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await adminService.createTeacher(newTeacher);
+      if (response.success) {
+        setSuccessMessage('Teacher created successfully!');
+        setNewTeacher({ name: '', email: '', phone: '', teacherId: '', password: '' });
+        setShowCreateTeacher(false);
+        fetchAllData();
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create teacher');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete admin
+  const handleDeleteAdmin = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this admin?')) return;
+    
+    try {
+      setLoading(true);
+      const response = await adminService.delete(id);
+      if (response.success) {
+        setSuccessMessage('Admin deleted successfully!');
+        setSelectedUser(null);
+        fetchAllData();
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete admin');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete teacher
+  const handleDeleteTeacher = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this teacher?')) return;
+    
+    try {
+      setLoading(true);
+      const response = await adminService.deleteTeacher(id);
+      if (response.success) {
+        setSuccessMessage('Teacher deleted successfully!');
+        setSelectedUser(null);
+        fetchAllData();
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete teacher');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete student
+  const handleDeleteStudent = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this student?')) return;
+    
+    try {
+      setLoading(true);
+      const response = await adminService.deleteStudent(id);
+      if (response.success) {
+        setSuccessMessage('Student deleted successfully!');
+        setSelectedUser(null);
+        fetchAllData();
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete student');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logout admin
+  const handleLogout = () => {
+    localStorage.removeItem('admin');
+    localStorage.removeItem('adminToken');
+    navigate('/admin/login');
+  };
+
+  // Convert fetched admins to the user format
+  const adminUsers = admins.map(admin => ({
+    id: admin._id,
+    name: admin.name,
+    email: `${admin.adminId}@ecolearn.admin`,
+    type: "admin",
+    institution: admin.schoolName,
+    status: "active",
+    lastLogin: admin.updatedAt || admin.createdAt,
+    joinDate: admin.createdAt,
+    phone: "N/A",
+    department: "Platform Administration",
+    verified: true,
+    adminId: admin.adminId,
+    schoolName: admin.schoolName,
+    permissions: ["full_access", "user_management", "system_settings", "content_moderation"]
+  }));
+
+  // Convert fetched teachers to the user format
+  const teacherUsers = teachers.map(teacher => ({
+    id: teacher._id,
+    name: teacher.Name,
+    email: teacher.email,
+    type: "teacher",
+    institution: "EcoLearn",
+    status: "active",
+    lastLogin: teacher.updatedAt || teacher.createdAt,
+    joinDate: teacher.createdAt,
+    phone: teacher.phone,
+    teacherId: teacher.teacherId,
+    department: "Education",
+    verified: true,
+    permissions: ["create_assignments", "manage_students", "view_analytics"]
+  }));
+
+  // Convert fetched students to the user format
+  const studentUsers = students.map(student => ({
+    id: student._id,
+    name: student.name,
+    email: student.email,
+    type: "student",
+    institution: student.school || "EcoLearn",
+    status: student.credentialsGenerated ? "active" : "pending",
+    lastLogin: student.updatedAt || student.createdAt,
+    joinDate: student.createdAt || student.joiningDate,
+    phone: student.phone,
+    rollNumber: student.rollNumber,
+    class: student.class,
+    teacherId: student.teacherId,
+    verified: student.credentialsGenerated,
+    permissions: ["access_ar", "submit_assignments", "view_progress"]
+  }));
+
+  // Combine all users from database
+  const users = [...adminUsers, ...teacherUsers, ...studentUsers];
 
   const institutions = [
     { id: 1, name: "Green Valley High School", userCount: 156, type: "High School" },
@@ -142,20 +249,23 @@ const UserManagement = () => {
     { id: 4, name: "Sustainability College", userCount: 312, type: "College" }
   ];
 
-  const userTypes = [
-    { id: 'all', label: 'All Users', count: users.length },
-    { id: 'student', label: 'Students', count: users.filter(u => u.type === 'student').length },
-    { id: 'teacher', label: 'Teachers', count: users.filter(u => u.type === 'teacher').length },
-    { id: 'admin', label: 'Admins', count: users.filter(u => u.type === 'admin').length }
-  ];
-
   const filteredUsers = users.filter(user => {
-    const matchesType = selectedUserType === 'all' || user.type === selectedUserType;
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.institution.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesType && matchesSearch;
+    return matchesSearch;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -196,8 +306,52 @@ const UserManagement = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)', padding: '1rem' }}>
-      <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
+      <AdminNavbar />
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 2rem' }}>
+        {/* Success/Error Messages */}
+        {successMessage && (
+          <div style={{ 
+            padding: '1rem', 
+            backgroundColor: '#dcfce7', 
+            color: '#166534', 
+            borderRadius: '0.5rem', 
+            marginBottom: '1rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>{successMessage}</span>
+            <button 
+              onClick={() => setSuccessMessage('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        
+        {error && (
+          <div style={{ 
+            padding: '1rem', 
+            backgroundColor: '#fee2e2', 
+            color: '#991b1b', 
+            borderRadius: '0.5rem', 
+            marginBottom: '1rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span>{error}</span>
+            <button 
+              onClick={() => setError('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -209,24 +363,25 @@ const UserManagement = () => {
                 Manage students, teachers, and administrators across all institutions
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                style={{
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {currentAdmin && (
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  border: 'none',
+                  backgroundColor: '#f0fdf4',
                   borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <Download size={16} />
-                Export Users
-              </button>
-              <button
+                  marginRight: '0.5rem'
+                }}>
+                  <Shield size={16} style={{ color: '#059669' }} />
+                  <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '500' }}>
+                    {currentAdmin.name}
+                  </span>
+                </div>
+              )}
+<button
+                onClick={() => setShowCreateTeacher(true)}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#3b82f6',
@@ -239,14 +394,14 @@ const UserManagement = () => {
                   gap: '0.5rem'
                 }}
               >
-                <Upload size={16} />
-                Bulk Import
+                <UserPlus size={16} />
+                Add Teacher
               </button>
               <button
-                onClick={() => setShowCreateUser(true)}
+                onClick={handleLogout}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#059669',
+                  backgroundColor: '#ef4444',
                   color: 'white',
                   border: 'none',
                   borderRadius: '0.375rem',
@@ -256,43 +411,10 @@ const UserManagement = () => {
                   gap: '0.5rem'
                 }}
               >
-                <UserPlus size={16} />
-                Add User
+                <LogOut size={16} />
+                Logout
               </button>
             </div>
-          </div>
-
-          {/* User Type Tabs */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-            {userTypes.map(type => (
-              <button
-                key={type.id}
-                onClick={() => setSelectedUserType(type.id)}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  backgroundColor: selectedUserType === type.id ? '#059669' : '#f3f4f6',
-                  color: selectedUserType === type.id ? 'white' : '#374151',
-                  fontWeight: selectedUserType === type.id ? '500' : 'normal'
-                }}
-              >
-                {type.label}
-                <span style={{
-                  padding: '0.125rem 0.375rem',
-                  borderRadius: '0.75rem',
-                  fontSize: '0.75rem',
-                  backgroundColor: selectedUserType === type.id ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
-                  color: selectedUserType === type.id ? 'white' : '#6b7280'
-                }}>
-                  {type.count}
-                </span>
-              </button>
-            ))}
           </div>
 
           {/* Search and Filter Bar */}
@@ -402,6 +524,11 @@ const UserManagement = () => {
 
         {/* Users List */}
         <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+          {loading && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+              Loading...
+            </div>
+          )}
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -430,7 +557,7 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => {
+                {paginatedUsers.map((user) => {
                   const statusColor = getStatusColor(user.status);
                   const StatusIcon = statusColor.icon;
                   
@@ -511,23 +638,23 @@ const UserManagement = () => {
                         <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
                           {user.type === 'teacher' && (
                             <>
-                              {user.studentsCount} students
+                              ID: {user.teacherId}
                               <br />
-                              {user.classesCount} classes
+                              {user.phone}
                             </>
                           )}
                           {user.type === 'student' && (
                             <>
-                              Level {user.level}
+                              Roll: {user.rollNumber}
                               <br />
-                              {user.totalPoints} points
+                              Class: {user.class}
                             </>
                           )}
                           {user.type === 'admin' && (
                             <>
                               {user.permissions.length} permissions
                               <br />
-                              {user.department}
+                              {user.schoolName || user.department}
                             </>
                           )}
                         </div>
@@ -549,28 +676,21 @@ const UserManagement = () => {
                             <Eye size={14} />
                           </button>
                           <button
+                            onClick={() => {
+                              if (user.type === 'admin') handleDeleteAdmin(user.id);
+                              else if (user.type === 'teacher') handleDeleteTeacher(user.id);
+                              else if (user.type === 'student') handleDeleteStudent(user.id);
+                            }}
                             style={{
                               padding: '0.25rem',
-                              backgroundColor: '#f3f4f6',
-                              color: '#374151',
+                              backgroundColor: '#fee2e2',
+                              color: '#991b1b',
                               border: 'none',
                               borderRadius: '0.25rem',
                               cursor: 'pointer'
                             }}
                           >
-                            <Edit size={14} />
-                          </button>
-                          <button
-                            style={{
-                              padding: '0.25rem',
-                              backgroundColor: '#f3f4f6',
-                              color: '#374151',
-                              border: 'none',
-                              borderRadius: '0.25rem',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <MoreVertical size={14} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
@@ -582,23 +702,72 @@ const UserManagement = () => {
           </div>
         </div>
 
-        {/* Pagination (placeholder) */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>
-              Previous
-            </button>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>
-              1
-            </button>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>
-              2
-            </button>
-            <button style={{ padding: '0.5rem 1rem', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>
-              Next
-            </button>
+        {/* Pagination */}
+        {filteredUsers.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: currentPage === 1 ? '#e5e7eb' : '#f3f4f6',
+                  color: currentPage === 1 ? '#9ca3af' : '#374151',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Previous
+              </button>
+              {totalPages > 0 && Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  // Show first page, last page, current page, and pages around current
+                  return page === 1 || 
+                         page === totalPages || 
+                         (page >= currentPage - 1 && page <= currentPage + 1);
+                })
+                .map((page, index, arr) => (
+                  <React.Fragment key={page}>
+                    {index > 0 && arr[index - 1] !== page - 1 && (
+                      <span style={{ padding: '0.5rem', color: '#6b7280' }}>...</span>
+                    )}
+                    <button
+                      onClick={() => setCurrentPage(page)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: currentPage === page ? '#059669' : '#f3f4f6',
+                        color: currentPage === page ? 'white' : '#374151',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        fontWeight: currentPage === page ? '500' : '400'
+                      }}
+                    >
+                      {page}
+                    </button>
+                  </React.Fragment>
+                ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages || totalPages <= 1}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: (currentPage === totalPages || totalPages <= 1) ? '#e5e7eb' : '#f3f4f6',
+                  color: (currentPage === totalPages || totalPages <= 1) ? '#9ca3af' : '#374151',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  cursor: (currentPage === totalPages || totalPages <= 1) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* User Detail Modal */}
@@ -732,8 +901,8 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* Create User Modal */}
-      {showCreateUser && (
+      {/* Create Teacher Modal */}
+      {showCreateTeacher && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -756,37 +925,155 @@ const UserManagement = () => {
             overflow: 'auto'
           }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-              Create New User
+              Create New Teacher
             </h2>
             <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-              Add a new user to the EcoLearn platform.
+              Add a new teacher to the EcoLearn platform.
             </p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setShowCreateUser(false)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  backgroundColor: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#059669',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Create User
-              </button>
-            </div>
+            
+            {error && (
+              <div style={{ 
+                padding: '0.75rem', 
+                backgroundColor: '#fee2e2', 
+                color: '#991b1b', 
+                borderRadius: '0.375rem', 
+                marginBottom: '1rem',
+                fontSize: '0.875rem'
+              }}>
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleCreateTeacher}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                  Teacher Name *
+                </label>
+                <input
+                  type="text"
+                  value={newTeacher.name}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
+                  placeholder="Enter teacher name"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={newTeacher.email}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                  placeholder="Enter email address"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                  Phone *
+                </label>
+                <input
+                  type="tel"
+                  value={newTeacher.phone}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, phone: e.target.value })}
+                  placeholder="Enter phone number"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                  Teacher ID *
+                </label>
+                <input
+                  type="text"
+                  value={newTeacher.teacherId}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, teacherId: e.target.value })}
+                  placeholder="Enter unique teacher ID"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  value={newTeacher.password}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, password: e.target.value })}
+                  placeholder="Enter password"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateTeacher(false);
+                    setError('');
+                    setNewTeacher({ name: '', email: '', phone: '', teacherId: '', password: '' });
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: loading ? '#9ca3af' : '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    cursor: loading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {loading ? 'Creating...' : 'Create Teacher'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

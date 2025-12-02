@@ -37,10 +37,13 @@ import StudentManagement from "./pages/teacher/StudentManagement";
 import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
 
 // Admin module imports
+import AdminLogin from "./pages/admin/AdminLogin";
 import UserManagement from "./pages/admin/UserManagement";
-import SystemAnalytics from "./pages/admin/SystemAnalytics";
-import ContentModeration from "./pages/admin/ContentModeration";
-import SystemSettings from "./pages/admin/SystemSettings";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManageStudents from "./pages/admin/ManageStudents";
+import ManageTeachers from "./pages/admin/ManageTeachers";
+import AIVideos from "./pages/admin/AIVideos";
+import Courses from "./pages/admin/Courses";
 
 const queryClient = new QueryClient();
 
@@ -80,10 +83,13 @@ const App = () => (
           <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignments" element={<AssignmentCreation />} />
           <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/analytics" element={<SystemAnalytics />} />
-          <Route path="/admin/moderation" element={<ContentModeration />} />
-          <Route path="/admin/settings" element={<SystemSettings />} />
+          <Route path="/admin/students" element={<ManageStudents />} />
+          <Route path="/admin/teachers" element={<ManageTeachers />} />
+          <Route path="/admin/ai-videos" element={<AIVideos />} />
+          <Route path="/admin/courses" element={<Courses />} />
           <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
           <Route path="*" element={<NotFound />} />

@@ -8,6 +8,7 @@ import classRouter from './routes/classRoutes.js';
 import assignmentRouter from './routes/assignmentRoutes.js';
 import submissionRouter from './routes/submissionRoutes.js';
 import aiChatRouter from './routes/aiChatRoutes.js';
+import adminRouter from './routes/adminRoutes.js';
 
 const app = express();
 const port = process.env.PORT;
@@ -25,6 +26,7 @@ app.use('/api/class', classRouter);
 app.use('/api/assignment', assignmentRouter);
 app.use('/api/submission', submissionRouter);
 app.use('/api/ai-chat', aiChatRouter);
+app.use('/api/admin', adminRouter);
 
 
 
