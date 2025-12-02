@@ -6,13 +6,21 @@ import {
   getAssignmentById,
   updateAssignment,
   deleteAssignment,
-  getAssignmentsByGradeSection
+  getAssignmentsByGradeSection,
+  extractTextFromImage,
+  generateExpectedAnswer
 } from '../controllers/assignmentController.js';
 
 const router = express.Router();
 
 // Create a new assignment
 router.post('/create', createAssignment);
+
+// Extract text from image using OCR
+router.post('/extract-text', extractTextFromImage);
+
+// Generate expected answer using AI
+router.post('/generate-answer', generateExpectedAnswer);
 
 // Get all assignments for a specific class (by classId)
 router.get('/class/:classId', getAssignmentsByClass);

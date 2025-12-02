@@ -1,6 +1,8 @@
 import Assignment from '../models/Assignment.js';
 import Class from '../models/Class.js';
 import Student from '../models/Student.js';
+import ocrService from '../services/ocrService.js';
+import aiGradingService from '../services/aiGradingService.js';
 
 // Create a new assignment
 export const createAssignment = async (req, res) => {
@@ -168,5 +170,100 @@ export const getAssignmentsByGradeSection = async (req, res) => {
   } catch (error) {
     console.error('Error fetching assignments:', error);
     res.status(500).json({ message: 'Error fetching assignments', error: error.message });
+  }
+};
+
+// Extract text from image using OCR
+export const extractTextFromImage = async (req, res) => {
+  try {
+    const { image, filename } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No image data provided' 
+      });
+    }
+
+    console.log(`Processing OCR for image: ${filename || 'unnamed'}`);
+
+    // Extract text using the OCR service
+    const result = await ocrService.extractTextFromBase64(image);
+
+    if (!result || !result.text) {
+      return res.status(200).json({
+        success: true,
+        text: '',
+        confidence: 0,
+        message: 'No text detected in the image'
+      });
+    }
+
+    // Check text quality
+    const quality = ocrService.checkTextQuality(result.text, result.confidence);
+
+    res.status(200).json({
+      success: true,
+      text: result.text,
+      rawText: result.rawText,
+      confidence: result.confidence,
+      words: result.words,
+      paragraphs: result.paragraphs,
+      lines: result.lines,
+      quality: quality.quality,
+      wordCount: result.words,
+      tips: quality.quality !== 'excellent' ? [quality.message] : []
+    });
+  } catch (error) {
+    console.error('Error extracting text from image:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error processing image with OCR', 
+      error: error.message 
+    });
+  }
+};
+
+// Generate expected answer using AI
+export const generateExpectedAnswer = async (req, res) => {
+  try {
+    const { title, description, subject, maxPoints } = req.body;
+
+    if (!title || !subject) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and subject are required'
+      });
+    }
+
+    console.log(`Generating expected answer for: ${title}`);
+
+    const result = await aiGradingService.generateExpectedAnswer(
+      title,
+      description || '',
+      subject,
+      maxPoints || 100
+    );
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        expectedAnswer: result.expectedAnswer,
+        keyPoints: result.keyPoints,
+        gradingTips: result.gradingTips
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: result.error || 'Failed to generate expected answer'
+      });
+    }
+  } catch (error) {
+    console.error('Error generating expected answer:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating expected answer',
+      error: error.message
+    });
   }
 };
