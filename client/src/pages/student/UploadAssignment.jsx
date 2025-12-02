@@ -135,6 +135,171 @@ const UploadAssignment = () => {
     setSubmissionFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
+  // ==================== OCR FUNCTIONS ====================
+  
+  // Start camera for capturing handwritten documents
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setIsCameraOpen(true);
+      setOcrError(null);
+    } catch (err) {
+      console.error('Camera error:', err);
+      setOcrError('Unable to access camera. Please check permissions or use file upload instead.');
+    }
+  };
+
+  // Stop camera stream
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraOpen(false);
+  };
+
+  // Capture image from camera
+  const captureImage = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    
+    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+    setCapturedImages(prev => [...prev, {
+      id: Date.now(),
+      data: imageData,
+      processed: false,
+      text: ''
+    }]);
+  };
+
+  // Handle OCR image upload
+  const handleOcrImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setCapturedImages(prev => [...prev, {
+            id: Date.now() + Math.random(),
+            data: event.target.result,
+            processed: false,
+            text: '',
+            fileName: file.name
+          }]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    e.target.value = '';
+  };
+
+  // Remove captured image
+  const removeCapturedImage = (imageId) => {
+    setCapturedImages(prev => prev.filter(img => img.id !== imageId));
+    setOcrResults(prev => prev.filter(r => r.imageId !== imageId));
+  };
+
+  // Process single image with OCR
+  const processImageWithOcr = async (image) => {
+    try {
+      // Extract base64 data (remove data:image/jpeg;base64, prefix)
+      const base64Data = image.data.split(',')[1] || image.data;
+      
+      const response = await axios.post(`${API_URL}/assignment/extract-text`, {
+        image: base64Data,
+        filename: image.fileName || `capture_${image.id}.jpg`
+      });
+      
+      return {
+        imageId: image.id,
+        success: response.data.success,
+        text: response.data.text || '',
+        confidence: response.data.confidence || 0,
+        quality: response.data.quality || 'unknown',
+        wordCount: response.data.wordCount || 0,
+        tips: response.data.tips || []
+      };
+    } catch (err) {
+      console.error('OCR Error:', err);
+      return {
+        imageId: image.id,
+        success: false,
+        text: '',
+        confidence: 0,
+        error: err.response?.data?.message || 'Failed to extract text'
+      };
+    }
+  };
+
+  // Process all captured images with OCR
+  const processAllImagesWithOcr = async () => {
+    if (capturedImages.length === 0) {
+      setOcrError('Please capture or upload at least one image first.');
+      return;
+    }
+    
+    setIsProcessingOcr(true);
+    setOcrError(null);
+    const results = [];
+    
+    for (let i = 0; i < capturedImages.length; i++) {
+      setCurrentImageIndex(i);
+      const image = capturedImages[i];
+      
+      if (!image.processed) {
+        const result = await processImageWithOcr(image);
+        results.push(result);
+        
+        // Update image as processed
+        setCapturedImages(prev => prev.map(img => 
+          img.id === image.id ? { ...img, processed: true, text: result.text } : img
+        ));
+      }
+    }
+    
+    setOcrResults(results);
+    setIsProcessingOcr(false);
+    
+    // Combine all extracted text
+    const combinedText = results
+      .filter(r => r.success && r.text)
+      .map(r => r.text)
+      .join('\n\n--- Page Break ---\n\n');
+    
+    if (combinedText) {
+      setSubmissionContent(prev => prev ? `${prev}\n\n${combinedText}` : combinedText);
+    }
+  };
+
+  // Get confidence color
+  const getConfidenceColor = (confidence) => {
+    if (confidence >= 70) return 'text-green-600 bg-green-100';
+    if (confidence >= 50) return 'text-yellow-600 bg-yellow-100';
+    return 'text-red-600 bg-red-100';
+  };
+
+  // Clean up camera on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   const getFileIcon = (fileType) => {
     if (fileType?.startsWith('image/')) return <Image className="w-5 h-5" />;
     if (fileType?.startsWith('video/')) return <Video className="w-5 h-5" />;

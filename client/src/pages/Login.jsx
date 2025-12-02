@@ -286,6 +286,12 @@ const Login = () => {
                   Forgot your password?
                 </Link>
               </p>
+              <p className="text-sm text-gray-600">
+                New teacher?{" "}
+                <Link to="/register" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                  Register here
+                </Link>
+              </p>
             </div>
           </CardContent>
         </Card>

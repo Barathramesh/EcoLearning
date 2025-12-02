@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ExploreNature from "./pages/ExploreNature";
 import GetStarted from "./pages/GetStarted";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import Games from "./pages/student/Games";
@@ -33,6 +34,8 @@ import StudentProgressTracking from "./pages/teacher/StudentProgressTracking";
 import AssignmentCreation from "./pages/teacher/AssignmentCreation";
 import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
 import StudentManagement from "./pages/teacher/StudentManagement";
+import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
+import VideoGeneration from "./pages/teacher/VideoGeneration";
 
 import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
 
@@ -59,6 +62,7 @@ const App = () => (
           <Route path="/explore-nature" element={<ExploreNature />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/student/games" element={<Games />} />
           <Route path="/student/lessons" element={<Lessons />} />
@@ -83,6 +87,8 @@ const App = () => (
           <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignments" element={<AssignmentCreation />} />
           <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
+          <Route path="/teacher/video-generation" element={<VideoGeneration />} />
+          <Route path="/teacher/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<UserManagement />} />

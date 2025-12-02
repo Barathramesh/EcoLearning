@@ -1,18 +1,25 @@
 import Navigation from "@/components/Navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Brain, 
   MessageCircle, 
   Lightbulb, 
   Send,
-  BookOpen,
-  TreePine,
-  Droplets,
+  ImageIcon,
+  X,
+  Loader2,
+  Trash2,
+  Bot,
+  Leaf,
   Sun,
+  Waves,
+  TreePine,
+  Bird,
   Recycle,
+  Sparkles,
+  MessageSquare,
+  Zap,
+  Globe,
+  Heart
   Globe,
   Zap,
   Star,
@@ -51,6 +58,29 @@ const AI = () => {
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
+  // Quick suggestion chips
+  const quickSuggestions = [
+    { text: "Climate change", icon: Sun },
+    { text: "Rainforests", icon: TreePine },
+    { text: "Solar energy", icon: Sparkles },
+    { text: "Ocean life", icon: Waves },
+    { text: "Recycling", icon: Recycle },
+    { text: "Wildlife", icon: Bird },
+  ];
+
+  // Environmental science topics for validation
+  const environmentalKeywords = [
+    'climate', 'weather', 'temperature', 'global warming', 'greenhouse', 'carbon', 'co2',
+    'ecosystem', 'biodiversity', 'species', 'habitat', 'wildlife', 'animal', 'plant', 'tree', 'forest',
+    'ocean', 'sea', 'water', 'river', 'lake', 'marine', 'coral', 'fish', 'pollution',
+    'renewable', 'solar', 'wind', 'energy', 'electricity', 'power', 'sustainable',
+    'recycle', 'waste', 'plastic', 'environment', 'nature', 'conservation', 'ecology',
+    'air quality', 'ozone', 'atmosphere', 'deforestation', 'rainforest', 'earth', 'planet',
+    'agriculture', 'farming', 'organic', 'soil', 'erosion', 'drought', 'flood',
+    'endangered', 'extinct', 'protect', 'preserve', 'green', 'eco', 'natural',
+    'photosynthesis', 'oxygen', 'nitrogen', 'cycle', 'food chain', 'food web',
+    'biome', 'tundra', 'desert', 'grassland', 'wetland', 'mangrove', 'glacier', 'ice',
+    'hurricane', 'tornado', 'earthquake', 'volcano', 'disaster', 'tsunami'
   // Environmental science topics for validation
   const environmentalKeywords = [
     'climate', 'weather', 'temperature', 'global warming', 'greenhouse', 'carbon', 'co2',
@@ -109,6 +139,11 @@ const AI = () => {
       const parsedData = JSON.parse(userData);
       setStudentData(parsedData);
       loadChatHistory(parsedData.id);
+    } else {
+      setIsLoadingHistory(false);
+      setChatHistory([{
+        type: "ai",
+        message: "👋 Hi! I'm EcoBot, your environmental science tutor. Ask me anything about nature, climate, animals, or the environment!",
       loadAIStats(parsedData.id);
       loadPopularTopics();
     } else {
@@ -135,6 +170,12 @@ const AI = () => {
       const response = await axios.get(`${API_URL}/ai-chat/history/${studentId}`);
       
       if (response.data.length === 0) {
+        const welcomeMessage = {
+          type: "ai",
+          message: "🌿 Hi! I'm EcoBot, your friendly environmental science tutor!\n\nI can help you learn about climate, plants, animals, oceans, renewable energy, and more!\n\n📸 You can also upload nature photos for me to analyze!\n\nWhat would you like to learn about? 🌍",
+          timestamp: new Date().toISOString()
+        };
+        setChatHistory([welcomeMessage]);
         // Add welcome message for new users
         const welcomeMessage = {
           type: "ai",
@@ -151,6 +192,7 @@ const AI = () => {
       console.error('Error loading chat history:', error);
       setChatHistory([{
         type: "ai",
+        message: "🌿 Hi! I'm EcoBot. Ask me anything about the environment!",
         message: "🌿 Hi! I'm EcoBot, your environmental science tutor. Ask me anything about nature, climate, animals, plants, or the environment!",
         timestamp: new Date().toISOString()
       }]);
@@ -260,26 +302,81 @@ const AI = () => {
     });
   };
 
-  // Handle image upload
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
+      reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
     }
   };
 
-  // Remove selected image
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Format AI message
+  const formatAIMessage = (text) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    
+    return lines.map((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return <div key={index} className="h-2" />;
+      
+      // Headers
+      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        return <h3 key={index} className="font-semibold text-green-600 mt-2 mb-1">{trimmedLine.slice(2, -2)}</h3>;
+      }
+      
+      // Bullet points
+      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+        return (
+          <div key={index} className="flex items-start gap-2 ml-2 my-1">
+            <span className="text-green-500 mt-0.5">•</span>
+            <span className="text-gray-600">{formatInlineText(trimmedLine.slice(1).trim())}</span>
+          </div>
+        );
+      }
+      
+      // Numbered lists
+      const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)/);
+      if (numberedMatch) {
+        return (
+          <div key={index} className="flex items-start gap-2 ml-2 my-1">
+            <span className="bg-green-100 text-green-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">{numberedMatch[1]}</span>
+            <span className="text-gray-600">{formatInlineText(numberedMatch[2])}</span>
+          </div>
+        );
+      }
+      
+      // Emoji lines
+      const emojiMatch = trimmedLine.match(/^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u);
+      if (emojiMatch) {
+        return <div key={index} className="my-1 text-gray-700">{trimmedLine}</div>;
+      }
+      
+      return <p key={index} className="text-gray-600 my-1">{formatInlineText(trimmedLine)}</p>;
+    });
+  };
+
+  const formatInlineText = (text) => {
+    if (!text) return text;
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="font-medium text-green-600">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // Format AI message with attractive styling
@@ -425,17 +522,12 @@ Please provide a helpful, educational, and engaging response about environmental
         });
       }
 
-      // Add image part if provided
       if (imageFile) {
         const base64Image = await convertToBase64(imageFile);
         requestBody.contents[0].parts.push({
-          inline_data: {
-            mime_type: imageFile.type,
-            data: base64Image
-          }
+          inline_data: { mime_type: imageFile.type, data: base64Image }
         });
         
-        // Add context for image analysis
         if (!message.trim()) {
           requestBody.contents[0].parts.push({
             text: `You are EcoBot, a friendly environmental science tutor. Analyze this image from an environmental science perspective.
@@ -454,15 +546,11 @@ Provide an engaging and educational analysis:`
 
       const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
 
       const data = await response.json();
       const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "I apologize, but I couldn't process your request. Please try asking about environmental science topics!";
@@ -507,7 +595,6 @@ Provide an engaging and educational analysis:`
       // Get AI response
       const aiResponse = await sendToGemini(currentInput, currentImage);
       
-      // Add AI response to chat
       const aiMessage = {
         type: "ai",
         message: aiResponse,
@@ -536,7 +623,7 @@ Provide an engaging and educational analysis:`
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+    <div className="min-h-screen bg-gray-50">
       <Navigation userType="student" />
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -847,36 +934,63 @@ Provide an engaging and educational analysis:`
                               : "Start asking questions to discover your strengths!"}
                           </p>
                         </div>
-                      </div>
+                      )}
                     </div>
-                    <div className="group relative p-5 bg-gradient-to-br from-yellow-50 to-yellow-100 border-l-4 border-yellow-500 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Lightbulb className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
-                            Recommended Topic
-                            <Badge className="bg-yellow-200 text-yellow-800 text-xs">New</Badge>
-                          </h4>
-                          <p className="text-sm text-yellow-700 leading-relaxed">Try learning about climate adaptation strategies.</p>
-                        </div>
+                  ))}
+                  
+                  {/* Typing Indicator */}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-2">
+                        <Bot className="w-4 h-4 text-white" />
                       </div>
-                    </div>
-                    <div className="group relative p-5 bg-gradient-to-br from-blue-50 to-blue-100 border-l-4 border-blue-500 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Brain className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                            Study Tip
-                            <Badge className="bg-blue-200 text-blue-800 text-xs">Tip</Badge>
-                          </h4>
-                          <p className="text-sm text-blue-700 leading-relaxed">Connect new concepts to real-world examples for better retention.</p>
+                      <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl rounded-bl-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
+                          <span className="text-sm text-gray-500">Typing...</span>
                         </div>
                       </div>
                     </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Quick Suggestions */}
+            {chatHistory.length <= 2 && !isLoading && (
+              <div className="px-4 py-3 bg-white border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-2">Try asking about:</p>
+                <div className="flex flex-wrap gap-2">
+                  {quickSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion.text)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-green-50 hover:text-green-600 rounded-full text-sm text-gray-600 transition-colors"
+                    >
+                      <suggestion.icon className="w-3.5 h-3.5" />
+                      {suggestion.text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-12 h-12 object-cover rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700">Image ready</p>
+                    <p className="text-xs text-gray-400">Will be analyzed</p>
                   </div>
                 </CardContent>
               </Card>
