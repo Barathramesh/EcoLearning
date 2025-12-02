@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +18,20 @@ import {
 } from "lucide-react";
 
 const StudentDashboard = () => {
-  // Mock student data
+  // Get logged-in user from localStorage
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Student data with user info from localStorage
   const studentData = {
-    name: "Alex Johnson",
-    institution: "Green Valley High School",
+    name: user?.name || "Student",
+    institution: user?.school || "Green Valley High School",
     totalPoints: 2847,
     todayPoints: 85,
     coursesCompleted: 8,

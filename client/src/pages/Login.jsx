@@ -51,8 +51,18 @@ const Login = () => {
       const response = await studentLogin(studentForm.rollNumber, studentForm.password);
       
       if (response.success) {
-        // Navigate to student dashboard
-        navigate('/student-dashboard');
+        // Check if first login - redirect to change password page
+        if (response.data.user.isFirstLogin) {
+          navigate('/student/change-password', { 
+            state: { 
+              rollNumber: studentForm.rollNumber,
+              userName: response.data.user.name
+            } 
+          });
+        } else {
+          // Navigate to student dashboard
+          navigate('/student-dashboard');
+        }
       }
     } catch (err) {
       setError(err.message || 'Invalid username or password');

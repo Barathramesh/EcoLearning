@@ -1,115 +1,168 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
-import { 
-  Users, 
-  Plus, 
-  Settings, 
+import {
+  Users,
+  Plus,
   Search,
   Filter,
-  MoreVertical,
-  UserPlus,
   BookOpen,
-  Calendar,
-  Clock,
-  MapPin,
-  Edit,
   Trash2,
   Eye
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const ClassManagement = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCreateClass, setShowCreateClass] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  // Mock data for classes
-  const classes = [
-    {
-      id: 1,
-      name: "Environmental Science 101",
-      subject: "Environmental Science",
-      grade: "9th Grade",
-      students: 28,
-      maxStudents: 30,
-      schedule: "Mon, Wed, Fri - 10:00 AM",
-      room: "Science Lab A",
-      status: "active",
-      nextClass: "2025-09-20T10:00:00",
-      assignments: 12,
-      completionRate: 85,
-      avgScore: 88
-    },
-    {
-      id: 2,
-      name: "Climate Change Studies",
-      subject: "Earth Science",
-      grade: "11th Grade", 
-      students: 24,
-      maxStudents: 25,
-      schedule: "Tue, Thu - 2:00 PM",
-      room: "Room 205",
-      status: "active",
-      nextClass: "2025-09-21T14:00:00",
-      assignments: 8,
-      completionRate: 92,
-      avgScore: 91
-    },
-    {
-      id: 3,
-      name: "Ecology & Biodiversity",
-      subject: "Biology",
-      grade: "10th Grade",
-      students: 22,
-      maxStudents: 30,
-      schedule: "Mon, Wed - 1:00 PM",
-      room: "Bio Lab",
-      status: "active",
-      nextClass: "2025-09-22T13:00:00",
-      assignments: 15,
-      completionRate: 78,
-      avgScore: 84
-    },
-    {
-      id: 4,
-      name: "Sustainable Living",
-      subject: "Life Skills",
-      grade: "12th Grade",
-      students: 18,
-      maxStudents: 20,
-      schedule: "Fri - 3:00 PM",
-      room: "Multi-purpose Hall",
-      status: "archived",
-      nextClass: null,
-      assignments: 20,
-      completionRate: 95,
-      avgScore: 93
+  // Get teacher info from localStorage
+  const getTeacherInfo = () => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    return {
+      teacherId: storedUser.teacherId || storedUser.id || storedUser._id,
+      teacherName: storedUser.Name || storedUser.name || 'Teacher'
+    };
+  };
+
+  // Fetch classes from database
+  const fetchClasses = async () => {
+    try {
+      const { teacherId } = getTeacherInfo();
+      if (!teacherId) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/class/teacher/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setClasses(data.data.map(cls => ({
+          id: cls._id,
+          grade: cls.grade,
+          section: cls.section,
+          subject: cls.subject,
+          teacherName: cls.teacherName,
+          totalStudents: cls.totalStudents || 0,
+          status: 'active'
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const filteredClasses = classes.filter(cls => 
-    cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    fetchClasses();
+  }, []);
+
+  const [newClass, setNewClass] = useState({
+    grade: '',
+    section: '',
+    subject: ''
+  });
+
+  const handleCreateClass = async () => {
+    if (!newClass.grade || !newClass.section || !newClass.subject) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const { teacherId, teacherName } = getTeacherInfo();
+      
+      if (!teacherId) {
+        alert('Teacher ID not found. Please log in again.');
+        return;
+      }
+      
+      console.log('Creating class with:', { grade: newClass.grade, section: newClass.section, subject: newClass.subject, teacherId, teacherName });
+      
+      const response = await fetch(`${API_BASE_URL}/class/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grade: newClass.grade,
+          section: newClass.section,
+          subject: newClass.subject,
+          teacherId,
+          teacherName
+        })
+      });
+
+      const data = await response.json();
+      console.log('Response:', data);
+
+      if (data.success) {
+        // Add the new class to state
+        setClasses([...classes, {
+          id: data.data._id,
+          grade: data.data.grade,
+          section: data.data.section,
+          subject: data.data.subject,
+          teacherName: data.data.teacherName,
+          totalStudents: data.data.totalStudents || 0,
+          status: 'active'
+        }]);
+        setShowCreateClass(false);
+        setNewClass({ grade: '', section: '', subject: '' });
+      } else {
+        alert(data.message || 'Failed to create class');
+      }
+    } catch (error) {
+      console.error('Error creating class:', error);
+      alert('Failed to create class');
+    }
+  };
+
+  const handleDeleteClass = async (classId, e) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this class?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/class/${classId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setClasses(classes.filter(cls => cls.id !== classId));
+      } else {
+        alert(data.message || 'Failed to delete class');
+      }
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      alert('Failed to delete class');
+    }
+  };
+
+  const filteredClasses = classes.filter(cls =>
+    cls.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cls.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cls.grade.toLowerCase().includes(searchTerm.toLowerCase())
+    cls.section.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cls.teacherName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'archived': return 'bg-gray-100 text-gray-800';
       default: return 'bg-blue-100 text-blue-800';
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'No upcoming class';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
   };
 
   return (
@@ -150,15 +203,15 @@ const ClassManagement = () => {
           {/* Search and Filter Bar */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ position: 'relative', flex: 1 }}>
-              <Search 
-                size={20} 
-                style={{ 
-                  position: 'absolute', 
-                  left: '0.75rem', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)', 
-                  color: '#6b7280' 
-                }} 
+              <Search
+                size={20}
+                style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#6b7280'
+                }}
               />
               <input
                 type="text"
@@ -193,9 +246,19 @@ const ClassManagement = () => {
         </div>
 
         {/* Classes Grid */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+            Loading classes...
+          </div>
+        ) : filteredClasses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+            <p>No classes found.</p>
+            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>Click "Create New Class" to add your first class.</p>
+          </div>
+        ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
           gap: '1.5rem',
           marginBottom: '2rem'
         }}>
@@ -212,142 +275,78 @@ const ClassManagement = () => {
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
               }}
               onClick={() => setSelectedClass(cls)}
             >
               {/* Class Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.25rem' }}>
-                    {cls.name}
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
+                    Grade {cls.grade} - Section {cls.section}
                   </h3>
-                  <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                    {cls.subject} • {cls.grade}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    ...getStatusColor(cls.status).split(' ').reduce((acc, cls) => {
-                      if (cls.startsWith('bg-')) acc.backgroundColor = cls.replace('bg-', '#');
-                      if (cls.startsWith('text-')) acc.color = cls.replace('text-', '#');
-                      return acc;
-                    }, {})
-                  }}>
-                    {cls.status.charAt(0).toUpperCase() + cls.status.slice(1)}
-                  </span>
                   <button
+                    onClick={(e) => handleDeleteClass(cls.id, e)}
                     style={{
                       padding: '0.25rem',
+                      backgroundColor: 'transparent',
                       border: 'none',
-                      background: 'none',
                       cursor: 'pointer',
-                      borderRadius: '0.25rem'
+                      color: '#ef4444'
                     }}
+                    title="Delete Class"
                   >
-                    <MoreVertical size={16} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
-              </div>
-
-              {/* Class Stats */}
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(2, 1fr)', 
-                gap: '1rem',
-                marginBottom: '1rem'
-              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#059669',
+                    backgroundColor: '#d1fae5',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.25rem'
+                  }}>
+                    {cls.subject}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <BookOpen size={16} style={{ color: '#6b7280' }} />
+                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    Teacher: {cls.teacherName}
+                  </span>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Users size={16} style={{ color: '#6b7280' }} />
                   <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {cls.students}/{cls.maxStudents} students
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <BookOpen size={16} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {cls.assignments} assignments
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Clock size={16} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {cls.schedule}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <MapPin size={16} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {cls.room}
+                    {cls.totalStudents} Students
                   </span>
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Class Progress</span>
-                  <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                    {cls.completionRate}% • Avg: {cls.avgScore}%
-                  </span>
-                </div>
-                <div style={{ 
-                  width: '100%', 
-                  height: '0.5rem', 
-                  backgroundColor: '#e5e7eb', 
-                  borderRadius: '0.25rem',
-                  overflow: 'hidden'
-                }}>
-                  <div
-                    style={{
-                      width: `${cls.completionRate}%`,
-                      height: '100%',
-                      backgroundColor: cls.completionRate >= 80 ? '#10b981' : cls.completionRate >= 60 ? '#f59e0b' : '#ef4444',
-                      transition: 'width 0.3s ease'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Next Class */}
-              <div style={{ 
-                backgroundColor: '#f9fafb', 
-                padding: '0.75rem', 
-                borderRadius: '0.5rem',
-                marginBottom: '1rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Calendar size={16} style={{ color: '#6b7280' }} />
-                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
-                    Next Class:
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  {formatDate(cls.nextClass)}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {/* Action Button */}
+              <div>
                 <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/teacher/student-management?classId=${cls.id}&grade=${cls.grade}&section=${cls.section}`);
+                  }}
                   style={{
-                    flex: 1,
-                    padding: '0.5rem',
+                    width: '100%',
+                    padding: '0.75rem',
                     backgroundColor: '#3b82f6',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.375rem',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
+                    fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -357,98 +356,47 @@ const ClassManagement = () => {
                   <Eye size={16} />
                   View Details
                 </button>
-                <button
-                  style={{
-                    padding: '0.5rem',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  style={{
-                    padding: '0.5rem',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <UserPlus size={16} />
-                </button>
               </div>
             </div>
           ))}
         </div>
+        )}
 
         {/* Quick Stats */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '1rem'
         }}>
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '1.5rem', 
+          <div style={{
+            backgroundColor: 'white',
+            padding: '1.5rem',
             borderRadius: '0.5rem',
             textAlign: 'center',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>{classes.filter(c => c.status === 'active').length}</div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Active Classes</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>{classes.length}</div>
+            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Classes</div>
           </div>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '1.5rem', 
+
+          <div style={{
+            backgroundColor: 'white',
+            padding: '1.5rem',
             borderRadius: '0.5rem',
             textAlign: 'center',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>
-              {classes.reduce((total, cls) => total + cls.students, 0)}
+              {classes.reduce((total, cls) => total + cls.totalStudents, 0)}
             </div>
             <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Students</div>
-          </div>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '1.5rem', 
-            borderRadius: '0.5rem',
-            textAlign: 'center',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#7c3aed' }}>
-              {classes.reduce((total, cls) => total + cls.assignments, 0)}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Assignments</div>
-          </div>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '1.5rem', 
-            borderRadius: '0.5rem',
-            textAlign: 'center',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ea580c' }}>
-              {Math.round(classes.reduce((total, cls) => total + cls.avgScore, 0) / classes.length)}%
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Average Score</div>
           </div>
         </div>
       </div>
 
-      {/* Create Class Modal (placeholder) */}
+      {/* Create Class Modal */}
       {showCreateClass && (
         <div style={{
           position: 'fixed',
@@ -475,8 +423,64 @@ const ClassManagement = () => {
               Create New Class
             </h2>
             <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-              Set up a new class for your students. You can add students and assignments after creation.
+              Set up a new class for your students.
             </p>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
+                Grade
+              </label>
+              <input
+                type="text"
+                value={newClass.grade}
+                onChange={(e) => setNewClass({ ...newClass, grade: e.target.value })}
+                placeholder="e.g. 10th"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
+                Section
+              </label>
+              <input
+                type="text"
+                value={newClass.section}
+                onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
+                placeholder="e.g. A"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
+                Subject
+              </label>
+              <input
+                type="text"
+                value={newClass.subject}
+                onChange={(e) => setNewClass({ ...newClass, subject: e.target.value })}
+                placeholder="e.g. Environmental Science"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowCreateClass(false)}
@@ -491,6 +495,7 @@ const ClassManagement = () => {
                 Cancel
               </button>
               <button
+                onClick={handleCreateClass}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#059669',

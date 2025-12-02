@@ -2,7 +2,6 @@ import express from 'express';
 import multer from 'multer';
 import { 
   teacherLogin, 
-  teacherRegister,
   createStudent, 
   importStudentsFromFile, 
   getStudentsByTeacher, 
@@ -13,15 +12,28 @@ import {
 
 const teacherRouter = express.Router();
 
-// Configure multer for file uploads
+// Configure multer for file uploads (memory storage)
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+      'application/vnd.ms-excel', // xls
+      'text/csv',
+      'application/csv'
+    ];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(xlsx|xls|csv)$/i)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only Excel and CSV files are allowed'), false);
+    }
+  }
 });
 
-// Teacher routes
+// Teacher authentication
 teacherRouter.post('/login', teacherLogin);
-teacherRouter.post('/register', teacherRegister);
+// teacherRouter.post('/register', teacherRegister);
 
 // Teacher manages students
 teacherRouter.post('/create-students', createStudent);

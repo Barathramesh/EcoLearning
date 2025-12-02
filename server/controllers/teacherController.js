@@ -2,65 +2,16 @@ import { validationResult } from 'express-validator';
 import Teacher from '../models/Teacher.js';
 import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
+import xlsx from 'xlsx';
 
-
-// Teacher Registration
-export const teacherRegister = async (req, res) => {
-  try {
-    const { Name, email, phone, teacherId, password } = req.body;
-
-    // Validate required fields
-    if (!Name || !email || !phone || !teacherId || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'All fields are required: Name, email, phone, teacherId, password'
-      });
-    }
-
-    // Check if teacher already exists
-    const existingTeacher = await Teacher.findOne({ 
-      $or: [{ teacherId }, { email }, { phone }] 
-    });
-    
-    if (existingTeacher) {
-      return res.status(400).json({
-        success: false,
-        message: 'Teacher already exists with this ID, email, or phone'
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create teacher
-    const teacher = await Teacher.create({
-      Name,
-      email,
-      phone,
-      teacherId,
-      password: hashedPassword
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Teacher registered successfully',
-      data: {
-        user: {
-          id: teacher._id,
-          Name: teacher.Name,
-          teacherId: teacher.teacherId,
-          email: teacher.email,
-          role: 'teacher'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Teacher registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during registration'
-    });
+// Generate random password
+const generateRandomPassword = (length = 8) => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
+  return password;
 };
 
 // Teacher Login
@@ -111,96 +62,282 @@ export const teacherLogin = async (req, res) => {
   }
 };
 
-// Create Student
+// Create student manually
 export const createStudent = async (req, res) => {
   try {
-    const { name, email, studentId, password, teacherId } = req.body;
+    const { name, rollNumber, email, phone, address, school, studentClass, joiningDate, teacherId } = req.body;
+    
+    // Use studentClass or class from request body
+    const classValue = studentClass || 'Default';
 
-    if (!name || !email || !studentId || !password || !teacherId) {
-      return res.status(400).json({
-        success: false,
-        message: 'All fields are required'
+    // Validate required fields
+    if (!name || !rollNumber || !email || !phone || !teacherId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: name, rollNumber, email, phone, and teacherId are required' 
       });
     }
 
-    const existingStudent = await Student.findOne({ 
-      $or: [{ studentId }, { email }] 
-    });
-
+    // Check if student already exists
+    const existingStudent = await Student.findOne({ rollNumber});
+    
     if (existingStudent) {
-      return res.status(400).json({
-        success: false,
-        message: 'Student already exists with this ID or email'
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Student already exists with this roll number' 
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate password automatically
+    const plainPassword = generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     const student = await Student.create({
-      name,
-      email,
-      studentId,
-      password: hashedPassword,
-      teacherId
+      name, rollNumber, email, phone, address, school, class: classValue,
+      joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
+      teacherId,
+      passwordHash: hashedPassword,
+      plainPassword: plainPassword,
+      credentialsGenerated: true
     });
 
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
-      data: student
+      data: {
+        ...student.toObject(),
+        generatedPassword: plainPassword // Return password so teacher can share it
+      }
     });
+
   } catch (error) {
     console.error('Create student error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while creating student' 
     });
   }
 };
 
-// Import Students from File
+// Import multiple students from CSV/Excel file
 export const importStudentsFromFile = async (req, res) => {
   try {
+    const { teacherId } = req.body;
+
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded'
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No file uploaded' 
       });
     }
 
-    const { teacherId } = req.body;
-    const fileContent = req.file.buffer.toString('utf-8');
-    const lines = fileContent.split('\n').filter(line => line.trim());
-    
-    const students = [];
-    for (let i = 1; i < lines.length; i++) { // Skip header
-      const [name, email, studentId, password] = lines[i].split(',').map(s => s.trim());
-      if (name && email && studentId && password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        students.push({ name, email, studentId, password: hashedPassword, teacherId });
+    if (!teacherId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Teacher ID is required' 
+      });
+    }
+
+    // Parse the Excel/CSV file
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+
+    if (!data || data.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No data found in the file' 
+      });
+    }
+
+    const results = {
+      success: [],
+      failed: []
+    };
+
+    for (const row of data) {
+      try {
+        // Trim all keys to handle leading/trailing spaces in column names
+        const trimmedRow = {};
+        for (const key in row) {
+          trimmedRow[key.trim()] = row[key];
+        }
+
+        // Map column names (case-insensitive)
+        const studentData = {
+          name: trimmedRow.name || trimmedRow.Name || trimmedRow.NAME,
+          rollNumber: String(trimmedRow.rollNumber || trimmedRow.RollNumber || trimmedRow.ROLLNUMBER || trimmedRow['Roll Number'] || ''),
+          email: trimmedRow.email || trimmedRow.Email || trimmedRow.EMAIL,
+          phone: String(trimmedRow.phone || trimmedRow.Phone || trimmedRow.PHONE || trimmedRow['Phone Number'] || ''),
+          address: trimmedRow.address || trimmedRow.Address || trimmedRow.ADDRESS || '',
+          school: trimmedRow.school || trimmedRow.School || trimmedRow.SCHOOL || '',
+          studentClass: trimmedRow.class || trimmedRow.Class || trimmedRow.CLASS || 'Default',
+          joiningDate: trimmedRow.joiningDate || trimmedRow.JoiningDate || trimmedRow['Joining Date'] || new Date()
+        };
+
+        if (!studentData.name || !studentData.rollNumber || !studentData.email) {
+          results.failed.push({
+            row: row,
+            reason: 'Missing required fields (name, rollNumber, or email)'
+          });
+          continue;
+        }
+
+        const existingStudent = await Student.findOne({ rollNumber: studentData.rollNumber });
+
+        if (existingStudent) {
+          results.failed.push({
+            rollNumber: studentData.rollNumber,
+            reason: 'Student already exists with this roll number'
+          });
+          continue;
+        }
+
+        // Generate password automatically
+        const plainPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+        const student = await Student.create({
+          name: studentData.name,
+          rollNumber: studentData.rollNumber,
+          email: studentData.email,
+          phone: studentData.phone,
+          address: studentData.address,
+          school: studentData.school,
+          class: studentData.studentClass,
+          joiningDate: studentData.joiningDate ? new Date(studentData.joiningDate) : new Date(),
+          teacherId,
+          passwordHash: hashedPassword,
+          plainPassword: plainPassword,
+          credentialsGenerated: true
+        });
+
+        results.success.push({
+          _id: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          username: student.rollNumber,
+          password: plainPassword
+        });
+      } catch (err) {
+        console.error('Error creating student:', err);
+        results.failed.push({
+          row: row,
+          reason: err.message
+        });
       }
     }
 
-    const result = await Student.insertMany(students, { ordered: false });
-
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: `${result.length} students imported successfully`,
-      data: result
+      message: `Imported ${results.success.length} students. ${results.failed.length} failed.`,
+      data: results,
+      credentials: results.success // Include credentials for display
     });
   } catch (error) {
-    console.error('Import students error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during import'
+    console.error('Import students from file error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while importing students: ' + error.message 
     });
   }
 };
 
-// Get Students by Teacher
+// Import multiple students from JSON (parsed CSV from frontend)
+export const importStudents = async (req, res) => {
+  try {
+    const { students, teacherId } = req.body;
+
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No students data provided' 
+      });
+    }
+
+    if (!teacherId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Teacher ID is required' 
+      });
+    }
+
+    const results = {
+      success: [],
+      failed: []
+    };
+
+    for (const studentData of students) {
+      try {
+        const existingStudent = await Student.findOne({
+          $or: [{ rollNumber: studentData.rollNumber }, { email: studentData.email }]
+        });
+
+        if (existingStudent) {
+          results.failed.push({
+            rollNumber: studentData.rollNumber,
+            reason: 'Student already exists with this roll number or email'
+          });
+          continue;
+        }
+
+        // Generate password automatically
+        const plainPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+        const student = await Student.create({
+          name: studentData.name,
+          rollNumber: studentData.rollNumber,
+          email: studentData.email,
+          phone: studentData.phone || '',
+          address: studentData.address || '',
+          school: studentData.school || '',
+          class: studentData.studentClass || 'Default',
+          joiningDate: studentData.joiningDate ? new Date(studentData.joiningDate) : new Date(),
+          teacherId,
+          passwordHash: hashedPassword,
+          plainPassword: plainPassword,
+          credentialsGenerated: true
+        });
+
+        results.success.push({
+          _id: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          username: student.rollNumber,
+          password: plainPassword
+        });
+      } catch (err) {
+        results.failed.push({
+          rollNumber: studentData.rollNumber,
+          reason: err.message
+        });
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Imported ${results.success.length} students. ${results.failed.length} failed.`,
+      data: results,
+      credentials: results.success // Include credentials for display
+    });
+  } catch (error) {
+    console.error('Import students error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while importing students' 
+    });
+  }
+};
+
+// Get all students by teacher ID
 export const getStudentsByTeacher = async (req, res) => {
   try {
     const { teacherId } = req.params;
+
     const students = await Student.find({ teacherId }).select('-password');
 
     res.status(200).json({
@@ -209,48 +346,76 @@ export const getStudentsByTeacher = async (req, res) => {
     });
   } catch (error) {
     console.error('Get students error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while fetching students' 
     });
   }
 };
 
-// Generate Credentials
+// Generate credentials for selected students
 export const generateCredentials = async (req, res) => {
   try {
-    const { prefix = 'STU', count = 1 } = req.body;
-    const credentials = [];
+    const { studentIds } = req.body;
 
-    for (let i = 0; i < count; i++) {
-      const studentId = `${prefix}${Date.now()}${i}`;
-      const password = Math.random().toString(36).slice(-8);
-      credentials.push({ studentId, password });
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No student IDs provided' 
+      });
+    }
+
+    const updatedStudents = [];
+
+    for (const studentId of studentIds) {
+      const student = await Student.findById(studentId);
+      
+      if (!student) continue;
+
+      const plainPassword = generateRandomPassword();
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+      await Student.findByIdAndUpdate(studentId, {
+        passwordHash: hashedPassword,
+        plainPassword: plainPassword,
+        credentialsGenerated: true
+      });
+
+      updatedStudents.push({
+        _id: student._id,
+        name: student.name,
+        rollNumber: student.rollNumber,
+        email: student.email,
+        username: student.rollNumber,
+        password: plainPassword
+      });
     }
 
     res.status(200).json({
       success: true,
-      data: credentials
+      message: `Generated credentials for ${updatedStudents.length} students`,
+      data: updatedStudents
     });
   } catch (error) {
     console.error('Generate credentials error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while generating credentials' 
     });
   }
 };
 
-// Delete Student
+// Delete student
 export const deleteStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const result = await Student.findByIdAndDelete(studentId);
 
-    if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found'
+    const student = await Student.findByIdAndDelete(studentId);
+    
+    if (!student) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Student not found' 
       });
     }
 
@@ -260,29 +425,29 @@ export const deleteStudent = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete student error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while deleting student' 
     });
   }
 };
 
-// Update Student
+// Update student
 export const updateStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const updates = req.body;
+    const { name, email, phone, address, school, joiningDate } = req.body;
 
-    if (updates.password) {
-      updates.password = await bcrypt.hash(updates.password, 10);
-    }
-
-    const student = await Student.findByIdAndUpdate(studentId, updates, { new: true }).select('-password');
-
+    const student = await Student.findByIdAndUpdate(
+      studentId,
+      { name, email, phone, address, school, joiningDate },
+      { new: true }
+    ).select('-password');
+    
     if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found'
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Student not found' 
       });
     }
 
@@ -293,9 +458,9 @@ export const updateStudent = async (req, res) => {
     });
   } catch (error) {
     console.error('Update student error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while updating student' 
     });
   }
 };

@@ -7,7 +7,10 @@ import fs from 'fs';
 import connectDB from './config/database.js';
 import studentRoutes from './routes/studentRouter.js';
 import teacherRouter from './routes/teacherRoutes.js';
-import assignmentRoutes from './routes/assignmentRoutes.js';
+import classRouter from './routes/classRoutes.js';
+import assignmentRouter from './routes/assignmentRoutes.js';
+import submissionRouter from './routes/submissionRoutes.js';
+import aiChatRouter from './routes/aiChatRoutes.js';
 import videoRouter from './routes/videoRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +28,7 @@ if (!fs.existsSync(uploadsDir)) {
 await connectDB();
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increased for base64 images
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve uploaded files
@@ -34,7 +37,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/', (req, res) => res.send("API is Working"));
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRoutes);
-app.use('/api/assignment', assignmentRoutes);
+app.use('/api/class', classRouter);
+app.use('/api/assignment', assignmentRouter);
+app.use('/api/submission', submissionRouter);
+app.use('/api/ai-chat', aiChatRouter);
 app.use('/api/video', videoRouter);
 
 

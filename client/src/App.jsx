@@ -18,7 +18,7 @@ import AI from "./pages/student/AI";
 import Profile from "./pages/student/Profile";
 import Leaderboard from "./pages/student/Leaderboard";
 import UploadAssignment from "./pages/student/UploadAssignment";
-import AIAssignmentVerification from "./pages/student/AIAssignmentVerification";
+import ChangePassword from "./pages/student/ChangePassword";
 import SaveTheTreesGame from "./pages/student/SaveTheTreesGame";
 import EcoQuestAdventure from "./pages/student/EcoQuestAdventure";
 import OceanCleanupHero from "./pages/student/OceanCleanupHero";
@@ -33,7 +33,8 @@ import ClassManagement from "./pages/teacher/ClassManagement";
 import StudentProgressTracking from "./pages/teacher/StudentProgressTracking";
 import AssignmentCreation from "./pages/teacher/AssignmentCreation";
 import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
-import AssignmentReview from "./pages/teacher/AssignmentReview";
+import StudentManagement from "./pages/teacher/StudentManagement";
+import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
 import VideoGeneration from "./pages/teacher/VideoGeneration";
 
 // Admin module imports
@@ -61,7 +62,7 @@ const App = () => (
           <Route path="/student/games" element={<Games />} />
           <Route path="/student/lessons" element={<Lessons />} />
           <Route path="/student/upload-assignment" element={<UploadAssignment />} />
-          <Route path="/student/ai-verify" element={<AIAssignmentVerification />} />
+          <Route path="/student/change-password" element={<ChangePassword />} />
           <Route path="/student/ai" element={<AI />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/leaderboard" element={<Leaderboard />} />
@@ -78,10 +79,11 @@ const App = () => (
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<ClassManagement />} />
           <Route path="/teacher/students" element={<StudentProgressTracking />} />
+          <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignments" element={<AssignmentCreation />} />
-          <Route path="/teacher/assignment-review" element={<AssignmentReview />} />
           <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
           <Route path="/teacher/video-generation" element={<VideoGeneration />} />
+          <Route path="/teacher/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/analytics" element={<SystemAnalytics />} />
           <Route path="/admin/moderation" element={<ContentModeration />} />
