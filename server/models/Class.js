@@ -25,10 +25,6 @@ const classSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  description: {
-    type: String,
-    default: ''
-  },
   createdAt: {
     type: Date,
     default: Date.now

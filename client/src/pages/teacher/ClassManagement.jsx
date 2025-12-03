@@ -70,14 +70,29 @@ const ClassManagement = () => {
   }, []);
 
   const [newClass, setNewClass] = useState({
-    grade: '',
-    section: '',
+    className: '',
     subject: ''
   });
 
+  // Parse className format "5th-A" into grade and section
+  const parseClassName = (className) => {
+    const parts = className.split('-');
+    if (parts.length === 2) {
+      return { grade: parts[0].trim(), section: parts[1].trim() };
+    }
+    return { grade: className, section: '' };
+  };
+
   const handleCreateClass = async () => {
-    if (!newClass.grade || !newClass.section || !newClass.subject) {
+    if (!newClass.className || !newClass.subject) {
       alert('Please fill in all fields');
+      return;
+    }
+
+    const { grade, section } = parseClassName(newClass.className);
+    
+    if (!grade || !section) {
+      alert('Please enter class in format: 5th-A');
       return;
     }
 
@@ -89,14 +104,14 @@ const ClassManagement = () => {
         return;
       }
       
-      console.log('Creating class with:', { grade: newClass.grade, section: newClass.section, subject: newClass.subject, teacherId, teacherName });
+      console.log('Creating class with:', { grade, section, subject: newClass.subject, teacherId, teacherName });
       
       const response = await fetch(`${API_BASE_URL}/class/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          grade: newClass.grade,
-          section: newClass.section,
+          grade,
+          section,
           subject: newClass.subject,
           teacherId,
           teacherName
@@ -118,7 +133,7 @@ const ClassManagement = () => {
           status: 'active'
         }]);
         setShowCreateClass(false);
-        setNewClass({ grade: '', section: '', subject: '' });
+        setNewClass({ className: '', subject: '' });
       } else {
         alert(data.message || 'Failed to create class');
       }
@@ -428,13 +443,13 @@ const ClassManagement = () => {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
-                Grade
+                Class
               </label>
               <input
                 type="text"
-                value={newClass.grade}
-                onChange={(e) => setNewClass({ ...newClass, grade: e.target.value })}
-                placeholder="e.g. 10th"
+                value={newClass.className}
+                onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
+                placeholder="e.g. 5th-A"
                 style={{
                   width: '100%',
                   padding: '0.5rem',
@@ -443,24 +458,9 @@ const ClassManagement = () => {
                   fontSize: '0.875rem'
                 }}
               />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>
-                Section
-              </label>
-              <input
-                type="text"
-                value={newClass.section}
-                onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
-                placeholder="e.g. A"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                Format: Grade-Section (e.g. 5th-A, 10th-B)
+              </p>
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontSize: '0.875rem', fontWeight: '500' }}>

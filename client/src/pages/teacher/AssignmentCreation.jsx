@@ -191,7 +191,6 @@ const AssignmentCreation = () => {
           expectedAnswer: data.expectedAnswer,
           keyPoints: data.keyPoints && data.keyPoints.length > 0 ? data.keyPoints : prev.keyPoints
         }));
-        alert('✨ Expected answer generated successfully! You can edit it if needed.');
       } else {
         alert(data.message || 'Failed to generate expected answer. Please try again.');
       }
@@ -238,10 +237,14 @@ const AssignmentCreation = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Assignment published successfully!');
-        // Navigate back to student management with class filter
-        if (classFilter.classId) {
-          navigate(`/teacher/student-management?classId=${classFilter.classId}&grade=${classFilter.grade}&section=${classFilter.section}`);
+        // Navigate back to student management with class filter (scroll to assignments section)
+        const targetClassId = classFilter.classId || assignmentData.classId;
+        if (targetClassId) {
+          // Find the class to get grade and section
+          const selectedClass = classes.find(c => c._id === targetClassId);
+          const grade = classFilter.grade || selectedClass?.grade || '';
+          const section = classFilter.section || selectedClass?.section || '';
+          navigate(`/teacher/student-management?classId=${targetClassId}&grade=${grade}&section=${section}#assignments`);
         } else {
           navigate('/teacher/classes');
         }

@@ -29,6 +29,7 @@ import MountainRanger from "./pages/student/MountainRanger";
 import AquaticLifeGuardian from "./pages/student/AquaticLifeGuardian";
 import GlobalWeatherDetective from "./pages/student/GlobalWeatherDetective";
 import ElectricVehicleCity from "./pages/student/ElectricVehicleCity";
+import EcoLab from "./pages/student/EcoLab";
 import ClassManagement from "./pages/teacher/ClassManagement";
 import StudentProgressTracking from "./pages/teacher/StudentProgressTracking";
 import AssignmentCreation from "./pages/teacher/AssignmentCreation";
@@ -79,6 +80,7 @@ const App = () => (
           <Route path="/student/aquatic-life-guardian" element={<AquaticLifeGuardian />} />
           <Route path="/student/global-weather-detective" element={<GlobalWeatherDetective />} />
           <Route path="/student/electric-vehicle-city" element={<ElectricVehicleCity />} />
+          <Route path="/student/eco-lab" element={<EcoLab />} />
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<ClassManagement />} />
           <Route path="/teacher/students" element={<StudentProgressTracking />} />

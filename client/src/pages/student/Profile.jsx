@@ -27,7 +27,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
-import { Avatar } from '../../components/ui/avatar';
 import Navigation from '../../components/Navigation';
 
 const Profile = () => {

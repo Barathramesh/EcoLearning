@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +19,11 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const TeacherDashboard = () => {
+  const navigate = useNavigate();
   // Get logged-in user from localStorage
   const [user, setUser] = useState(null);
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Get teacher ID from localStorage
@@ -51,20 +54,38 @@ const TeacherDashboard = () => {
     }
   };
 
+  // Fetch classes from database
+  const fetchClasses = async () => {
+    try {
+      const teacherId = getTeacherId();
+      if (!teacherId) return;
+
+      const response = await fetch(`${API_BASE_URL}/class/teacher/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setClasses(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     fetchStudents();
+    fetchClasses();
   }, []);
 
   // Teacher data with user info from localStorage
   const teacherData = {
     name: user?.Name || user?.name || "Teacher",
-    institution: "Green Valley High School",
+    institution: "SSBMV",
     studentsCount: students.length,
-    classesCount: 5,
+    classesCount: classes.length,
     institutionRank: 2
   };
 
@@ -81,13 +102,18 @@ const TeacherDashboard = () => {
     status: student.credentialsGenerated ? 'active' : 'pending'
   }));
 
-  const institutionLeaderboard = [
-    { rank: 1, school: "Eco Academy", avgPoints: 3245, students: 150 },
-    { rank: 2, school: "Green Valley High School", avgPoints: 2956, students: 200, isCurrentSchool: true },
-    { rank: 3, school: "Nature's Way School", avgPoints: 2847, students: 175 },
-    { rank: 4, school: "Earth Science Institute", avgPoints: 2634, students: 190 },
-    { rank: 5, school: "Sustainable Learning Center", avgPoints: 2489, students: 140 }
-  ];
+  // Top 5 students sorted by points
+  const top5Students = [...students]
+    .sort((a, b) => (b.points || 0) - (a.points || 0))
+    .slice(0, 5)
+    .map((student, index) => ({
+      rank: index + 1,
+      name: student.name,
+      rollNumber: student.rollNumber,
+      class: student.class || 'N/A',
+      points: student.points || 0,
+      level: student.level || 1
+    }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -206,50 +232,59 @@ const TeacherDashboard = () => {
                     ))}
                   </div>
                   )}
-                  <Button variant="outline" className="w-full mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={() => navigate('/teacher/students')}
+                  >
                     View All Students
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Institution Leaderboard */}
+              {/* Top Students Leaderboard */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="w-5 h-5" />
-                    Institution Leaderboard
+                    Top Students
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {top5Students.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500">
+                      No students found.
+                    </div>
+                  ) : (
                   <div className="space-y-3">
-                    {institutionLeaderboard.map((school) => (
+                    {top5Students.map((student) => (
                       <div
-                        key={school.rank}
-                        className={`flex items-center justify-between p-3 rounded-lg ${school.isCurrentSchool ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                          }`}
+                        key={student.rank}
+                        className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${school.rank === 1 ? 'bg-yellow-500' :
-                              school.rank === 2 ? 'bg-gray-400' :
-                                school.rank === 3 ? 'bg-orange-500' :
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${student.rank === 1 ? 'bg-yellow-500' :
+                              student.rank === 2 ? 'bg-gray-400' :
+                                student.rank === 3 ? 'bg-orange-500' :
                                   'bg-gray-300'
                             }`}>
-                            {school.rank}
+                            {student.rank}
                           </div>
                           <div>
-                            <p className={`font-semibold ${school.isCurrentSchool ? 'text-blue-700' : 'text-gray-800'}`}>
-                              {school.school} {school.isCurrentSchool && '(Your School)'}
+                            <p className="font-semibold text-gray-800">
+                              {student.name}
                             </p>
-                            <p className="text-sm text-gray-500">{school.students} students</p>
+                            <p className="text-sm text-gray-500">{student.rollNumber} • {student.class}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-gray-800">{school.avgPoints.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">avg points</p>
+                          <p className="font-bold text-gray-800">{student.points.toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">points</p>
                         </div>
                       </div>
                     ))}
                   </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

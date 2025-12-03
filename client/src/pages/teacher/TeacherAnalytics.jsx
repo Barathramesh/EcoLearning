@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import { 
   BarChart3, 
@@ -26,73 +26,181 @@ import {
   LineChart
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const TeacherAnalytics = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('week');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedMetric, setSelectedMetric] = useState('overview');
-
-  // Mock analytics data
-  const analyticsData = {
+  const [loading, setLoading] = useState(true);
+  const [classes, setClasses] = useState([]);
+  const [analyticsData, setAnalyticsData] = useState({
     overview: {
-      totalStudents: 92,
-      activeStudents: 78,
-      avgEngagement: 84,
-      completionRate: 76,
+      totalStudents: 0,
+      activeStudents: 0,
+      avgEngagement: 0,
+      completionRate: 0,
+      totalAssignments: 0,
       trends: {
-        students: 5,
-        engagement: -2,
-        completion: 8
+        students: 0,
+        engagement: 0,
+        completion: 0
       }
     },
-    engagement: {
-      weeklyActivity: [65, 72, 58, 89, 76, 84, 91],
-      dailyLogins: [28, 34, 29, 31, 35, 42, 38],
-      sessionDuration: [12, 15, 11, 18, 14, 16, 19], // minutes
-      forumParticipation: 45
-    },
-    performance: {
-      avgScores: [78, 82, 76, 88, 85, 91, 87],
-      assignmentCompletion: [85, 78, 92, 76, 89, 84, 91],
-      improvementAreas: [
-        { area: 'Assignment Quality', percentage: 82, trend: 'up' },
-        { area: 'Participation', percentage: 74, trend: 'down' },
-        { area: 'Time Management', percentage: 79, trend: 'stable' },
-        { area: 'Quiz Performance', percentage: 85, trend: 'up' }
-      ]
-    },
-    classComparison: [
-      { class: 'Environmental Science 101', students: 28, avgScore: 88, engagement: 92, completion: 85 },
-      { class: 'Climate Change Studies', students: 24, avgScore: 85, engagement: 78, completion: 91 },
-      { class: 'Ecology & Biodiversity', students: 22, avgScore: 82, engagement: 85, completion: 76 },
-      { class: 'Sustainable Living', students: 18, avgScore: 91, engagement: 88, completion: 94 }
-    ],
-    topPerformers: [
-      { name: 'Emma Wilson', class: 'Environmental Science 101', score: 95, improvement: 12 },
-      { name: 'Alex Johnson', class: 'Environmental Science 101', score: 92, improvement: 8 },
-      { name: 'David Kim', class: 'Climate Change Studies', score: 88, improvement: 15 },
-      { name: 'Sofia Martinez', class: 'Ecology & Biodiversity', score: 86, improvement: 22 },
-      { name: 'Ryan Chen', class: 'Sustainable Living', score: 90, improvement: 18 }
-    ],
-    needsAttention: [
-      { name: 'Student A', class: 'Environmental Science 101', issue: 'Low assignment completion', severity: 'high' },
-      { name: 'Student B', class: 'Climate Change Studies', issue: 'Low quiz scores', severity: 'medium' },
-      { name: 'Student C', class: 'Ecology & Biodiversity', issue: 'Missing submissions', severity: 'high' },
-      { name: 'Student D', class: 'Sustainable Living', issue: 'Declining performance', severity: 'medium' }
-    ]
+    classComparison: [],
+    topPerformers: [],
+    needsAttention: []
+  });
+
+  // Get teacher ID from localStorage
+  const getTeacherId = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.teacherId || user.id;
   };
+
+  // Fetch all analytics data
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      const teacherId = getTeacherId();
+      if (!teacherId) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch students
+      const studentsRes = await fetch(`${API_BASE_URL}/teacher/students/${teacherId}`);
+      const studentsData = await studentsRes.json();
+      const students = studentsData.success ? studentsData.data : [];
+
+      // Fetch classes
+      const classesRes = await fetch(`${API_BASE_URL}/class/teacher/${teacherId}`);
+      const classesData = await classesRes.json();
+      const classesArray = classesData.success ? classesData.data : [];
+      setClasses(classesArray.map(cls => `${cls.grade}-${cls.section}`));
+
+      // Fetch assignments and submissions per class
+      const classComparison = [];
+      let totalAssignments = 0;
+      let totalSubmissions = 0;
+
+      for (const cls of classesArray) {
+        try {
+          const assignmentRes = await fetch(`${API_BASE_URL}/assignment/class/${cls._id}`);
+          const assignments = await assignmentRes.json();
+          const assignmentCount = Array.isArray(assignments) ? assignments.length : 0;
+          totalAssignments += assignmentCount;
+
+          // Count students in this class
+          const classStudents = students.filter(s => 
+            s.class === `${cls.grade}-${cls.section}` || 
+            s.studentClass === `${cls.grade}-${cls.section}`
+          );
+
+          // Get submissions for this class
+          let classSubmissions = 0;
+          let totalScore = 0;
+          let gradedCount = 0;
+
+          if (Array.isArray(assignments)) {
+            for (const assignment of assignments) {
+              try {
+                const submissionRes = await fetch(`${API_BASE_URL}/submission/assignment/${assignment._id}`);
+                const submissions = await submissionRes.json();
+                if (Array.isArray(submissions)) {
+                  classSubmissions += submissions.length;
+                  totalSubmissions += submissions.length;
+                  submissions.forEach(sub => {
+                    if (sub.grade !== undefined && sub.grade !== null) {
+                      totalScore += sub.grade;
+                      gradedCount++;
+                    }
+                  });
+                }
+              } catch (err) {
+                console.error('Error fetching submissions:', err);
+              }
+            }
+          }
+
+          const avgScore = gradedCount > 0 ? Math.round(totalScore / gradedCount) : 0;
+          const expectedSubmissions = classStudents.length * assignmentCount;
+          const completion = expectedSubmissions > 0 ? Math.round((classSubmissions / expectedSubmissions) * 100) : 0;
+
+          classComparison.push({
+            class: `${cls.grade}-${cls.section}`,
+            classId: cls._id,
+            students: classStudents.length,
+            avgScore: avgScore,
+            engagement: classStudents.length > 0 ? Math.min(100, Math.round((classSubmissions / Math.max(1, classStudents.length)) * 20)) : 0,
+            completion: completion,
+            assignments: assignmentCount
+          });
+        } catch (err) {
+          console.error('Error processing class:', err);
+        }
+      }
+
+      // Calculate overview stats
+      const totalStudents = students.length;
+      const expectedTotal = totalStudents * totalAssignments;
+      const completionRate = expectedTotal > 0 ? Math.round((totalSubmissions / expectedTotal) * 100) : 0;
+
+      // Calculate top performers (students with submissions - for now just show students)
+      const topPerformers = students.slice(0, 5).map(student => ({
+        name: student.name,
+        class: student.class || student.studentClass || 'Unassigned',
+        score: 0, // Will be updated when we have grades
+        improvement: 0
+      }));
+
+      // Students needing attention (those without recent activity)
+      const needsAttention = students
+        .filter(s => !s.lastActive || new Date(s.lastActive) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+        .slice(0, 4)
+        .map(student => ({
+          name: student.name,
+          class: student.class || student.studentClass || 'Unassigned',
+          issue: 'No recent activity',
+          severity: 'medium'
+        }));
+
+      setAnalyticsData({
+        overview: {
+          totalStudents,
+          activeStudents: students.length, // All students for now
+          avgEngagement: classComparison.length > 0 
+            ? Math.round(classComparison.reduce((sum, c) => sum + c.engagement, 0) / classComparison.length)
+            : 0,
+          completionRate,
+          totalAssignments,
+          trends: {
+            students: 0,
+            engagement: 0,
+            completion: 0
+          }
+        },
+        classComparison,
+        topPerformers,
+        needsAttention
+      });
+
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, []);
 
   const timeframes = [
     { id: 'week', label: 'This Week' },
     { id: 'month', label: 'This Month' },
     { id: 'quarter', label: 'This Quarter' },
     { id: 'year', label: 'This Year' }
-  ];
-
-  const classes = [
-    'Environmental Science 101',
-    'Climate Change Studies',
-    'Ecology & Biodiversity',
-    'Sustainable Living'
   ];
 
   const metrics = [
@@ -140,10 +248,43 @@ const TeacherAnalytics = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
+        <Navigation userType="teacher" />
+        <div style={{ padding: '1rem', paddingTop: '5rem', maxWidth: '1400px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: '50vh' 
+          }}>
+            <div style={{ 
+              width: '3rem', 
+              height: '3rem', 
+              border: '4px solid #e5e7eb', 
+              borderTop: '4px solid #059669', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite' 
+            }} />
+            <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading analytics...</p>
+          </div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
       <Navigation userType="teacher" />
-      <div style={{ padding: '1rem', paddingTop: '5rem', maxWidth: '1600px', margin: '0 auto' }}>
+      <div style={{ padding: '1rem', paddingTop: '5rem', maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -157,6 +298,7 @@ const TeacherAnalytics = () => {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
+                onClick={fetchAnalyticsData}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#f3f4f6',
@@ -348,80 +490,79 @@ const TeacherAnalytics = () => {
         {/* Main Content Based on Selected Metric */}
         {selectedMetric === 'overview' && (
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
-            {/* Weekly Activity Chart */}
+            {/* Class Stats Summary */}
             <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937' }}>
-                  Weekly Activity Trends
+                  Class Performance Overview
                 </h3>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '12px', height: '12px', backgroundColor: '#059669', borderRadius: '2px' }} />
-                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Engagement</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
-                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Performance</span>
-                  </div>
-                </div>
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', height: '200px', marginBottom: '1rem' }}>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                  <div key={day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'end', gap: '0.25rem' }}>
-                      <div
-                        style={{
-                          width: '20px',
-                          height: `${analyticsData.engagement.weeklyActivity[index] * 2}px`,
-                          backgroundColor: '#059669',
-                          borderRadius: '2px 2px 0 0'
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: '20px',
-                          height: `${analyticsData.performance.avgScores[index] * 2}px`,
-                          backgroundColor: '#3b82f6',
-                          borderRadius: '2px 2px 0 0'
-                        }}
-                      />
+              {analyticsData.classComparison.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  <BookOpen size={48} style={{ margin: '0 auto 1rem', color: '#d1d5db' }} />
+                  <p>No classes found. Create a class to see analytics.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {analyticsData.classComparison.map((cls, index) => (
+                    <div key={index} style={{ 
+                      padding: '1rem', 
+                      backgroundColor: '#f9fafb', 
+                      borderRadius: '0.5rem',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937' }}>{cls.class}</h4>
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{cls.students} students</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                        <div>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Assignments</p>
+                          <p style={{ fontSize: '1rem', fontWeight: '600', color: '#3b82f6' }}>{cls.assignments}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Avg Score</p>
+                          <p style={{ fontSize: '1rem', fontWeight: '600', color: '#059669' }}>{cls.avgScore}%</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Completion</p>
+                          <p style={{ fontSize: '1rem', fontWeight: '600', color: '#7c3aed' }}>{cls.completion}%</p>
+                        </div>
+                      </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{day}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Top Performers & Alerts */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Top Performers */}
+              {/* Top Students */}
               <div style={{ backgroundColor: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Star size={20} style={{ color: '#f59e0b' }} />
-                  Top Performers
+                  Students
                 </h3>
                 <div style={{ space: '0.75rem' }}>
-                  {analyticsData.topPerformers.slice(0, 5).map((student, index) => (
-                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                      <div>
-                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
-                          {student.name}
-                        </p>
-                        <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                          {student.class}
-                        </p>
+                  {analyticsData.topPerformers.length === 0 ? (
+                    <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', padding: '1rem' }}>
+                      No students found
+                    </p>
+                  ) : (
+                    analyticsData.topPerformers.slice(0, 5).map((student, index) => (
+                      <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <div>
+                          <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
+                            {student.name}
+                          </p>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            {student.class}
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#059669' }}>
-                          {student.score}%
-                        </p>
-                        <p style={{ fontSize: '0.75rem', color: '#10b981' }}>
-                          +{student.improvement}%
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -432,28 +573,35 @@ const TeacherAnalytics = () => {
                   Needs Attention
                 </h3>
                 <div style={{ space: '0.75rem' }}>
-                  {analyticsData.needsAttention.map((student, index) => (
-                    <div key={index} style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
-                          {student.name}
-                        </p>
-                        <span style={{
-                          padding: '0.125rem 0.375rem',
-                          borderRadius: '0.25rem',
-                          fontSize: '0.625rem',
-                          fontWeight: '500',
-                          backgroundColor: getSeverityColor(student.severity).bg,
-                          color: getSeverityColor(student.severity).text
-                        }}>
-                          {student.severity}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                        {student.issue}
-                      </p>
+                  {analyticsData.needsAttention.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                      <CheckCircle size={24} style={{ color: '#10b981', margin: '0 auto 0.5rem' }} />
+                      <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>All students are on track!</p>
                     </div>
-                  ))}
+                  ) : (
+                    analyticsData.needsAttention.map((student, index) => (
+                      <div key={index} style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                          <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937' }}>
+                            {student.name}
+                          </p>
+                          <span style={{
+                            padding: '0.125rem 0.375rem',
+                            borderRadius: '0.25rem',
+                            fontSize: '0.625rem',
+                            fontWeight: '500',
+                            backgroundColor: getSeverityColor(student.severity).bg,
+                            color: getSeverityColor(student.severity).text
+                          }}>
+                            {student.severity}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          {student.issue}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -466,6 +614,12 @@ const TeacherAnalytics = () => {
               Class Performance Comparison
             </h3>
             
+            {analyticsData.classComparison.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                <Users size={48} style={{ margin: '0 auto 1rem', color: '#d1d5db' }} />
+                <p>No classes found. Create a class to see comparison.</p>
+              </div>
+            ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -477,10 +631,10 @@ const TeacherAnalytics = () => {
                       Students
                     </th>
                     <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '500', color: '#6b7280' }}>
-                      Avg Score
+                      Assignments
                     </th>
                     <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '500', color: '#6b7280' }}>
-                      Engagement
+                      Avg Score
                     </th>
                     <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '500', color: '#6b7280' }}>
                       Completion
@@ -506,6 +660,11 @@ const TeacherAnalytics = () => {
                         </span>
                       </td>
                       <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6' }}>
+                          {classData.assignments}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
                         <span style={{ 
                           fontSize: '0.875rem', 
                           fontWeight: '500',
@@ -513,28 +672,6 @@ const TeacherAnalytics = () => {
                         }}>
                           {classData.avgScore}%
                         </span>
-                      </td>
-                      <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                          <div style={{ 
-                            width: '60px', 
-                            height: '6px', 
-                            backgroundColor: '#e5e7eb', 
-                            borderRadius: '3px',
-                            overflow: 'hidden'
-                          }}>
-                            <div
-                              style={{
-                                width: `${classData.engagement}%`,
-                                height: '100%',
-                                backgroundColor: '#3b82f6'
-                              }}
-                            />
-                          </div>
-                          <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                            {classData.engagement}%
-                          </span>
-                        </div>
                       </td>
                       <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
@@ -583,6 +720,7 @@ const TeacherAnalytics = () => {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
 

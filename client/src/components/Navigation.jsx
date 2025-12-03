@@ -38,7 +38,6 @@ const Navigation = ({ userType = null, onLogout = null }) => {
     { name: "Classes", path: "/teacher/classes", icon: Users, group: "management" },
     { name: "Students", path: "/teacher/students", icon: User, group: "management" },
     { name: "Assignments", path: "/teacher/assignments", icon: BookOpen, group: "content" },
-    { name: "Review", path: "/teacher/assignment-review", icon: ClipboardCheck, group: "content" },
     { name: "Analytics", path: "/teacher/analytics", icon: Award, group: "insights" },
   ];
 

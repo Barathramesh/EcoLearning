@@ -14,12 +14,15 @@ import {
   Star,
   TrendingUp,
   Calendar,
-  Award
+  Award,
+  FlaskConical
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const StudentDashboard = () => {
   // Get logged-in user from localStorage
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -261,6 +264,13 @@ const StudentDashboard = () => {
                   <Button className="w-full justify-start" variant="outline">
                     <Gamepad2 className="w-4 h-4 mr-2" />
                     Play Eco Games
+                  </Button>
+                  <Button 
+                    className="w-full justify-start bg-gradient-to-r from-emerald-500 to-cyan-500 text-white hover:from-emerald-600 hover:to-cyan-600" 
+                    onClick={() => navigate('/student/eco-lab')}
+                  >
+                    <FlaskConical className="w-4 h-4 mr-2" />
+                    🔬 Virtual Eco-Lab
                   </Button>
                   <Button className="w-full justify-start" variant="outline">
                     <Calendar className="w-4 h-4 mr-2" />

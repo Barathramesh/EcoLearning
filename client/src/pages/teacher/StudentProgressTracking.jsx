@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import { 
   Users, 
@@ -24,150 +24,135 @@ import {
   Activity
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const StudentProgressTracking = () => {
   const [selectedView, setSelectedView] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [classAssignments, setClassAssignments] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [totalAssignments, setTotalAssignments] = useState(0);
 
-  // Mock data for student progress
-  const students = [
-    {
-      id: 1,
-      name: "Alex Johnson",
-      email: "alex.johnson@student.edu",
-      class: "Environmental Science 101",
-      level: 12,
-      totalPoints: 2847,
-      weeklyPoints: 245,
-      completedAssignments: 18,
-      totalAssignments: 20,
-      avgScore: 88,
-      lastActive: "2025-09-19T14:30:00",
-      status: "excellent",
-      achievements: ["Eco Warrior", "Green Leader"],
-      weeklyActivity: [120, 180, 95, 210, 165, 245, 180],
-      strengths: ["Waste Sorting", "Eco Actions", "Climate Studies"],
-      needsImprovement: ["Climate Data Analysis"],
-      recentActivities: [
-        { type: "assignment", name: "Carbon Footprint Calculator", score: 92, date: "2025-09-19" },
-        { type: "lesson", name: "Solar Energy Basics", completed: true, date: "2025-09-18" },
-        { type: "quiz", name: "Renewable Energy Quiz", score: 85, date: "2025-09-17" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Emma Wilson",
-      email: "emma.wilson@student.edu",
-      class: "Environmental Science 101",
-      level: 11,
-      totalPoints: 2634,
-      weeklyPoints: 198,
-      completedAssignments: 17,
-      totalAssignments: 20,
-      avgScore: 91,
-      lastActive: "2025-09-19T16:45:00",
-      status: "excellent",
-      achievements: ["Sustainability Expert", "Quiz Master"],
-      weeklyActivity: [95, 145, 120, 198, 175, 210, 165],
-      strengths: ["Climate Studies", "Data Analysis"],
-      needsImprovement: ["Team Projects"],
-      recentActivities: [
-        { type: "assignment", name: "Ecosystem Analysis", score: 95, date: "2025-09-19" },
-        { type: "lesson", name: "Wind Energy Systems", completed: true, date: "2025-09-18" },
-        { type: "discussion", name: "Climate Solutions Forum", participated: true, date: "2025-09-17" }
-      ]
-    },
-    {
-      id: 3,
-      name: "David Kim",
-      email: "david.kim@student.edu",
-      class: "Climate Change Studies",
-      level: 10,
-      totalPoints: 2489,
-      weeklyPoints: 156,
-      completedAssignments: 15,
-      totalAssignments: 18,
-      avgScore: 84,
-      lastActive: "2025-09-19T12:15:00",
-      status: "good",
-      achievements: ["Collaboration Champion", "Green Leader"],
-      weeklyActivity: [78, 120, 156, 134, 145, 167, 189],
-      strengths: ["Hands-on Activities", "Group Projects"],
-      needsImprovement: ["Written Assignments", "Time Management"],
-      recentActivities: [
-        { type: "quiz", name: "Waste Sorting Game", score: 88, date: "2025-09-19" },
-        { type: "assignment", name: "Renewable Energy Report", score: 78, date: "2025-09-18" },
-        { type: "lesson", name: "Eco-Action Demo", completed: true, date: "2025-09-17" }
-      ]
-    },
-    {
-      id: 4,
-      name: "Sofia Martinez",
-      email: "sofia.martinez@student.edu",
-      class: "Environmental Science 101",
-      level: 9,
-      totalPoints: 2156,
-      weeklyPoints: 87,
-      completedAssignments: 14,
-      totalAssignments: 20,
-      avgScore: 76,
-      lastActive: "2025-09-17T10:20:00",
-      status: "needs-attention",
-      achievements: ["Green Beginner"],
-      weeklyActivity: [45, 67, 89, 78, 56, 87, 43],
-      strengths: ["Environmental Awareness"],
-      needsImprovement: ["Assignment Completion", "Consistency"],
-      recentActivities: [
-        { type: "assignment", name: "Water Conservation Essay", score: 72, date: "2025-09-17" },
-        { type: "quiz", name: "Pollution Types Quiz", score: 68, date: "2025-09-16" },
-        { type: "lesson", name: "Ocean Conservation", completed: false, date: "2025-09-15" }
-      ]
-    },
-    {
-      id: 5,
-      name: "Ryan Chen",
-      email: "ryan.chen@student.edu",
-      class: "Ecology & Biodiversity",
-      level: 8,
-      totalPoints: 1934,
-      weeklyPoints: 134,
-      completedAssignments: 13,
-      totalAssignments: 17,
-      avgScore: 82,
-      lastActive: "2025-09-19T09:45:00",
-      status: "good",
-      achievements: ["Biodiversity Explorer", "Lab Expert"],
-      weeklyActivity: [89, 112, 134, 145, 98, 156, 167],
-      strengths: ["Laboratory Work", "Species Identification"],
-      needsImprovement: ["Digital Literacy", "Presentation Skills"],
-      recentActivities: [
-        { type: "lab", name: "Microscopy Session", score: 90, date: "2025-09-19" },
-        { type: "assignment", name: "Species Classification", score: 85, date: "2025-09-18" },
-        { type: "lesson", name: "Forest Ecosystem", completed: true, date: "2025-09-17" }
-      ]
+  // Get teacher ID from localStorage
+  const getTeacherId = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.teacherId || user.id;
+  };
+
+  // Fetch students from database
+  const fetchStudents = async () => {
+    try {
+      const teacherId = getTeacherId();
+      if (!teacherId) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/teacher/students/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        // Transform students with initial values
+        const transformedStudents = data.data.map(student => ({
+          id: student._id,
+          name: student.name,
+          email: student.email || '',
+          class: student.class || student.studentClass || 'Unassigned',
+          rollNumber: student.rollNumber,
+          level: 1, // Initial level
+          totalPoints: 0, // Initial points
+          weeklyPoints: 0,
+          completedAssignments: 0,
+          totalAssignments: 0,
+          avgScore: 0,
+          lastActive: student.updatedAt || student.createdAt || new Date().toISOString(),
+          status: 'new',
+          achievements: [],
+          weeklyActivity: [0, 0, 0, 0, 0, 0, 0],
+          strengths: [],
+          needsImprovement: [],
+          recentActivities: []
+        }));
+        setStudents(transformedStudents);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const classes = [
-    "Environmental Science 101",
-    "Climate Change Studies", 
-    "Ecology & Biodiversity",
-    "Sustainable Living"
-  ];
+  // Fetch classes from database
+  const fetchClasses = async () => {
+    try {
+      const teacherId = getTeacherId();
+      if (!teacherId) return;
 
-  const filteredStudents = students.filter(student => {
+      const response = await fetch(`${API_BASE_URL}/class/teacher/${teacherId}`);
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const classNames = data.data.map(cls => `${cls.grade}-${cls.section}`);
+        setClasses(classNames);
+        
+        // Calculate assignments per class and total
+        let total = 0;
+        const assignmentsByClass = {};
+        
+        for (const cls of data.data) {
+          try {
+            const assignmentRes = await fetch(`${API_BASE_URL}/assignment/class/${cls._id}`);
+            const assignmentData = await assignmentRes.json();
+            const count = Array.isArray(assignmentData) ? assignmentData.length : 0;
+            assignmentsByClass[`${cls.grade}-${cls.section}`] = count;
+            total += count;
+          } catch (err) {
+            console.error('Error fetching assignments for class:', err);
+            assignmentsByClass[`${cls.grade}-${cls.section}`] = 0;
+          }
+        }
+        setClassAssignments(assignmentsByClass);
+        setTotalAssignments(total);
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchClasses();
+  }, []);
+
+  // Add class assignment counts to students
+  const studentsWithAssignments = students.map(student => ({
+    ...student,
+    totalAssignments: classAssignments[student.class] || 0
+  }));
+
+  const filteredStudents = studentsWithAssignments.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = selectedClass === 'all' || student.class === selectedClass;
     return matchesSearch && matchesClass;
   });
 
+  // Helper function to calculate percentage safely
+  const getProgressPercentage = (completed, total) => {
+    if (total === 0) return 0;
+    return Math.round((completed / total) * 100);
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'excellent': return { bg: '#dcfce7', text: '#166534' };
       case 'good': return { bg: '#dbeafe', text: '#1e40af' };
       case 'needs-attention': return { bg: '#fee2e2', text: '#991b1b' };
+      case 'new': return { bg: '#fef3c7', text: '#92400e' };
       default: return { bg: '#f3f4f6', text: '#374151' };
     }
   };
@@ -177,6 +162,7 @@ const StudentProgressTracking = () => {
       case 'excellent': return <TrendingUp size={16} style={{ color: '#059669' }} />;
       case 'good': return <Target size={16} style={{ color: '#2563eb' }} />;
       case 'needs-attention': return <AlertCircle size={16} style={{ color: '#dc2626' }} />;
+      case 'new': return <Star size={16} style={{ color: '#d97706' }} />;
       default: return <Activity size={16} style={{ color: '#6b7280' }} />;
     }
   };
@@ -191,6 +177,39 @@ const StudentProgressTracking = () => {
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
   };
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
+        <Navigation userType="teacher" />
+        <div style={{ padding: '1rem', paddingTop: '5rem', maxWidth: '1400px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: '50vh' 
+          }}>
+            <div style={{ 
+              width: '3rem', 
+              height: '3rem', 
+              border: '4px solid #e5e7eb', 
+              borderTop: '4px solid #059669', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite' 
+            }} />
+            <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading students...</p>
+          </div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
@@ -349,7 +368,7 @@ const StudentProgressTracking = () => {
               }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⭐</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>
-                  {Math.round(filteredStudents.reduce((sum, s) => sum + s.avgScore, 0) / filteredStudents.length)}%
+                  {filteredStudents.length > 0 ? Math.round(filteredStudents.reduce((sum, s) => sum + s.avgScore, 0) / filteredStudents.length) : 0}%
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Average Score</div>
               </div>
@@ -367,9 +386,42 @@ const StudentProgressTracking = () => {
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>On Track</div>
               </div>
+
+              <div style={{ 
+                backgroundColor: 'white', 
+                padding: '1.5rem', 
+                borderRadius: '0.5rem',
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#7c3aed' }}>
+                  {totalAssignments}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Assignments</div>
+              </div>
             </div>
 
             {/* Student List */}
+            {filteredStudents.length === 0 ? (
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '0.75rem',
+                padding: '3rem',
+                textAlign: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }}>
+                <Users size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#374151', marginBottom: '0.5rem' }}>
+                  No students found
+                </h3>
+                <p style={{ color: '#6b7280' }}>
+                  {searchTerm || selectedClass !== 'all' 
+                    ? 'Try adjusting your search or filter criteria' 
+                    : 'Students will appear here once they are added to your classes'}
+                </p>
+              </div>
+            ) : (
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
@@ -459,7 +511,7 @@ const StudentProgressTracking = () => {
                         <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Assignments</span>
                       </div>
                       <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
-                        {student.completedAssignments}/{student.totalAssignments} ({Math.round(student.completedAssignments/student.totalAssignments*100)}%)
+                        {student.completedAssignments}/{student.totalAssignments} ({getProgressPercentage(student.completedAssignments, student.totalAssignments)}%)
                       </p>
                     </div>
                     <div>
@@ -478,7 +530,7 @@ const StudentProgressTracking = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                       <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Overall Progress</span>
                       <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                        {Math.round(student.completedAssignments/student.totalAssignments * 100)}%
+                        {getProgressPercentage(student.completedAssignments, student.totalAssignments)}%
                       </span>
                     </div>
                     <div style={{ 
@@ -490,7 +542,7 @@ const StudentProgressTracking = () => {
                     }}>
                       <div
                         style={{
-                          width: `${Math.round(student.completedAssignments/student.totalAssignments * 100)}%`,
+                          width: `${getProgressPercentage(student.completedAssignments, student.totalAssignments)}%`,
                           height: '100%',
                           backgroundColor: student.status === 'excellent' ? '#10b981' : student.status === 'good' ? '#3b82f6' : '#f59e0b',
                           transition: 'width 0.3s ease'
@@ -558,6 +610,7 @@ const StudentProgressTracking = () => {
                 </div>
               ))}
             </div>
+            )}
           </>
         )}
 

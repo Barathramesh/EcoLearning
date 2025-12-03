@@ -1,7 +1,7 @@
 import React from "react";
 import { Helmet } from "react-helmet";
 
-const DocumentHead: React.FC = () => (
+const DocumentHead = () => (
   <Helmet>
     <title>EcoLearn - Gamified Environmental Education</title>
     <meta name="description" content="Learn about environmental conservation through engaging games, interactive modules, and rewarding progress tracking. Join the eco-education revolution!" />

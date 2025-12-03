@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
 import {
     Users,
@@ -98,11 +98,13 @@ const MOCK_STUDENTS = [
 
 const StudentManagement = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const assignmentsSectionRef = useRef(null);
     const [showImportModal, setShowImportModal] = useState(false);
     const [showCredentialsModal, setShowCredentialsModal] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState([]);
@@ -114,6 +116,8 @@ const StudentManagement = () => {
     const fileInputRef = useRef(null);
     const [assignments, setAssignments] = useState([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const studentsPerPage = 15;
 
     // Get class filter from URL params
     const classFilter = {
@@ -212,6 +216,15 @@ const StudentManagement = () => {
             fetchAssignments();
         }
     }, [searchParams]);
+
+    // Scroll to assignments section if hash is present
+    useEffect(() => {
+        if (location.hash === '#assignments' && assignmentsSectionRef.current && !loadingAssignments) {
+            setTimeout(() => {
+                assignmentsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }, [location.hash, loadingAssignments]);
 
     // Create student manually
     const handleCreateStudent = async (e) => {
@@ -520,6 +533,17 @@ const StudentManagement = () => {
         student.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Pagination logic
+    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
+    const startIndex = (currentPage - 1) * studentsPerPage;
+    const endIndex = startIndex + studentsPerPage;
+    const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
     // Helper to get initials
     const getInitials = (name) => {
         return name
@@ -694,7 +718,7 @@ const StudentManagement = () => {
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {filteredStudents.map((student) => (
+                        {paginatedStudents.map((student) => (
                             <div
                                 key={student._id}
                                 style={{
@@ -927,9 +951,114 @@ const StudentManagement = () => {
                     </div>
                 )}
 
+                {/* Pagination Controls */}
+                {!loading && filteredStudents.length > studentsPerPage && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: '1.5rem',
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        borderRadius: '0.5rem',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                    }}>
+                        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                            Showing {startIndex + 1} to {Math.min(endIndex, filteredStudents.length)} of {filteredStudents.length} students
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                style={{
+                                    padding: '0.5rem 0.75rem',
+                                    borderRadius: '0.375rem',
+                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: 'white',
+                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                    color: currentPage === 1 ? '#9ca3af' : '#374151',
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                Previous
+                            </button>
+                            
+                            {/* Page number buttons */}
+                            {(() => {
+                                const pages = [];
+                                const showEllipsisStart = currentPage > 3;
+                                const showEllipsisEnd = currentPage < totalPages - 2;
+                                
+                                // Always show first page
+                                pages.push(1);
+                                
+                                if (showEllipsisStart) {
+                                    pages.push('...');
+                                }
+                                
+                                // Show pages around current page
+                                for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+                                    if (!pages.includes(i)) {
+                                        pages.push(i);
+                                    }
+                                }
+                                
+                                if (showEllipsisEnd) {
+                                    pages.push('...');
+                                }
+                                
+                                // Always show last page if more than 1 page
+                                if (totalPages > 1 && !pages.includes(totalPages)) {
+                                    pages.push(totalPages);
+                                }
+                                
+                                return pages.map((page, index) => (
+                                    page === '...' ? (
+                                        <span key={`ellipsis-${index}`} style={{ padding: '0.5rem', color: '#6b7280' }}>...</span>
+                                    ) : (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            style={{
+                                                padding: '0.5rem 0.875rem',
+                                                borderRadius: '0.375rem',
+                                                border: currentPage === page ? 'none' : '1px solid #e5e7eb',
+                                                backgroundColor: currentPage === page ? '#10b981' : 'white',
+                                                cursor: 'pointer',
+                                                color: currentPage === page ? 'white' : '#374151',
+                                                fontSize: '0.875rem',
+                                                fontWeight: currentPage === page ? '600' : '400',
+                                                minWidth: '2.5rem'
+                                            }}
+                                        >
+                                            {page}
+                                        </button>
+                                    )
+                                ));
+                            })()}
+                            
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    padding: '0.5rem 0.75rem',
+                                    borderRadius: '0.375rem',
+                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: 'white',
+                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                    color: currentPage === totalPages ? '#9ca3af' : '#374151',
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Assignments Section - Only shown when filtered by class */}
                 {isFilteredByClass && (
-                    <div style={{ marginTop: '2rem' }}>
+                    <div ref={assignmentsSectionRef} id="assignments" style={{ marginTop: '2rem' }}>
                         <div style={{ marginBottom: '1rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <ClipboardList size={20} />
@@ -1190,7 +1319,7 @@ const StudentManagement = () => {
                                         <input
                                             type="text"
                                             required
-                                            placeholder="e.g., 10th Grade, Class A"
+                                            placeholder="e.g., 5th-A"
                                             value={newStudent.studentClass}
                                             onChange={(e) => setNewStudent({ ...newStudent, studentClass: e.target.value })}
                                             style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }}
