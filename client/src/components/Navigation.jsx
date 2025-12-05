@@ -77,7 +77,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-emerald-100 z-50 shadow-sm">
+    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-gray-800 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Fixed width to prevent shifting */}
@@ -91,10 +91,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
               } 
               className="flex items-center space-x-3 group"
             >
-              <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 transition-all duration-300 group-hover:scale-105">
                 <Leaf className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent whitespace-nowrap">
+              <span className="font-bold text-xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
                 EcoLearn
               </span>
             </NavLink>
@@ -108,10 +108,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center space-x-1 px-2 xl:px-3 py-2 rounded-lg transition-all duration-300 hover:bg-emerald-50 text-sm xl:text-base whitespace-nowrap ${
+                    `flex items-center space-x-1 px-2 xl:px-3 py-2 rounded-lg transition-all duration-300 text-sm xl:text-base whitespace-nowrap ${
                       isActive 
-                        ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                        : "text-gray-600 hover:text-emerald-600"
+                        ? "text-emerald-400 font-medium bg-emerald-500/20 shadow-lg shadow-emerald-500/10" 
+                        : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                     }`
                   }
                 >
@@ -129,7 +129,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
             <div className="hidden lg:block">
               {isLoggedIn ? (
                 <Button 
-                  className="bg-red-600 hover:bg-red-700 text-white shadow-sm" 
+                  className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30" 
                   size="sm"
                   onClick={handleLogout}
                 >
@@ -139,7 +139,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                 </Button>
               ) : (
                 <Button 
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" 
+                  className="bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white shadow-lg shadow-emerald-500/30" 
                   size="sm"
                   onClick={() => navigate('/login')}
                 >
@@ -156,7 +156,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                 size="icon"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle menu"
-                className="hover:bg-emerald-50"
+                className="hover:bg-gray-800 text-gray-400"
               >
                 {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
@@ -166,7 +166,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden absolute left-0 right-0 top-16 bg-white border-b border-emerald-100 shadow-lg">
+          <div className="lg:hidden absolute left-0 right-0 top-16 bg-slate-900/98 backdrop-blur-lg border-b border-gray-800 shadow-2xl">
             <div className="px-4 py-3 space-y-2 max-h-96 overflow-y-auto">
               {currentUserType === 'student' ? (
                 // Grouped navigation for students
@@ -178,10 +178,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                       to={item.path}
                       onClick={() => setIsOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                        `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                           isActive 
-                            ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                            : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                            ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                            : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                         }`
                       }
                     >
@@ -201,10 +201,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -225,10 +225,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -249,10 +249,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -272,10 +272,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                       to={item.path}
                       onClick={() => setIsOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                        `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                           isActive 
-                            ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                            : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                            ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                            : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                         }`
                       }
                     >
@@ -295,10 +295,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -319,10 +319,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -343,10 +343,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -370,10 +370,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -394,10 +394,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -418,10 +418,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                         to={item.path}
                         onClick={() => setIsOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                          `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive 
-                              ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                              : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                              : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                           }`
                         }
                       >
@@ -439,10 +439,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                     to={item.path}
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                      `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                         isActive 
-                          ? "text-emerald-600 font-medium bg-emerald-50 shadow-sm" 
-                          : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                          ? "text-emerald-400 font-medium bg-emerald-500/20" 
+                          : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
                       }`
                     }
                   >
@@ -453,10 +453,10 @@ const Navigation = ({ userType = null, onLogout = null }) => {
               )}
               
               {/* Mobile Auth Button */}
-              <div className="pt-3 border-t border-emerald-100">
+              <div className="pt-3 border-t border-gray-800">
                 {isLoggedIn ? (
                   <Button 
-                    className="w-full bg-red-600 hover:bg-red-700 text-white justify-start" 
+                    className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white justify-start shadow-lg shadow-red-500/30" 
                     onClick={() => {
                       setIsOpen(false);
                       handleLogout();
@@ -467,7 +467,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   </Button>
                 ) : (
                   <Button 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white justify-start" 
+                    className="w-full bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white justify-start shadow-lg shadow-emerald-500/30" 
                     onClick={() => {
                       setIsOpen(false);
                       navigate('/login');

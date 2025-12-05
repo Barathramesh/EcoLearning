@@ -10,7 +10,9 @@ import {
   GraduationCap,
   UserCog,
   Leaf,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  Gamepad2
 } from 'lucide-react';
 
 const AdminNavbar = () => {
@@ -25,8 +27,10 @@ const AdminNavbar = () => {
     { name: 'Users', path: '/admin/users', icon: Users },
     { name: 'Students', path: '/admin/students', icon: GraduationCap },
     { name: 'Teachers', path: '/admin/teachers', icon: UserCog },
+    { name: 'Games', path: '/admin/game-management', icon: Gamepad2 },
     { name: 'AI Videos', path: '/admin/ai-videos', icon: Video },
     { name: 'Courses', path: '/admin/courses', icon: BookOpen },
+    { name: 'Syllabus to Video', path: '/admin/syllabus-video', icon: Sparkles },
   ];
 
   const handleLogout = () => {

@@ -46,6 +46,8 @@ import ManageStudents from "./pages/admin/ManageStudents";
 import ManageTeachers from "./pages/admin/ManageTeachers";
 import AIVideos from "./pages/admin/AIVideos";
 import Courses from "./pages/admin/Courses";
+import SyllabusVideoGenerator from "./pages/admin/SyllabusVideoGenerator";
+import GameManagement from "./pages/admin/GameManagement";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ const App = () => (
           <Route path="/admin/teachers" element={<ManageTeachers />} />
           <Route path="/admin/ai-videos" element={<AIVideos />} />
           <Route path="/admin/courses" element={<Courses />} />
+          <Route path="/admin/syllabus-video" element={<SyllabusVideoGenerator />} />
+          <Route path="/admin/game-management" element={<GameManagement />} />
           <Route path="/teacher/student-management" element={<StudentManagement />} />
           <Route path="/teacher/assignment/:assignmentId/submissions" element={<AssignmentSubmissions />} />
           <Route path="*" element={<NotFound />} />

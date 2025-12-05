@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import React, { useState, useEffect } from "react";
+import "@/styles/animations.css";
+import { getAllSyllabi } from "../../services/syllabusService";
 import { 
   BookOpen, 
   Play, 
@@ -22,7 +24,13 @@ import {
   X,
   ChevronRight,
   ChevronLeft,
-  Lock
+  Lock,
+  Sparkles,
+  Trophy,
+  Target,
+  Flame,
+  GraduationCap,
+  Loader
 } from "lucide-react";
 
 const Lessons = () => {
@@ -34,6 +42,11 @@ const Lessons = () => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
+  
+  // Syllabus videos from backend
+  const [syllabusVideos, setSyllabusVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+  const [user, setUser] = useState(null);
 
   // Lesson completion state - in a real app, this would come from a database or context
   const [lessonCompletionStatus, setLessonCompletionStatus] = useState({
@@ -45,210 +58,67 @@ const Lessons = () => {
     6: { completed: false, progress: 0, score: 0 }
   });
 
-  const lessons = [
-    {
-      id: 1,
-      level: 1,
-      title: "Introduction to Ecosystems",
-      description: "Learn about different types of ecosystems through animated videos",
-      duration: "8 min",
-      type: "video",
-      difficulty: "Beginner",
-      points: 50,
-      icon: TreePine,
-      category: "Ecosystems",
-      prerequisite: null, // First lesson has no prerequisite
-      quiz: {
-        questions: [
-          {
-            question: "What is an ecosystem?",
-            options: [
-              "A community of living organisms interacting with their environment",
-              "Only the plants in a particular area",
-              "The weather patterns in a region",
-              "A type of animal habitat"
-            ],
-            correctAnswer: 0
-          },
-          {
-            question: "Which of these is a producer in an ecosystem?",
-            options: ["Lion", "Grass", "Eagle", "Snake"],
-            correctAnswer: 1
-          },
-          {
-            question: "What is the role of decomposers?",
-            options: [
-              "To hunt other animals",
-              "To produce oxygen",
-              "To break down dead organic matter",
-              "To pollinate flowers"
-            ],
-            correctAnswer: 2
-          }
-        ]
-      }
-    },
-    {
-      id: 2,
-      level: 2,
-      title: "Water Conservation Strategies",
-      description: "Discover effective ways to conserve water through engaging animations",
-      duration: "6 min",
-      type: "video",
-      difficulty: "Beginner",
-      points: 40,
-      icon: Droplets,
-      category: "Water Conservation",
-      prerequisite: 1, // Requires lesson 1 to be completed
-      quiz: {
-        questions: [
-          {
-            question: "How much of Earth's water is freshwater?",
-            options: ["50%", "25%", "10%", "3%"],
-            correctAnswer: 3
-          },
-          {
-            question: "Which uses the most water in a typical home?",
-            options: ["Toilet", "Shower", "Washing machine", "Kitchen sink"],
-            correctAnswer: 1
-          },
-          {
-            question: "What percentage of water can be saved by fixing leaky faucets?",
-            options: ["5%", "10%", "15%", "20%"],
-            correctAnswer: 1
-          }
-        ]
-      }
-    },
-    {
-      id: 3,
-      level: 3,
-      title: "Renewable Energy Sources",
-      description: "Explore solar, wind, and other renewable energy through visual storytelling",
-      duration: "10 min",
-      type: "video",
-      difficulty: "Intermediate",
-      points: 75,
-      icon: Sun,
-      category: "Energy",
-      prerequisite: 2, // Requires lesson 2 to be completed
-      quiz: {
-        questions: [
-          {
-            question: "Which renewable energy source is most widely used?",
-            options: ["Solar", "Wind", "Hydroelectric", "Geothermal"],
-            correctAnswer: 2
-          },
-          {
-            question: "Solar panels convert sunlight into:",
-            options: ["Heat", "Electricity", "Both heat and electricity", "Mechanical energy"],
-            correctAnswer: 1
-          },
-          {
-            question: "What is the main advantage of wind energy?",
-            options: ["Works 24/7", "No emissions during operation", "Cheapest option", "Most efficient"],
-            correctAnswer: 1
-          }
-        ]
-      }
-    },
-    {
-      id: 4,
-      level: 4,
-      title: "Waste Management & Recycling",
-      description: "Learn about proper waste disposal and recycling processes",
-      duration: "7 min",
-      type: "video",
-      difficulty: "Intermediate",
-      points: 60,
-      icon: TreePine, // Using TreePine as a placeholder - you can change to Recycle icon
-      category: "Waste Management",
-      prerequisite: 3, // Requires lesson 3 to be completed
-      quiz: {
-        questions: [
-          {
-            question: "What are the 3 R's of waste management?",
-            options: [
-              "Reduce, Reuse, Recycle",
-              "Remove, Replace, Restore",
-              "Reduce, Replace, Recycle",
-              "Reuse, Replace, Remove"
-            ],
-            correctAnswer: 0
-          },
-          {
-            question: "How long does plastic take to decompose?",
-            options: ["10 years", "50 years", "100 years", "450+ years"],
-            correctAnswer: 3
-          }
-        ]
-      }
-    },
-    {
-      id: 5,
-      level: 5,
-      title: "Climate Change Impact",
-      description: "Understanding climate change causes and effects on our planet",
-      duration: "12 min",
-      type: "video",
-      difficulty: "Advanced",
-      points: 100,
-      icon: Sun, // Using Sun as placeholder - you can change to Globe icon
-      category: "Climate Science",
-      prerequisite: 4, // Requires lesson 4 to be completed
-      quiz: {
-        questions: [
-          {
-            question: "What is the main cause of recent climate change?",
-            options: [
-              "Natural climate cycles",
-              "Solar radiation changes",
-              "Human activities",
-              "Volcanic eruptions"
-            ],
-            correctAnswer: 2
-          },
-          {
-            question: "Which gas contributes most to the greenhouse effect?",
-            options: ["Carbon dioxide", "Methane", "Water vapor", "Nitrous oxide"],
-            correctAnswer: 2
-          },
-          {
-            question: "What is the Paris Agreement target for global temperature rise?",
-            options: ["1.5°C", "2°C", "2.5°C", "3°C"],
-            correctAnswer: 0
-          }
-        ]
-      }
-    },
-    {
-      id: 6,
-      level: 6,
-      title: "Sustainable Living Practices",
-      description: "Practical steps for living a more sustainable lifestyle",
-      duration: "9 min",
-      type: "video",
-      difficulty: "Advanced",
-      points: 80,
-      icon: TreePine,
-      category: "Sustainability",
-      prerequisite: 5, // Requires lesson 5 to be completed
-      quiz: {
-        questions: [
-          {
-            question: "Which transportation method has the lowest carbon footprint?",
-            options: ["Electric car", "Public transport", "Bicycle", "Walking"],
-            correctAnswer: 3
-          },
-          {
-            question: "What is the most effective way to reduce household energy consumption?",
-            options: ["Better insulation", "LED bulbs", "Energy-efficient appliances", "All of the above"],
-            correctAnswer: 3
-          }
-        ]
-      }
+  // Empty lessons array - videos come from backend now
+  const lessons = [];
+
+  // Fetch user and syllabus videos on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+      fetchSyllabusVideos(userData.class);
+    } else {
+      setLoadingVideos(false);
     }
-  ];
+  }, []);
+
+  // Fetch syllabus videos for student's class
+  const fetchSyllabusVideos = async (studentClass) => {
+    try {
+      setLoadingVideos(true);
+      
+      // Try to get videos for specific grade first
+      let gradeFormat = null;
+      if (studentClass) {
+        // Handle different class formats: "10", "Grade 10", "10th", etc.
+        const classNum = studentClass.toString().replace(/[^0-9]/g, '');
+        if (classNum) {
+          gradeFormat = `Grade ${classNum}`;
+        }
+      }
+      
+      // Fetch all syllabi and filter on frontend for more flexibility
+      const response = await getAllSyllabi({});
+      if (response.success) {
+        // Filter only completed videos
+        let videosWithContent = response.data.filter(
+          s => s.videoGenerationStatus === 'completed' && s.videoUrl
+        );
+        
+        // If student has a class, prioritize videos for their grade
+        // but also show all videos if grade-specific ones are limited
+        if (gradeFormat && videosWithContent.length > 0) {
+          const gradeVideos = videosWithContent.filter(
+            s => s.grade === gradeFormat || s.grade === studentClass
+          );
+          // If there are grade-specific videos, show those first, then others
+          if (gradeVideos.length > 0) {
+            const otherVideos = videosWithContent.filter(
+              s => s.grade !== gradeFormat && s.grade !== studentClass
+            );
+            videosWithContent = [...gradeVideos, ...otherVideos];
+          }
+        }
+        
+        setSyllabusVideos(videosWithContent);
+      }
+    } catch (error) {
+      console.error('Error fetching syllabus videos:', error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
 
   // Check if a lesson is unlocked
   const isLessonUnlocked = (lesson) => {
@@ -282,14 +152,11 @@ const Lessons = () => {
     }
   };
 
-  const totalLessons = lessons.length;
-  const completedLessons = lessons.filter(lesson => getLessonStatus(lesson.id).completed).length;
-  const totalProgress = Math.round(
-    lessons.reduce((sum, lesson) => sum + getLessonStatus(lesson.id).progress, 0) / totalLessons
-  );
-  const totalPoints = lessons
-    .filter(lesson => getLessonStatus(lesson.id).completed)
-    .reduce((sum, lesson) => sum + lesson.points, 0);
+  // Stats based on syllabus videos from backend
+  const totalLessons = syllabusVideos.length;
+  const completedLessons = 0; // Will be tracked from backend in future
+  const totalProgress = 0; // Will be tracked from backend in future
+  const totalPoints = 0; // Will be tracked from backend in future
 
   const handleWatchLesson = (lesson) => {
     setSelectedLesson(lesson);
@@ -352,10 +219,21 @@ const Lessons = () => {
   }, [isVideoPlaying, videoProgress]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* Floating Icons */}
+        <div className="absolute top-20 left-10 text-6xl opacity-10 animate-float">📚</div>
+        <div className="absolute top-40 right-20 text-5xl opacity-10 animate-float" style={{ animationDelay: '1s' }}>🎓</div>
+        <div className="absolute bottom-40 left-1/4 text-4xl opacity-10 animate-float" style={{ animationDelay: '2s' }}>🌱</div>
+      </div>
+      
       <Navigation userType="student" />
-      <main className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {/* Video Player Modal */}
           {selectedLesson && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -583,275 +461,202 @@ const Lessons = () => {
                 <BookOpen className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">Level-Based Video Lessons</h1>
-                <p className="text-gray-600">Progress through levels by completing animated videos and quizzes</p>
+                <h1 className="text-3xl font-bold text-white">Video Lessons</h1>
+                <p className="text-gray-400">Watch educational videos created by your teachers {user?.class && `for ${user.class}`}</p>
               </div>
             </div>
 
             {/* Progress Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card className="glass border-0 hover-lift">
                 <CardContent className="p-6 text-center">
-                  <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-800">{completedLessons}/{totalLessons}</div>
-                  <p className="text-gray-600">Lessons Completed</p>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-purple-500/30">
+                    <Video className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold text-white">{totalLessons}</div>
+                  <p className="text-gray-400">Available Videos</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass border-0 hover-lift">
                 <CardContent className="p-6 text-center">
-                  <Video className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-800">{totalProgress}%</div>
-                  <p className="text-gray-600">Overall Progress</p>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-green-500/30">
+                    <CheckCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold text-white">{completedLessons}</div>
+                  <p className="text-gray-400">Completed</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass border-0 hover-lift">
                 <CardContent className="p-6 text-center">
-                  <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-800">{totalPoints}</div>
-                  <p className="text-gray-600">Points Earned</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <HelpCircle className="w-8 h-8 text-cyan-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-800">{lessons.reduce((sum, lesson) => sum + lesson.quiz.questions.length, 0)}</div>
-                  <p className="text-gray-600">Quiz Questions</p>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
+                    <Sparkles className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-3xl font-bold text-white">AI</div>
+                  <p className="text-gray-400">Generated Content</p>
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Learning Progress Path */}
-          <div className="mb-8">
-            <Card>
+          {/* Class Videos from Admin */}
+          <div>
+            <Card className="glass border-0">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
-                  Learning Path Progress
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-white" />
+                  </div>
+                  Your Video Lessons {user?.class && `- ${user.class}`}
+                  <Badge className="ml-auto bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    <Sparkles className="w-3 h-3 mr-1" /> AI Generated
+                  </Badge>
                 </CardTitle>
-                <p className="text-gray-600">Complete lessons in order to unlock the next level</p>
+                <p className="text-gray-400">Educational videos created by your teachers</p>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between overflow-x-auto pb-4">
-                  {lessons.map((lesson, index) => {
-                    const lessonStatus = getLessonStatus(lesson.id);
-                    const isUnlocked = isLessonUnlocked(lesson);
-                    
-                    return (
-                      <div key={lesson.id} className="flex items-center">
-                        <div className="flex flex-col items-center min-w-[120px]">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                            lessonStatus.completed 
-                              ? 'bg-green-500 text-white' 
-                              : isUnlocked 
-                                ? 'bg-emerald-500 text-white' 
-                                : 'bg-gray-300 text-gray-500'
-                          }`}>
-                            {lessonStatus.completed ? (
-                              <CheckCircle className="w-6 h-6" />
-                            ) : isUnlocked ? (
-                              <Play className="w-6 h-6" />
-                            ) : (
-                              <Lock className="w-6 h-6" />
-                            )}
+                {loadingVideos ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader className="w-8 h-8 text-purple-400 animate-spin mr-3" />
+                    <span className="text-gray-400">Loading class videos...</span>
+                  </div>
+                ) : syllabusVideos.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {syllabusVideos.map((syllabus, index) => (
+                      <div 
+                        key={syllabus._id}
+                        className="group bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        {/* Video Thumbnail */}
+                        <div className="relative aspect-video bg-gradient-to-br from-purple-900/50 to-pink-900/50">
+                          {syllabus.thumbnailUrl ? (
+                            <img 
+                              src={syllabus.thumbnailUrl} 
+                              alt={syllabus.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Video className="w-16 h-16 text-purple-400/50" />
+                            </div>
+                          )}
+                          {/* Play overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <a
+                              href={syllabus.videoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300"
+                            >
+                              <Play className="w-8 h-8 text-purple-600 ml-1" />
+                            </a>
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm font-medium">Level {lesson.level}</div>
-                            <div className="text-xs text-gray-500">{lesson.category}</div>
-                            {lessonStatus.completed && (
-                              <div className="text-xs text-green-600 font-medium">
-                                {lessonStatus.score}% ✓
-                              </div>
-                            )}
+                          {/* Duration badge */}
+                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded-md text-xs text-white">
+                            5 min
                           </div>
                         </div>
-                        {index < lessons.length - 1 && (
-                          <div className={`h-1 w-8 mx-2 ${
-                            lessonStatus.completed ? 'bg-green-500' : 'bg-gray-300'
-                          }`}></div>
-                        )}
+                        
+                        {/* Video Info */}
+                        <div className="p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className="bg-purple-500/20 text-purple-300 text-xs border border-purple-500/30">
+                              {syllabus.subject}
+                            </Badge>
+                            <Badge className="bg-blue-500/20 text-blue-300 text-xs border border-blue-500/30">
+                              {syllabus.grade}
+                            </Badge>
+                          </div>
+                          <h3 className="font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                            {syllabus.title}
+                          </h3>
+                          <p className="text-sm text-gray-400 line-clamp-2 mb-4">
+                            {syllabus.description || syllabus.content?.substring(0, 100) + '...'}
+                          </p>
+                          
+                          {/* Topics */}
+                          {syllabus.topics && syllabus.topics.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-4">
+                              {syllabus.topics.slice(0, 3).map((topic, i) => (
+                                <span key={i} className="text-xs px-2 py-1 bg-gray-700/50 text-gray-300 rounded-full">
+                                  {topic.topicName}
+                                </span>
+                              ))}
+                              {syllabus.topics.length > 3 && (
+                                <span className="text-xs px-2 py-1 bg-gray-700/50 text-gray-400 rounded-full">
+                                  +{syllabus.topics.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          <a
+                            href={syllabus.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/30">
+                              <Play className="w-4 h-4 mr-2" />
+                              Watch Video
+                            </Button>
+                          </a>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400 font-medium text-lg">No Class Videos Yet</p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Your teachers haven't uploaded any videos for {user?.class || 'your class'} yet.
+                    </p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Check back later or complete the learning modules above!
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Lessons Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {lessons.map((lesson) => {
-              const lessonStatus = getLessonStatus(lesson.id);
-              const isUnlocked = isLessonUnlocked(lesson);
-              
-              return (
-                <Card 
-                  key={lesson.id} 
-                  className={`group transition-all duration-300 ${
-                    isUnlocked 
-                      ? 'hover:shadow-lg cursor-pointer' 
-                      : 'opacity-60 cursor-not-allowed bg-gray-50'
-                  }`}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          isUnlocked 
-                            ? 'bg-gradient-to-br from-emerald-100 to-cyan-100'
-                            : 'bg-gray-200'
-                        }`}>
-                          {isUnlocked ? (
-                            <lesson.icon className="w-6 h-6 text-emerald-600" />
-                          ) : (
-                            <Lock className="w-6 h-6 text-gray-500" />
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <Badge variant="secondary" className="w-fit mb-1 text-xs">
-                            Level {lesson.level}
-                          </Badge>
-                          {lessonStatus.completed && (
-                            <Badge variant="default" className="w-fit bg-green-100 text-green-700 text-xs">
-                              ✓ Completed
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge className={getDifficultyColor(lesson.difficulty)} variant="secondary">
-                          {lesson.difficulty}
-                        </Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Video className="w-3 h-3" />
-                          Animated
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardTitle className={`text-xl ${!isUnlocked ? 'text-gray-500' : ''}`}>
-                      {lesson.title}
-                    </CardTitle>
-                    <p className={`text-sm ${!isUnlocked ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {isUnlocked ? lesson.description : 'Complete previous lesson to unlock'}
-                    </p>
-                    
-                    {!isUnlocked && lesson.prerequisite && (
-                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-xs text-yellow-700">
-                          🔒 Complete "Level {lesson.prerequisite}" to unlock this lesson
-                        </p>
-                      </div>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {lesson.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4" />
-                          {lesson.points} pts
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <HelpCircle className="w-4 h-4" />
-                          {lesson.quiz.questions.length} questions
-                        </div>
-                      </div>
-
-                      <Badge variant="outline" className="w-fit">
-                        {lesson.category}
-                      </Badge>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Progress</span>
-                          <span className="text-sm text-gray-600">{lessonStatus.progress}%</span>
-                        </div>
-                        <Progress value={lessonStatus.progress} className="h-2" />
-                      </div>
-
-                      {lessonStatus.completed ? (
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-green-600">✅ Completed</span>
-                            <span className="text-sm text-gray-600">Score: {lessonStatus.score}%</span>
-                          </div>
-                          <Button 
-                            className="w-full" 
-                            variant="outline"
-                            onClick={() => isUnlocked && handleWatchLesson(lesson)}
-                            disabled={!isUnlocked}
-                          >
-                            <Play className="w-4 h-4 mr-2" />
-                            Watch Again & Retake Quiz
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          className={`w-full ${
-                            isUnlocked 
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
-                          onClick={() => isUnlocked && handleWatchLesson(lesson)}
-                          disabled={!isUnlocked}
-                        >
-                          {isUnlocked ? (
-                            <>
-                              <Video className="w-4 h-4 mr-2" />
-                              Watch Video & Take Quiz
-                            </>
-                          ) : (
-                            <>
-                              <Lock className="w-4 h-4 mr-2" />
-                              Locked - Complete Level {lesson.prerequisite}
-                            </>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
           {/* How It Works */}
           <div className="mt-12">
-            <Card>
+            <Card className="glass border-0">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-white" />
+                  </div>
                   How Video Lessons Work
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-gray-600">
+                  <p className="text-gray-400">
                     Each lesson features an engaging animated video followed by a quiz to reinforce your learning:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
-                      <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                    <div className="flex items-center gap-3 p-4 bg-blue-500/20 rounded-xl border border-blue-500/30">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
                       <div>
-                        <h4 className="font-medium">Watch Animation</h4>
-                        <p className="text-sm text-gray-600">Engaging animated videos with clear explanations</p>
+                        <h4 className="font-medium text-white">Watch Animation</h4>
+                        <p className="text-sm text-gray-400">Engaging animated videos with clear explanations</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-                      <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                    <div className="flex items-center gap-3 p-4 bg-emerald-500/20 rounded-xl border border-emerald-500/30">
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
                       <div>
-                        <h4 className="font-medium">Take Quiz</h4>
-                        <p className="text-sm text-gray-600">Multiple choice questions to test understanding</p>
+                        <h4 className="font-medium text-white">Take Quiz</h4>
+                        <p className="text-sm text-gray-400">Multiple choice questions to test understanding</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
-                      <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                    <div className="flex items-center gap-3 p-4 bg-amber-500/20 rounded-xl border border-amber-500/30">
+                      <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
                       <div>
-                        <h4 className="font-medium">Earn Rewards</h4>
-                        <p className="text-sm text-gray-600">Get points and track your progress</p>
+                        <h4 className="font-medium text-white">Earn Rewards</h4>
+                        <p className="text-sm text-gray-400">Get points and track your progress</p>
                       </div>
                     </div>
                   </div>
@@ -859,8 +664,24 @@ const Lessons = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
+        </main>
+
+        {/* Custom Styles */}
+        <style>{`
+          .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+          }
+          .animate-float {
+            animation: float 4s ease-in-out infinite;
+          }
+        `}</style>
     </div>
   );
 };

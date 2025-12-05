@@ -12,6 +12,8 @@ import assignmentRouter from './routes/assignmentRoutes.js';
 import submissionRouter from './routes/submissionRoutes.js';
 import aiChatRouter from './routes/aiChatRoutes.js';
 import videoRouter from './routes/videoRoutes.js';
+import syllabusRouter from './routes/syllabusRoutes.js';
+import gameRouter from './routes/gameRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +46,8 @@ app.use('/api/submission', submissionRouter);
 app.use('/api/ai-chat', aiChatRouter);
 app.use('/api/video', videoRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/syllabus', syllabusRouter);
+app.use('/api/game', gameRouter);
 
 
 

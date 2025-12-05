@@ -20,7 +20,10 @@ import {
   Globe,
   Star,
   Badge as BadgeIcon,
-  Upload
+  Upload,
+  Sparkles,
+  Flame,
+  Heart
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -28,6 +31,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import Navigation from '../../components/Navigation';
+import "@/styles/animations.css";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -99,78 +103,83 @@ const Profile = () => {
       title: "Eco Warrior",
       description: "Completed 50 environmental lessons",
       icon: Leaf,
-      color: "bg-green-100 text-green-700",
-      earned: true,
-      date: "2 days ago"
+      gradient: "from-green-400 to-emerald-600",
+      bgGradient: "from-green-900/80 to-emerald-900/80",
+      earned: false,
+      progress: 0
     },
     {
       id: 2,
       title: "Knowledge Seeker",
       description: "Asked 200 questions to AI tutor",
       icon: BookOpen,
-      color: "bg-purple-100 text-purple-700",
-      earned: true,
-      date: "2 weeks ago"
+      gradient: "from-purple-400 to-pink-600",
+      bgGradient: "from-purple-900/80 to-pink-900/80",
+      earned: false,
+      progress: 0
     },
     {
       id: 3,
       title: "Quiz Master",
       description: "Perfect score on 10 quizzes",
       icon: Trophy,
-      color: "bg-yellow-100 text-yellow-700",
+      gradient: "from-yellow-400 to-amber-600",
+      bgGradient: "from-yellow-900/80 to-amber-900/80",
       earned: false,
-      progress: 7
+      progress: 0
     },
     {
       id: 4,
       title: "Learning Streak",
       description: "30 consecutive days of learning",
       icon: Zap,
-      color: "bg-orange-100 text-orange-700",
+      gradient: "from-orange-400 to-red-600",
+      bgGradient: "from-orange-900/80 to-red-900/80",
       earned: false,
-      progress: 12
+      progress: 0
     },
     {
       id: 5,
       title: "Sustainability Champion",
       description: "Complete all climate change modules",
       icon: Star,
-      color: "bg-emerald-100 text-emerald-700",
+      gradient: "from-emerald-400 to-cyan-600",
+      bgGradient: "from-emerald-900/80 to-cyan-900/80",
       earned: false,
-      progress: 4
+      progress: 0
     }
   ];
+
+  // Get user data from localStorage for stats
+  const getUserStats = () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return {
+          lessonsCompleted: user.lessonsCompleted || 0,
+          quizAverage: user.quizAverage || 0,
+          streak: user.streak || 0,
+          questionsAsked: user.questionsAsked || 0
+        };
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+    return { lessonsCompleted: 0, quizAverage: 0, streak: 0, questionsAsked: 0 };
+  };
+
+  const userStats = getUserStats();
 
   const stats = [
-    { label: "Lessons Completed", value: "87", icon: BookOpen, color: "text-blue-600" },
-    { label: "Quiz Score Average", value: "94%", icon: Target, color: "text-green-600" },
-    { label: "Learning Streak", value: "12 days", icon: Zap, color: "text-orange-600" },
-    { label: "AI Questions Asked", value: "247", icon: BadgeIcon, color: "text-purple-600" }
+    { label: "Lessons Completed", value: userStats.lessonsCompleted.toString(), icon: BookOpen, gradient: "from-blue-400 to-cyan-600" },
+    { label: "Quiz Score Average", value: userStats.quizAverage ? `${userStats.quizAverage}%` : "0%", icon: Target, gradient: "from-green-400 to-emerald-600" },
+    { label: "Learning Streak", value: `${userStats.streak} days`, icon: Flame, gradient: "from-orange-400 to-red-600" },
+    { label: "AI Questions Asked", value: userStats.questionsAsked.toString(), icon: Sparkles, gradient: "from-purple-400 to-pink-600" }
   ];
 
-  const recentActivity = [
-    {
-      id: 1,
-      action: "Completed lesson",
-      subject: "Ocean Acidification",
-      time: "2 hours ago",
-      icon: BookOpen
-    },
-    {
-      id: 2,
-      action: "Earned achievement",
-      subject: "Eco Warrior Badge",
-      time: "2 days ago",
-      icon: Award
-    },
-    {
-      id: 3,
-      action: "Perfect quiz score",
-      subject: "Climate Change Quiz",
-      time: "3 days ago",
-      icon: Trophy
-    }
-  ];
+  // Recent activity would be fetched from backend - empty for now
+  const recentActivity = [];
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -196,12 +205,12 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900">
         <Navigation userType="student" />
         <main className="pt-20 pb-16 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading profile...</p>
+            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading profile...</p>
           </div>
         </main>
       </div>
@@ -209,21 +218,44 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        {/* Floating particles */}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-purple-400 rounded-full animate-pulse"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              opacity: 0.5
+            }}
+          />
+        ))}
+      </div>
+
       <Navigation userType="student" />
       
-      <main className="pt-20 pb-16">
+      <main className="pt-20 pb-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-white" />
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-400 via-pink-500 to-cyan-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/30 animate-float">
+                  <User className="w-10 h-10 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-                  <p className="text-gray-600">Manage your account and track your learning progress</p>
+                  <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+                    My Profile
+                    <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
+                  </h1>
+                  <p className="text-gray-400">Manage your account and track your learning progress</p>
                 </div>
               </div>
             </div>
@@ -233,16 +265,17 @@ const Profile = () => {
             {/* Left Column - Profile Info */}
             <div className="lg:col-span-1 space-y-6">
               {/* Profile Card */}
-              <Card>
-                <CardContent className="p-6">
+              <Card className="glass border-0 overflow-hidden">
+                <div className="h-24 bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-cyan-500/30"></div>
+                <CardContent className="p-6 -mt-12">
                   <div className="text-center mb-6">
                     <div className="relative inline-block">
-                      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-purple-500/30 ring-4 ring-slate-800">
                         <User className="w-12 h-12 text-white" />
                       </div>
                       <Button 
                         size="icon" 
-                        className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-700"
+                        className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg"
                         title="Upload profile picture"
                       >
                         <Camera className="w-4 h-4" />
@@ -250,71 +283,63 @@ const Profile = () => {
                     </div>
                     
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-800">{profileData.name}</h2>
-                      <p className="text-gray-600">{profileData.class}</p>
+                      <h2 className="text-2xl font-bold text-white">{profileData.name}</h2>
+                      <Badge className="mt-2 bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        {profileData.class}
+                      </Badge>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{profileData.email}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{profileData.phone}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{profileData.address}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <School className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{profileData.school}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">Class: {profileData.class}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <BadgeIcon className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">Roll No: {profileData.rollNumber}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">Joined {profileData.joinDate}</span>
-                    </div>
+                    {[
+                      { icon: Mail, label: profileData.email },
+                      { icon: Phone, label: profileData.phone },
+                      { icon: MapPin, label: profileData.address },
+                      { icon: School, label: profileData.school },
+                      { icon: BookOpen, label: `Class: ${profileData.class}` },
+                      { icon: BadgeIcon, label: `Roll No: ${profileData.rollNumber}` },
+                      { icon: Calendar, label: `Joined ${profileData.joinDate}` }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800/30 transition-colors">
+                        <div className="w-8 h-8 rounded-lg bg-gray-800/50 flex items-center justify-center">
+                          <item.icon className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <span className="text-sm text-gray-300">{item.label}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{profileData.bio}</p>
+                  <div className="mt-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart className="w-4 h-4 text-pink-400" />
+                      <span className="text-sm font-medium text-white">About Me</span>
+                    </div>
+                    <p className="text-sm text-gray-400">{profileData.bio}</p>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Stats Card */}
-              <Card>
+              <Card className="glass border-0">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-white" />
+                    </div>
                     Learning Stats
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {stats.map((stat, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300">
                         <div className="flex items-center gap-3">
-                          <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                          <span className="text-sm font-medium text-gray-700">{stat.label}</span>
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg`}>
+                            <stat.icon className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-300">{stat.label}</span>
                         </div>
-                        <span className="text-lg font-bold text-gray-800">{stat.value}</span>
+                        <span className="text-xl font-bold text-white">{stat.value}</span>
                       </div>
                     ))}
                   </div>
@@ -325,48 +350,55 @@ const Profile = () => {
             {/* Right Column - Activity & Achievements */}
             <div className="lg:col-span-2 space-y-6">
               {/* Achievements */}
-              <Card>
+              <Card className="glass border-0">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
+                      <Award className="w-5 h-5 text-white" />
+                    </div>
                     Achievements
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
-                    {achievements.map((achievement) => (
+                    {achievements.map((achievement, index) => (
                       <div
                         key={achievement.id}
-                        className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
+                        className={`group relative p-4 rounded-xl transition-all duration-500 hover:scale-[1.02] ${
                           achievement.earned
-                            ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-cyan-50 shadow-md'
-                            : 'border-gray-200 bg-gray-50 opacity-75'
+                            ? `bg-gradient-to-br ${achievement.bgGradient} border border-emerald-500/30`
+                            : 'bg-gray-800/30 border border-gray-700/50 opacity-75'
                         }`}
+                        style={{ animationDelay: `${index * 100}ms` }}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${achievement.color}`}>
-                            <achievement.icon className="w-6 h-6" />
+                          <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 ${
+                            achievement.earned 
+                              ? `bg-gradient-to-br ${achievement.gradient}` 
+                              : 'bg-gray-700'
+                          }`}>
+                            <achievement.icon className="w-7 h-7 text-white" />
                           </div>
                           <div className="flex-1">
-                            <h3 className={`font-semibold ${achievement.earned ? 'text-gray-800' : 'text-gray-500'}`}>
+                            <h3 className={`font-semibold ${achievement.earned ? 'text-white' : 'text-gray-300'}`}>
                               {achievement.title}
                             </h3>
-                            <p className={`text-sm ${achievement.earned ? 'text-gray-600' : 'text-gray-400'} mb-2`}>
+                            <p className={`text-sm ${achievement.earned ? 'text-gray-300' : 'text-gray-400'} mb-2`}>
                               {achievement.description}
                             </p>
                             {achievement.earned ? (
-                              <Badge className="bg-emerald-100 text-emerald-700">
-                                Earned {achievement.date}
+                              <Badge className="bg-emerald-500/30 text-emerald-300 border border-emerald-500/50">
+                                ✓ Earned {achievement.date}
                               </Badge>
                             ) : (
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-gray-500">
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs text-gray-400">
                                   <span>Progress</span>
                                   <span>{achievement.progress}/10</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="w-full bg-gray-700 rounded-full h-2">
                                   <div
-                                    className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
+                                    className={`bg-gradient-to-r ${achievement.gradient} h-2 rounded-full transition-all duration-500`}
                                     style={{ width: `${(achievement.progress / 10) * 100}%` }}
                                   ></div>
                                 </div>
@@ -375,9 +407,9 @@ const Profile = () => {
                           </div>
                         </div>
                         {achievement.earned && (
-                          <div className="absolute top-2 right-2">
-                            <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                              <Trophy className="w-3 h-3 text-white" />
+                          <div className="absolute top-3 right-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                              <Trophy className="w-4 h-4 text-white" />
                             </div>
                           </div>
                         )}
@@ -388,35 +420,66 @@ const Profile = () => {
               </Card>
 
               {/* Recent Activity */}
-              <Card>
+              <Card className="glass border-0">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-white" />
+                    </div>
                     Recent Activity
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                          <activity.icon className="w-5 h-5 text-emerald-600" />
+                  {recentActivity.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentActivity.map((activity, index) => (
+                        <div 
+                          key={activity.id} 
+                          className="flex items-center gap-4 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300 hover:scale-[1.01]"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${activity.gradient} flex items-center justify-center shadow-lg`}>
+                            <activity.icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-white">
+                              {activity.action} <span className="text-emerald-400">{activity.subject}</span>
+                            </p>
+                            <p className="text-xs text-gray-500">{activity.time}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-800">
-                            {activity.action} <span className="text-emerald-600">{activity.subject}</span>
-                          </p>
-                          <p className="text-xs text-gray-500">{activity.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-400 font-medium">No Activity Yet</p>
+                      <p className="text-gray-500 text-sm mt-1">Start learning to see your activity here!</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Custom Styles */}
+      <style>{`
+        .glass {
+          background: rgba(15, 23, 42, 0.8);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
