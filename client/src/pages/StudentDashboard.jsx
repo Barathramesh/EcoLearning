@@ -173,7 +173,7 @@ const StudentDashboard = () => {
     currentXP: stats?.currentXP || user?.currentXP || 0,
     nextLevelXP: stats?.nextLevelXP || user?.nextLevelXP || 100,
     streak: stats?.streak || user?.streak || 0,
-    badges: stats?.badges || user?.badges || 0,
+    badges: Array.isArray(stats?.badges) ? stats.badges.length : Array.isArray(user?.badges) ? user.badges.length : 0,
     hoursLearned: stats?.hoursLearned || user?.hoursLearned || 0,
     watchedVideosCount: stats?.watchedVideosCount || 0,
   };
@@ -393,6 +393,11 @@ const StudentDashboard = () => {
               key={index}
               className={`glass border-0 hover-lift cursor-pointer group overflow-hidden`}
               style={{ animationDelay: `${index * 100}ms` }}
+              onClick={() => {
+                if (stat.label === "Badges Earned") {
+                  navigate("/student/badges");
+                }
+              }}
             >
               <CardContent className="p-6 relative">
                 <div
@@ -412,6 +417,9 @@ const StudentDashboard = () => {
                     />
                     {stat.suffix}
                   </p>
+                  {stat.label === "Badges Earned" && (
+                    <p className="text-xs text-purple-400 mt-2">Click to view →</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -624,10 +632,10 @@ const StudentDashboard = () => {
                   path: "/student/games",
                 },
                 {
-                  title: "Virtual Lab",
-                  icon: FlaskConical,
-                  color: "from-purple-400 to-purple-600",
-                  path: "/student/eco-lab",
+                  title: "My Badges",
+                  icon: Trophy,
+                  color: "from-yellow-400 to-orange-600",
+                  path: "/student/badges",
                 },
                 {
                   title: "AI Tutor",

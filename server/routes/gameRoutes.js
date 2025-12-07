@@ -9,13 +9,19 @@ import {
   bulkUpdateGameClasses,
   seedGames,
   getAvailableClasses,
-  toggleGameStatus
+  toggleGameStatus,
+  completeGame,
+  getGameHistory,
+  getStudentRewards
 } from '../controllers/gameController.js';
 
 const gameRouter = express.Router();
 
 // Student routes
 gameRouter.get('/class/:studentClass', getGamesForClass);
+gameRouter.post('/complete', completeGame);
+gameRouter.get('/history/:studentId', getGameHistory);
+gameRouter.get('/rewards/:studentId', getStudentRewards);
 
 // Admin routes
 gameRouter.get('/all', getAllGames);

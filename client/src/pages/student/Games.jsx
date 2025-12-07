@@ -46,72 +46,84 @@ const iconMap = {
   Snowflake, Zap, Globe, Flower2, Bug, Gamepad2
 };
 
-// Default games (fallback if API fails)
+// Climate games available
 const defaultGames = [
   {
     id: 1,
-    title: "EcoQuest Adventure",
-    description: "Explore different ecosystems and learn about biodiversity",
+    title: "Eco Ninja",
+    description: "Slice eco-friendly items to save the planet! Avoid pollution hazards.",
     difficulty: "Easy",
-    duration: "15 min",
+    duration: "10 min",
     points: 50,
-    completed: false,
-    progress: 0,
     icon: "Leaf",
-    category: "Ecosystems",
-    route: "/student/ecoquest-adventure"
+    category: "Action",
+    route: "/student/games/eco-ninja"
   },
   {
     id: 2,
-    title: "Ocean Cleanup Hero",
-    description: "Clean up the ocean and save marine life",
+    title: "Eco Runner Dash",
+    description: "Run through an eco-friendly world collecting green items",
     difficulty: "Medium",
-    duration: "20 min",
+    duration: "15 min",
     points: 75,
-    completed: false,
-    progress: 0,
-    icon: "Droplets",
-    category: "Ocean Conservation",
-    route: "/student/ocean-cleanup-hero"
+    icon: "Zap",
+    category: "Runner",
+    route: "/student/games/eco-runner"
   },
   {
     id: 3,
-    title: "Solar Power Master",
-    description: "Build and manage renewable energy systems",
-    difficulty: "Hard",
-    duration: "30 min",
-    points: 100,
-    completed: false,
-    progress: 0,
-    icon: "Sun",
-    category: "Energy",
-    route: "/student/solar-power-master"
+    title: "Eco Snake & Ladders",
+    description: "Classic snakes and ladders with environmental learning",
+    difficulty: "Easy",
+    duration: "20 min",
+    points: 60,
+    icon: "Gamepad2",
+    category: "Board Game",
+    route: "/student/games/eco-snakes-ladders"
   },
   {
     id: 4,
-    title: "Recycling Wizard",
-    description: "Sort waste and learn about proper recycling",
-    difficulty: "Easy",
-    duration: "10 min",
-    points: 40,
-    completed: false,
-    progress: 0,
-    icon: "Recycle",
-    category: "Waste Management",
-    route: "/student/recycling-wizard"
+    title: "Eco Puzzle",
+    description: "Solve environmental puzzles and learn about nature",
+    difficulty: "Medium",
+    duration: "15 min",
+    points: 70,
+    icon: "Target",
+    category: "Puzzle",
+    route: "/student/games/eco-puzzle"
   },
   {
     id: 5,
-    title: "Save the Trees",
-    description: "Plant and manage your own forest while learning about conservation",
-    difficulty: "Medium",
-    duration: "25 min",
-    points: 80,
-    completed: false,
-    progress: 0,
+    title: "Word Search",
+    description: "Find environmental words in this exciting word search game",
+    difficulty: "Easy",
+    duration: "10 min",
+    points: 40,
+    icon: "Search",
+    category: "Word Game",
+    route: "/student/games/word-search"
+  },
+  {
+    id: 6,
+    title: "Nature Ninjas",
+    description: "Defend nature and protect wildlife in this action game",
+    difficulty: "Hard",
+    duration: "20 min",
+    points: 100,
     icon: "TreePine",
-    category: "Forest Conservation",
-    route: "/student/save-the-trees"
+    category: "Action",
+    route: "/student/games/nature-ninjas"
+  },
+  {
+    id: 7,
+    title: "Net Zero Quest",
+    description: "Journey towards net zero carbon emissions",
+    difficulty: "Hard",
+    duration: "25 min",
+    points: 120,
+    icon: "Globe",
+    category: "Strategy",
+    route: "/student/games/net-zero-quest"
   }
 ];
 

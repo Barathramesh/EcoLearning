@@ -1,4 +1,23 @@
 import Game from '../models/Game.js';
+import Student from '../models/Student.js';
+
+// Badge rewards for level-ups
+const LEVEL_BADGES = {
+  2: { badgeId: 'beginner', name: 'Beginner Explorer', description: 'Started your eco journey!', icon: '🌱', rarity: 'common' },
+  3: { badgeId: 'eco-learner', name: 'Eco Learner', description: 'Learning about the environment', icon: '📚', rarity: 'common' },
+  5: { badgeId: 'tree-planter', name: 'Tree Planter', description: 'Planted 100 virtual trees!', icon: '🌳', rarity: 'common' },
+  7: { badgeId: 'climate-warrior', name: 'Climate Warrior', description: 'Fighting climate change!', icon: '⚔️', rarity: 'rare' },
+  10: { badgeId: 'green-champion', name: 'Green Champion', description: 'A true environmental champion!', icon: '🏆', rarity: 'rare' },
+  15: { badgeId: 'eco-master', name: 'Eco Master', description: 'Master of environmental knowledge', icon: '🎓', rarity: 'epic' },
+  20: { badgeId: 'nature-hero', name: 'Nature Hero', description: 'A hero for planet Earth!', icon: '🦸', rarity: 'epic' },
+  25: { badgeId: 'earth-savior', name: 'Earth Savior', description: 'Legendary protector of Earth!', icon: '🌍', rarity: 'legendary' },
+  30: { badgeId: 'planet-guardian', name: 'Planet Guardian', description: 'Ultimate guardian of our planet!', icon: '💫', rarity: 'legendary' }
+};
+
+// XP required for each level (progressive)
+const calculateXPForLevel = (level) => {
+  return Math.floor(100 * Math.pow(1.5, level - 1));
+};
 
 // Default games to seed
 const defaultGames = [
@@ -458,6 +477,213 @@ export const toggleGameStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to toggle game status'
+    });
+  }
+};
+
+/**
+ * Complete a game and award points
+ */
+export const completeGame = async (req, res) => {
+  try {
+    const { studentId, gameId, gameName, pointsEarned } = req.body;
+
+    if (!studentId || !gameId || !gameName || pointsEarned === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Student ID, game ID, game name, and points earned are required",
+      });
+    }
+
+    // First check if student exists using lean() to avoid validation
+    const studentCheck = await Student.findById(studentId).lean();
+    if (!studentCheck) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // Migrate old badges format (number) to new format (array) if needed
+    if (typeof studentCheck.badges === 'number' || !Array.isArray(studentCheck.badges)) {
+      await Student.updateOne(
+        { _id: studentId },
+        { 
+          $set: { 
+            badges: [],
+            gamePoints: 0
+          } 
+        }
+      );
+    }
+
+    // Now fetch the student with correct schema
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found after update",
+      });
+    }
+
+    // Ensure gamePoints exists
+    if (typeof student.gamePoints !== 'number') {
+      student.gamePoints = 0;
+    }
+
+    // Add game to played games
+    student.gamesPlayed.push({
+      gameId,
+      gameName,
+      pointsEarned,
+      playedAt: new Date(),
+    });
+
+    // Update GAME POINTS (not eco points) and XP
+    student.gamePoints += pointsEarned;
+    student.currentXP += pointsEarned;
+
+    // Check for level up and award badges
+    const levelUpRewards = [];
+    const earnedBadges = [];
+    
+    while (student.currentXP >= student.nextLevelXP) {
+      student.currentXP -= student.nextLevelXP;
+      student.level += 1;
+      
+      // Calculate next level XP
+      student.nextLevelXP = calculateXPForLevel(student.level);
+
+      // Award badge if available for this level
+      const badge = LEVEL_BADGES[student.level];
+      if (badge) {
+        const newBadge = {
+          badgeId: badge.badgeId,
+          name: badge.name,
+          description: badge.description,
+          level: student.level,
+          icon: badge.icon,
+          rarity: badge.rarity,
+          earnedAt: new Date(),
+        };
+        
+        student.badges.push(newBadge);
+        earnedBadges.push(newBadge);
+        
+        levelUpRewards.push({
+          type: 'badge',
+          badge: newBadge,
+          level: student.level,
+        });
+        
+        student.levelUpRewards.push({
+          level: student.level,
+          rewardType: 'badge',
+          rewardValue: newBadge,
+        });
+      }
+    }
+
+    await student.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Game completed successfully!",
+      data: {
+        pointsEarned,
+        gamePoints: student.gamePoints,
+        ecoPoints: student.points,
+        currentLevel: student.level,
+        currentXP: student.currentXP,
+        nextLevelXP: student.nextLevelXP,
+        coins: student.coins,
+        leveledUp: levelUpRewards.length > 0,
+        levelUpRewards,
+        earnedBadges,
+      },
+    });
+  } catch (error) {
+    console.error("Complete game error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error completing game",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get student's game history
+ */
+export const getGameHistory = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        gamesPlayed: student.gamesPlayed,
+        totalGames: student.gamesPlayed.length,
+        totalPointsFromGames: student.gamesPlayed.reduce((sum, game) => sum + game.pointsEarned, 0),
+      },
+    });
+  } catch (error) {
+    console.error("Get game history error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error getting game history",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get student's rewards (coins, gifts, cards)
+ */
+export const getStudentRewards = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // Ensure badges is an array
+    const badges = Array.isArray(student.badges) ? student.badges : [];
+    const gamePoints = typeof student.gamePoints === 'number' ? student.gamePoints : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        coins: student.coins,
+        gifts: student.gifts,
+        cards: student.cards,
+        badges: badges,
+        level: student.level,
+        currentXP: student.currentXP,
+        nextLevelXP: student.nextLevelXP,
+        ecoPoints: student.points,
+        gamePoints: gamePoints,
+      },
+    });
+  } catch (error) {
+    console.error("Get student rewards error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error getting student rewards",
+      error: error.message,
     });
   }
 };

@@ -356,6 +356,33 @@ export const generateVideo = async (req, res) => {
       syllabus.generatedPrompt ||
       generatePromptFromSyllabus(syllabus);
 
+    // Auto-generate quiz if not present
+    if (!syllabus.quiz || !syllabus.quiz.questions || syllabus.quiz.questions.length === 0) {
+      try {
+        console.log("Auto-generating quiz for syllabus (video generation):", syllabus.title);
+        const quizResult = await aiGradingService.generateQuizFromSyllabus({
+          title: syllabus.title,
+          subject: syllabus.subject,
+          grade: syllabus.grade,
+          description: syllabus.description,
+          content: syllabus.content,
+          topics: syllabus.topics,
+        });
+
+        if (quizResult.success && quizResult.quiz) {
+          syllabus.quiz = quizResult.quiz;
+          console.log(
+            "Quiz generated successfully with",
+            quizResult.quiz.questions.length,
+            "questions"
+          );
+        }
+      } catch (quizError) {
+        console.error("Error generating quiz:", quizError);
+        // Continue with video generation even if quiz fails
+      }
+    }
+
     // Update syllabus with the prompt
     syllabus.generatedPrompt = prompt;
     syllabus.videoGenerationStatus = "generating";

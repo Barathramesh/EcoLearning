@@ -18,14 +18,25 @@ const studentSchema = new mongoose.Schema(
     teacherId: { type: String, required: true }, // Teacher ID who created the student (e.g., "Ajay123")
 
     // Points and Progress
-    points: { type: Number, default: 0 },
+    points: { type: Number, default: 0 }, // Eco points for environmental activities
+    gamePoints: { type: Number, default: 0 }, // Game points for level progression
     todayPoints: { type: Number, default: 0 },
     lastPointsDate: { type: Date },
     streak: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     currentXP: { type: Number, default: 0 },
     nextLevelXP: { type: Number, default: 100 },
-    badges: { type: Number, default: 0 },
+    badges: [
+      {
+        badgeId: { type: String },
+        name: { type: String },
+        description: { type: String },
+        level: { type: Number },
+        icon: { type: String },
+        rarity: { type: String },
+        earnedAt: { type: Date, default: Date.now },
+      },
+    ],
     hoursLearned: { type: Number, default: 0 },
 
     // Daily challenges - array format
@@ -68,6 +79,45 @@ const studentSchema = new mongoose.Schema(
         score: { type: Number },
         pointsAwarded: { type: Number, default: 0 },
         completedAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // Games tracking
+    gamesPlayed: [
+      {
+        gameId: { type: String },
+        gameName: { type: String },
+        pointsEarned: { type: Number, default: 0 },
+        playedAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // Currency and Rewards
+    coins: { type: Number, default: 0 },
+    gifts: [
+      {
+        giftId: { type: String },
+        name: { type: String },
+        description: { type: String },
+        receivedAt: { type: Date, default: Date.now },
+      },
+    ],
+    cards: [
+      {
+        cardId: { type: String },
+        name: { type: String },
+        rarity: { type: String }, // common, rare, epic, legendary
+        receivedAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // Level up rewards tracking
+    levelUpRewards: [
+      {
+        level: { type: Number },
+        rewardType: { type: String }, // 'coins', 'gift', 'card'
+        rewardValue: { type: mongoose.Schema.Types.Mixed },
+        claimedAt: { type: Date, default: Date.now },
       },
     ],
 

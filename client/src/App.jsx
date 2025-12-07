@@ -17,6 +17,7 @@ import Lessons from "./pages/student/Lessons";
 import AI from "./pages/student/AI";
 import Profile from "./pages/student/Profile";
 import Leaderboard from "./pages/student/Leaderboard";
+import Badges from "./pages/student/Badges";
 import UploadAssignment from "./pages/student/UploadAssignment";
 import ChangePassword from "./pages/student/ChangePassword";
 import SaveTheTreesGame from "./pages/student/SaveTheTreesGame";
@@ -24,6 +25,25 @@ import EcoQuestAdventure from "./pages/student/EcoQuestAdventure";
 import OceanCleanupHero from "./pages/student/OceanCleanupHero";
 import SolarPowerMaster from "./pages/student/SolarPowerMaster";
 import RecyclingWizard from "./pages/student/RecyclingWizard";
+
+// Climate Games
+import EcoNinjaGame from "./games/EcoNinjaGame";
+import EcoRunnerDash from "./games/EcoRunnerDash";
+import EcoSnakeLadders from "./games/EcoSnakeLadders";
+import EvEcoPuzzleGame from "./games/EvEcoPuzzleGame";
+import EvWordSearchGame from "./games/EvWordSearchGame";
+import NatureNinjasGame from "./games/NatureNinjasGame";
+import NetZeroQuestGame from "./games/NetZeroQuestGame";
+import { withGameCompletion } from "./components/GameCompletionWrapper";
+
+// Wrap games with completion tracking
+const EcoNinja = withGameCompletion(EcoNinjaGame, 'eco-ninja', 'Eco Ninja', 50);
+const EcoRunner = withGameCompletion(EcoRunnerDash, 'eco-runner', 'Eco Runner Dash', 75);
+const EcoSnakes = withGameCompletion(EcoSnakeLadders, 'eco-snakes-ladders', 'Eco Snake & Ladders', 60);
+const EcoPuzzle = withGameCompletion(EvEcoPuzzleGame, 'eco-puzzle', 'Eco Puzzle', 70);
+const WordSearch = withGameCompletion(EvWordSearchGame, 'word-search', 'Word Search', 40);
+const NatureNinjas = withGameCompletion(NatureNinjasGame, 'nature-ninjas', 'Nature Ninjas', 100);
+const NetZeroQuest = withGameCompletion(NetZeroQuestGame, 'net-zero-quest', 'Net Zero Quest', 120);
 import WindFarmEngineer from "./pages/student/WindFarmEngineer";
 import MountainRanger from "./pages/student/MountainRanger";
 import AquaticLifeGuardian from "./pages/student/AquaticLifeGuardian";
@@ -67,6 +87,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/student/games" element={<Games />} />
+          <Route path="/student/badges" element={<Badges />} />
           <Route path="/student/lessons" element={<Lessons />} />
           <Route
             path="/student/upload-assignment"
@@ -114,6 +135,16 @@ const App = () => (
             element={<ElectricVehicleCity />}
           />
           <Route path="/student/eco-lab" element={<EcoLab />} />
+          
+          {/* Climate Games Routes */}
+          <Route path="/student/games/eco-ninja" element={<EcoNinja />} />
+          <Route path="/student/games/eco-runner" element={<EcoRunner />} />
+          <Route path="/student/games/eco-snakes-ladders" element={<EcoSnakes />} />
+          <Route path="/student/games/eco-puzzle" element={<EcoPuzzle />} />
+          <Route path="/student/games/word-search" element={<WordSearch />} />
+          <Route path="/student/games/nature-ninjas" element={<NatureNinjas />} />
+          <Route path="/student/games/net-zero-quest" element={<NetZeroQuest />} />
+          
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<ClassManagement />} />
           <Route
