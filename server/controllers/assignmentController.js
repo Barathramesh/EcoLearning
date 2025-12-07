@@ -184,12 +184,12 @@ export const generateExpectedAnswer = async (req, res) => {
       });
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY_ASSIGNMENT;
     
     if (!GEMINI_API_KEY) {
       return res.status(500).json({
         success: false,
-        message: 'Gemini API key not configured'
+        message: 'Gemini API key for assignments not configured'
       });
     }
 
@@ -302,13 +302,13 @@ export const extractTextFromImage = async (req, res) => {
 
     console.log('Cleaned image length:', cleanImage.length);
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY_ASSIGNMENT;
     
     if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not found in environment');
+      console.error('GEMINI_API_KEY_ASSIGNMENT not found in environment');
       return res.status(500).json({
         success: false,
-        message: 'Gemini API key not configured'
+        message: 'Gemini API key for assignments not configured'
       });
     }
 

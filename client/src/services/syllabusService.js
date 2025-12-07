@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // ============ SYLLABUS CRUD OPERATIONS ============
 
@@ -7,7 +7,7 @@ import api from './api';
  */
 export const createSyllabus = async (syllabusData) => {
   try {
-    const response = await api.post('/syllabus', syllabusData);
+    const response = await api.post("/syllabus", syllabusData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
@@ -19,7 +19,7 @@ export const createSyllabus = async (syllabusData) => {
  */
 export const getAllSyllabi = async (params = {}) => {
   try {
-    const response = await api.get('/syllabus', { params });
+    const response = await api.get("/syllabus", { params });
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
@@ -67,10 +67,13 @@ export const deleteSyllabus = async (id) => {
 /**
  * Generate prompt from syllabus
  */
-export const generatePromptFromSyllabus = async (syllabusId, customPrompt = null) => {
+export const generatePromptFromSyllabus = async (
+  syllabusId,
+  customPrompt = null
+) => {
   try {
     const response = await api.post(`/syllabus/${syllabusId}/generate-prompt`, {
-      customPrompt
+      customPrompt,
     });
     return response.data;
   } catch (error) {
@@ -86,10 +89,10 @@ export const generateVideoFromSyllabus = async (syllabusId, options = {}) => {
     const response = await api.post(`/syllabus/${syllabusId}/generate-video`, {
       customPrompt: options.customPrompt,
       options: {
-        duration: options.duration || '5',
-        aspectRatio: options.aspectRatio || '16:9',
-        mode: options.mode || 'std'
-      }
+        duration: options.duration || "5",
+        aspectRatio: options.aspectRatio || "16:9",
+        mode: options.mode || "std",
+      },
     });
     return response.data;
   } catch (error) {
@@ -112,16 +115,20 @@ export const checkVideoStatus = async (syllabusId) => {
 /**
  * Generate video directly from a text prompt
  */
-export const generateVideoFromPrompt = async (prompt, title = '', options = {}) => {
+export const generateVideoFromPrompt = async (
+  prompt,
+  title = "",
+  options = {}
+) => {
   try {
-    const response = await api.post('/syllabus/video/generate', {
+    const response = await api.post("/syllabus/video/generate", {
       prompt,
       title,
       options: {
-        duration: options.duration || '5',
-        aspectRatio: options.aspectRatio || '16:9',
-        mode: options.mode || 'std'
-      }
+        duration: options.duration || "5",
+        aspectRatio: options.aspectRatio || "16:9",
+        mode: options.mode || "std",
+      },
     });
     return response.data;
   } catch (error) {
@@ -141,6 +148,73 @@ export const checkTaskStatus = async (taskId) => {
   }
 };
 
+// ============ QUIZ OPERATIONS ============
+
+/**
+ * Submit quiz answers
+ */
+export const submitQuiz = async (syllabusId, quizData) => {
+  try {
+    const response = await api.post(
+      `/syllabus/${syllabusId}/quiz/submit`,
+      quizData
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Get quiz leaderboard
+ */
+export const getQuizLeaderboard = async (params = {}) => {
+  try {
+    const response = await api.get("/syllabus/quiz/leaderboard", { params });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Get student's quiz history
+ */
+export const getStudentQuizHistory = async (studentId) => {
+  try {
+    const response = await api.get(`/syllabus/quiz/history/${studentId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Check if student has completed a quiz
+ */
+export const checkQuizCompletion = async (syllabusId, studentId) => {
+  try {
+    const response = await api.get(
+      `/syllabus/${syllabusId}/quiz/check/${studentId}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Regenerate quiz for a syllabus using AI
+ */
+export const regenerateQuiz = async (syllabusId) => {
+  try {
+    const response = await api.post(`/syllabus/${syllabusId}/regenerate-quiz`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
 export default {
   createSyllabus,
   getAllSyllabi,
@@ -151,5 +225,10 @@ export default {
   generateVideoFromSyllabus,
   checkVideoStatus,
   generateVideoFromPrompt,
-  checkTaskStatus
+  checkTaskStatus,
+  submitQuiz,
+  getQuizLeaderboard,
+  getStudentQuizHistory,
+  checkQuizCompletion,
+  regenerateQuiz,
 };

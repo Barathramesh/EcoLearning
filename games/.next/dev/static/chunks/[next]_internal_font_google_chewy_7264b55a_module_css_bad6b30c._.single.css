@@ -1,0 +1,30 @@
+/* [next]/internal/font/google/chewy_7264b55a.module.css [app-client] (css) */
+@font-face {
+  font-family: Chewy;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../media/074e66ee93d14f21-s.p.aa6cd756.woff2") format("woff2");
+  unicode-range: U+??, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Chewy Fallback;
+  src: local(Arial);
+  ascent-override: 110.13%;
+  descent-override: 34.04%;
+  line-gap-override: 2.75%;
+  size-adjust: 88.94%;
+}
+
+.chewy_7264b55a-module__soyl3q__className {
+  font-family: Chewy, Chewy Fallback;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.chewy_7264b55a-module__soyl3q__variable {
+  --font-display: "Chewy", "Chewy Fallback";
+}
+
+/*# sourceMappingURL=%5Bnext%5D_internal_font_google_chewy_7264b55a_module_css_bad6b30c._.single.css.map*/

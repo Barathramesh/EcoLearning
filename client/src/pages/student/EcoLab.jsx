@@ -1,20 +1,27 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { 
-  OrbitControls, 
-  Environment, 
-  Text, 
+import {
+  OrbitControls,
+  Environment,
+  Text,
   RoundedBox,
   MeshTransmissionMaterial,
   Float,
-  Sparkles
+  Sparkles,
 } from "@react-three/drei";
 import * as THREE from "three";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Beaker, Leaf, Wind, FlaskConical, ThermometerSun, AlertTriangle } from "lucide-react";
+import {
+  Beaker,
+  Leaf,
+  Wind,
+  FlaskConical,
+  ThermometerSun,
+  AlertTriangle,
+} from "lucide-react";
 
 // ============================================
 // WATER LAB COMPONENTS
@@ -24,11 +31,12 @@ function WaterBeaker({ pollutionLevel }) {
   const beakerRef = useRef();
   const waterRef = useRef();
   const particlesRef = useRef();
-  
+
   // Rotate beaker slowly
   useFrame((state) => {
     if (beakerRef.current) {
-      beakerRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.2;
+      beakerRef.current.rotation.y =
+        Math.sin(state.clock.elapsedTime * 0.3) * 0.2;
     }
   });
 
@@ -44,7 +52,7 @@ function WaterBeaker({ pollutionLevel }) {
     const count = Math.floor(pollutionLevel * 5);
     const positions = [];
     const sizes = [];
-    
+
     for (let i = 0; i < count; i++) {
       positions.push(
         (Math.random() - 0.5) * 1.2,
@@ -53,7 +61,7 @@ function WaterBeaker({ pollutionLevel }) {
       );
       sizes.push(Math.random() * 0.08 + 0.02);
     }
-    
+
     return { positions: new Float32Array(positions), sizes };
   }, [pollutionLevel]);
 
@@ -79,7 +87,7 @@ function WaterBeaker({ pollutionLevel }) {
           roughness={0.05}
         />
       </mesh>
-      
+
       {/* Beaker Bottom */}
       <mesh position={[0, -1.5, 0]}>
         <cylinderGeometry args={[1, 1, 0.1, 32]} />
@@ -90,13 +98,13 @@ function WaterBeaker({ pollutionLevel }) {
           color="#e8e8e8"
         />
       </mesh>
-      
+
       {/* Beaker Rim */}
       <mesh position={[0, 1.5, 0]}>
         <torusGeometry args={[1.2, 0.08, 16, 32]} />
         <meshStandardMaterial color="#e0e0e0" metalness={0.3} roughness={0.4} />
       </mesh>
-      
+
       {/* Water */}
       <mesh ref={waterRef} position={[0, 0, 0]}>
         <cylinderGeometry args={[1.1, 0.95, 2.8, 32]} />
@@ -108,18 +116,21 @@ function WaterBeaker({ pollutionLevel }) {
           metalness={0.1}
         />
       </mesh>
-      
+
       {/* Pollution Particles */}
       {pollutionLevel > 5 && (
-        <PollutionParticles positions={particles.positions} pollutionLevel={pollutionLevel} />
+        <PollutionParticles
+          positions={particles.positions}
+          pollutionLevel={pollutionLevel}
+        />
       )}
-      
+
       {/* Water Surface Ripples */}
       <mesh position={[0, 1.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[1.1, 32]} />
-        <meshStandardMaterial 
-          color={waterColor} 
-          transparent 
+        <meshStandardMaterial
+          color={waterColor}
+          transparent
           opacity={0.5}
           roughness={0}
           metalness={0.5}
@@ -140,14 +151,14 @@ function WaterBeaker({ pollutionLevel }) {
 function PollutionParticles({ positions, pollutionLevel }) {
   const particlesRef = useRef();
   const count = positions.length / 3;
-  
+
   useFrame((state) => {
     if (particlesRef.current) {
       const positions = particlesRef.current.geometry.attributes.position.array;
       for (let i = 0; i < count; i++) {
         // Add subtle floating motion
         positions[i * 3 + 1] += Math.sin(state.clock.elapsedTime + i) * 0.002;
-        
+
         // Keep particles within bounds
         if (positions[i * 3 + 1] > 1.3) positions[i * 3 + 1] = -0.8;
         if (positions[i * 3 + 1] < -1) positions[i * 3 + 1] = 1.3;
@@ -183,20 +194,28 @@ function WaterLabUI({ pollutionLevel, temperature }) {
       {/* Temperature Display */}
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
         <RoundedBox args={[1.5, 0.8, 0.1]} radius={0.1} position={[0, 1, 0]}>
-          <meshStandardMaterial color="#1a365d" metalness={0.5} roughness={0.3} />
+          <meshStandardMaterial
+            color="#1a365d"
+            metalness={0.5}
+            roughness={0.3}
+          />
         </RoundedBox>
         <Text position={[0, 1.15, 0.1]} fontSize={0.12} color="#60a5fa">
           Temperature
         </Text>
-        <Text position={[0, 0.9, 0.1]} fontSize={0.25} color="#ffffff" font="/fonts/Inter-Bold.woff">
+        <Text position={[0, 0.9, 0.1]} fontSize={0.25} color="#ffffff">
           {temperature}°C
         </Text>
       </Float>
-      
+
       {/* Contamination Meter */}
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
         <RoundedBox args={[1.5, 0.8, 0.1]} radius={0.1} position={[0, 0, 0]}>
-          <meshStandardMaterial color="#7c2d12" metalness={0.5} roughness={0.3} />
+          <meshStandardMaterial
+            color="#7c2d12"
+            metalness={0.5}
+            roughness={0.3}
+          />
         </RoundedBox>
         <Text position={[0, 0.15, 0.1]} fontSize={0.12} color="#fdba74">
           Contamination
@@ -215,7 +234,7 @@ function WaterLabUI({ pollutionLevel, temperature }) {
 
 function SoilCrossSection({ plasticLevel }) {
   const soilRef = useRef();
-  
+
   // Soil darkness based on plastic waste
   const topSoilColor = useMemo(() => {
     const healthy = new THREE.Color("#5c4033");
@@ -243,34 +262,34 @@ function SoilCrossSection({ plasticLevel }) {
           color="#ffffff"
         />
       </mesh>
-      
+
       {/* Top Soil Layer */}
       <mesh position={[0, 0.5, 0]}>
         <boxGeometry args={[2.9, 0.8, 1.9]} />
         <meshStandardMaterial color={topSoilColor} roughness={0.9} />
       </mesh>
-      
+
       {/* Sub Soil Layer */}
       <mesh position={[0, -0.2, 0]}>
         <boxGeometry args={[2.9, 0.6, 1.9]} />
         <meshStandardMaterial color={subSoilColor} roughness={0.85} />
       </mesh>
-      
+
       {/* Rock/Clay Layer */}
       <mesh position={[0, -0.8, 0]}>
         <boxGeometry args={[2.9, 0.6, 1.9]} />
         <meshStandardMaterial color="#696969" roughness={0.8} />
       </mesh>
-      
+
       {/* Plant */}
       <Plant plasticLevel={plasticLevel} />
-      
+
       {/* Roots */}
       <Roots plasticLevel={plasticLevel} />
-      
+
       {/* Worms */}
       <Worms plasticLevel={plasticLevel} />
-      
+
       {/* Plastic Waste Particles */}
       {plasticLevel > 10 && <PlasticWaste plasticLevel={plasticLevel} />}
     </group>
@@ -279,18 +298,25 @@ function SoilCrossSection({ plasticLevel }) {
 
 function Plant({ plasticLevel }) {
   const plantRef = useRef();
-  
+
   // Wilting animation
   useFrame((state) => {
     if (plantRef.current) {
       const wiltAngle = (plasticLevel / 100) * 0.6;
-      plantRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.5) * 0.05 + wiltAngle;
+      plantRef.current.rotation.z =
+        Math.sin(state.clock.elapsedTime * 0.5) * 0.05 + wiltAngle;
     }
   });
 
   const plantHealth = 1 - plasticLevel / 100;
-  const stemColor = new THREE.Color("#228b22").lerp(new THREE.Color("#8b4513"), plasticLevel / 100);
-  const leafColor = new THREE.Color("#32cd32").lerp(new THREE.Color("#9b7653"), plasticLevel / 100);
+  const stemColor = new THREE.Color("#228b22").lerp(
+    new THREE.Color("#8b4513"),
+    plasticLevel / 100
+  );
+  const leafColor = new THREE.Color("#32cd32").lerp(
+    new THREE.Color("#9b7653"),
+    plasticLevel / 100
+  );
 
   return (
     <group ref={plantRef} position={[0, 1.3, 0]}>
@@ -299,7 +325,7 @@ function Plant({ plasticLevel }) {
         <cylinderGeometry args={[0.05, 0.08, 0.8, 8]} />
         <meshStandardMaterial color={stemColor} roughness={0.7} />
       </mesh>
-      
+
       {/* Leaves */}
       {plantHealth > 0.2 && (
         <>
@@ -325,16 +351,21 @@ function Plant({ plasticLevel }) {
 
 function Roots({ plasticLevel }) {
   const rootHealth = Math.max(0.3, 1 - plasticLevel / 100);
-  const rootColor = new THREE.Color("#8b4513").lerp(new THREE.Color("#2d2d2d"), plasticLevel / 100);
+  const rootColor = new THREE.Color("#8b4513").lerp(
+    new THREE.Color("#2d2d2d"),
+    plasticLevel / 100
+  );
 
   return (
     <group position={[0, 0.5, 0]}>
       {/* Main Root */}
       <mesh position={[0, -0.3, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[0.03 * rootHealth, 0.05 * rootHealth, 0.6, 6]} />
+        <cylinderGeometry
+          args={[0.03 * rootHealth, 0.05 * rootHealth, 0.6, 6]}
+        />
         <meshStandardMaterial color={rootColor} roughness={0.8} />
       </mesh>
-      
+
       {/* Side Roots */}
       {rootHealth > 0.5 && (
         <>
@@ -355,7 +386,7 @@ function Roots({ plasticLevel }) {
 function Worms({ plasticLevel }) {
   const wormRefs = useRef([]);
   const wormCount = Math.max(0, Math.floor(4 - plasticLevel / 25));
-  
+
   useFrame((state) => {
     wormRefs.current.forEach((worm, i) => {
       if (worm) {
@@ -369,17 +400,13 @@ function Worms({ plasticLevel }) {
     [-0.8, -0.3, 0.5],
     [0.6, -0.5, 0.3],
     [-0.4, -0.1, 0.6],
-    [0.9, -0.2, 0.4]
+    [0.9, -0.2, 0.4],
   ];
 
   return (
     <>
       {wormPositions.slice(0, wormCount).map((pos, i) => (
-        <group 
-          key={i} 
-          ref={el => wormRefs.current[i] = el}
-          position={pos}
-        >
+        <group key={i} ref={(el) => (wormRefs.current[i] = el)} position={pos}>
           {/* Worm Body */}
           <mesh>
             <capsuleGeometry args={[0.03, 0.15, 8, 8]} />
@@ -399,7 +426,7 @@ function Worms({ plasticLevel }) {
 function PlasticWaste({ plasticLevel }) {
   const count = Math.floor(plasticLevel / 5);
   const meshRefs = useRef([]);
-  
+
   const plasticItems = useMemo(() => {
     const items = [];
     for (let i = 0; i < count; i++) {
@@ -407,11 +434,17 @@ function PlasticWaste({ plasticLevel }) {
         position: [
           (Math.random() - 0.5) * 2.5,
           Math.random() * 1.5 - 0.5,
-          (Math.random() - 0.5) * 1.5
+          (Math.random() - 0.5) * 1.5,
         ],
-        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI],
+        rotation: [
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+        ],
         scale: 0.05 + Math.random() * 0.08,
-        color: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181'][Math.floor(Math.random() * 5)]
+        color: ["#ff6b6b", "#4ecdc4", "#ffe66d", "#95e1d3", "#f38181"][
+          Math.floor(Math.random() * 5)
+        ],
       });
     }
     return items;
@@ -422,15 +455,15 @@ function PlasticWaste({ plasticLevel }) {
       {plasticItems.map((item, i) => (
         <mesh
           key={i}
-          ref={el => meshRefs.current[i] = el}
+          ref={(el) => (meshRefs.current[i] = el)}
           position={item.position}
           rotation={item.rotation}
           scale={item.scale}
         >
           <dodecahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial 
-            color={item.color} 
-            roughness={0.3} 
+          <meshStandardMaterial
+            color={item.color}
+            roughness={0.3}
             metalness={0.1}
             transparent
             opacity={0.9}
@@ -442,13 +475,13 @@ function PlasticWaste({ plasticLevel }) {
 }
 
 // ============================================
-// AIR LAB COMPONENTS  
+// AIR LAB COMPONENTS
 // ============================================
 
 function AirCube({ smokeLevel }) {
   const cubeRef = useRef();
   const particlesRef = useRef();
-  
+
   useFrame((state) => {
     if (cubeRef.current) {
       cubeRef.current.rotation.y = state.clock.elapsedTime * 0.1;
@@ -469,16 +502,16 @@ function AirCube({ smokeLevel }) {
           color="#ffffff"
         />
       </mesh>
-      
+
       {/* Cube Edges */}
       <lineSegments>
         <edgesGeometry args={[new THREE.BoxGeometry(3, 3, 3)]} />
         <lineBasicMaterial color="#60a5fa" linewidth={2} />
       </lineSegments>
-      
+
       {/* Air Particles */}
       <AirParticles smokeLevel={smokeLevel} />
-      
+
       {/* Light Rays */}
       <LightRays smokeLevel={smokeLevel} />
     </group>
@@ -488,16 +521,16 @@ function AirCube({ smokeLevel }) {
 function AirParticles({ smokeLevel }) {
   const particlesRef = useRef();
   const count = Math.floor(50 + smokeLevel * 10);
-  
+
   const particles = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    
+
     for (let i = 0; i < count; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 2.5;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 2.5;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 2.5;
-      
+
       // Color from clean (light) to polluted (dark gray/brown)
       const pollution = smokeLevel / 100;
       const r = 0.8 - pollution * 0.5;
@@ -507,7 +540,7 @@ function AirParticles({ smokeLevel }) {
       colors[i * 3 + 1] = g;
       colors[i * 3 + 2] = b;
     }
-    
+
     return { positions, colors };
   }, [count, smokeLevel]);
 
@@ -519,7 +552,7 @@ function AirParticles({ smokeLevel }) {
         positions[i * 3] += (Math.random() - 0.5) * 0.01;
         positions[i * 3 + 1] += (Math.random() - 0.5) * 0.01 + 0.002;
         positions[i * 3 + 2] += (Math.random() - 0.5) * 0.01;
-        
+
         // Wrap around
         if (Math.abs(positions[i * 3]) > 1.3) positions[i * 3] *= -0.9;
         if (positions[i * 3 + 1] > 1.3) positions[i * 3 + 1] = -1.2;
@@ -558,7 +591,7 @@ function AirParticles({ smokeLevel }) {
 
 function LightRays({ smokeLevel }) {
   const rayRef = useRef();
-  
+
   useFrame((state) => {
     if (rayRef.current) {
       rayRef.current.material.opacity = 0.1 + (smokeLevel / 100) * 0.4;
@@ -568,10 +601,10 @@ function LightRays({ smokeLevel }) {
   return (
     <mesh ref={rayRef} position={[0.8, 0, 0]} rotation={[0, 0, -Math.PI / 6]}>
       <coneGeometry args={[0.5, 3, 32, 1, true]} />
-      <meshBasicMaterial 
-        color="#fff8dc" 
-        transparent 
-        opacity={0.1} 
+      <meshBasicMaterial
+        color="#fff8dc"
+        transparent
+        opacity={0.1}
         side={THREE.DoubleSide}
         blending={THREE.AdditiveBlending}
       />
@@ -581,7 +614,7 @@ function LightRays({ smokeLevel }) {
 
 function AQIDisplay({ smokeLevel }) {
   const aqi = Math.floor(50 + (smokeLevel / 100) * 200);
-  
+
   const getAQIColor = (aqi) => {
     if (aqi <= 50) return "#00e400";
     if (aqi <= 100) return "#ffff00";
@@ -602,7 +635,11 @@ function AQIDisplay({ smokeLevel }) {
     <group position={[2.5, 1, 0]}>
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
         <RoundedBox args={[1.8, 1.2, 0.1]} radius={0.1}>
-          <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.3} />
+          <meshStandardMaterial
+            color="#1e293b"
+            metalness={0.5}
+            roughness={0.3}
+          />
         </RoundedBox>
         <Text position={[0, 0.35, 0.1]} fontSize={0.15} color="#94a3b8">
           Air Quality Index
@@ -610,7 +647,11 @@ function AQIDisplay({ smokeLevel }) {
         <Text position={[0, 0, 0.1]} fontSize={0.35} color={getAQIColor(aqi)}>
           {aqi}
         </Text>
-        <Text position={[0, -0.35, 0.1]} fontSize={0.12} color={getAQIColor(aqi)}>
+        <Text
+          position={[0, -0.35, 0.1]}
+          fontSize={0.12}
+          color={getAQIColor(aqi)}
+        >
           {getAQILabel(aqi)}
         </Text>
       </Float>
@@ -624,16 +665,16 @@ function AQIDisplay({ smokeLevel }) {
 
 function WaterLabScene({ pollutionLevel }) {
   const temperature = Math.floor(22 + pollutionLevel * 0.08);
-  
+
   return (
     <>
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} castShadow />
       <pointLight position={[-3, 3, 2]} intensity={0.5} color="#60a5fa" />
-      
+
       <WaterBeaker pollutionLevel={pollutionLevel} />
       <WaterLabUI pollutionLevel={pollutionLevel} temperature={temperature} />
-      
+
       <Sparkles
         count={30}
         scale={5}
@@ -642,10 +683,10 @@ function WaterLabScene({ pollutionLevel }) {
         opacity={0.3}
         color="#60a5fa"
       />
-      
-      <OrbitControls 
-        enablePan={false} 
-        maxDistance={8} 
+
+      <OrbitControls
+        enablePan={false}
+        maxDistance={8}
         minDistance={4}
         autoRotate
         autoRotateSpeed={0.5}
@@ -661,13 +702,18 @@ function SoilLabScene({ plasticLevel }) {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 8, 5]} intensity={0.7} castShadow />
       <pointLight position={[-2, 3, 2]} intensity={0.4} color="#fcd34d" />
-      <spotLight position={[0, 5, 0]} angle={0.5} penumbra={0.5} intensity={0.5} />
-      
+      <spotLight
+        position={[0, 5, 0]}
+        angle={0.5}
+        penumbra={0.5}
+        intensity={0.5}
+      />
+
       <SoilCrossSection plasticLevel={plasticLevel} />
-      
-      <OrbitControls 
-        enablePan={false} 
-        maxDistance={8} 
+
+      <OrbitControls
+        enablePan={false}
+        maxDistance={8}
         minDistance={4}
         maxPolarAngle={Math.PI / 2}
       />
@@ -681,17 +727,17 @@ function AirLabScene({ smokeLevel }) {
     <>
       <ambientLight intensity={0.3} />
       <directionalLight position={[5, 5, 5]} intensity={0.6} castShadow />
-      <spotLight 
-        position={[3, 4, 2]} 
-        angle={0.4} 
-        penumbra={0.5} 
+      <spotLight
+        position={[3, 4, 2]}
+        angle={0.4}
+        penumbra={0.5}
         intensity={0.8}
         color="#fff8dc"
       />
-      
+
       <AirCube smokeLevel={smokeLevel} />
       <AQIDisplay smokeLevel={smokeLevel} />
-      
+
       <Sparkles
         count={20}
         scale={6}
@@ -700,10 +746,10 @@ function AirLabScene({ smokeLevel }) {
         opacity={0.2}
         color="#fcd34d"
       />
-      
-      <OrbitControls 
-        enablePan={false} 
-        maxDistance={10} 
+
+      <OrbitControls
+        enablePan={false}
+        maxDistance={10}
         minDistance={5}
         autoRotate
         autoRotateSpeed={0.3}
@@ -750,7 +796,7 @@ const EcoLab = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navigation />
-      
+
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -764,14 +810,14 @@ const EcoLab = () => {
               </h1>
             </div>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Explore how pollution affects our environment through interactive 3D simulations.
-              Adjust the sliders to see real-time changes in water, soil, and air quality.
+              Explore how pollution affects our environment through interactive
+              3D simulations. Adjust the sliders to see real-time changes in
+              water, soil, and air quality.
             </p>
           </div>
 
           {/* 3 Lab Panels */}
           <div className="grid lg:grid-cols-3 gap-6">
-            
             {/* Water Lab Panel */}
             <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm overflow-hidden">
               <CardHeader className="border-b border-slate-700 bg-gradient-to-r from-blue-900/50 to-cyan-900/50">
@@ -792,7 +838,7 @@ const EcoLab = () => {
                     <WaterLabScene pollutionLevel={pollutionLevel} />
                   </Canvas>
                 </div>
-                
+
                 {/* Controls */}
                 <div className="p-4 space-y-4 border-t border-slate-700">
                   <div>
@@ -801,7 +847,9 @@ const EcoLab = () => {
                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                         Pollutant Level
                       </label>
-                      <span className="text-sm font-bold text-blue-400">{pollutionLevel}%</span>
+                      <span className="text-sm font-bold text-blue-400">
+                        {pollutionLevel}%
+                      </span>
                     </div>
                     <Slider
                       value={[pollutionLevel]}
@@ -812,7 +860,7 @@ const EcoLab = () => {
                       className="w-full"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-slate-700/50 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-slate-400 mb-1">
@@ -854,7 +902,7 @@ const EcoLab = () => {
                     <SoilLabScene plasticLevel={plasticLevel} />
                   </Canvas>
                 </div>
-                
+
                 {/* Controls */}
                 <div className="p-4 space-y-4 border-t border-slate-700">
                   <div>
@@ -863,7 +911,9 @@ const EcoLab = () => {
                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                         Plastic Waste
                       </label>
-                      <span className="text-sm font-bold text-amber-400">{plasticLevel}%</span>
+                      <span className="text-sm font-bold text-amber-400">
+                        {plasticLevel}%
+                      </span>
                     </div>
                     <Slider
                       value={[plasticLevel]}
@@ -874,7 +924,7 @@ const EcoLab = () => {
                       className="w-full"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-slate-700/50 rounded-lg p-3">
                       <div className="text-slate-400 mb-1">Worm Count</div>
@@ -913,7 +963,7 @@ const EcoLab = () => {
                     <AirLabScene smokeLevel={smokeLevel} />
                   </Canvas>
                 </div>
-                
+
                 {/* Controls */}
                 <div className="p-4 space-y-4 border-t border-slate-700">
                   <div>
@@ -922,7 +972,9 @@ const EcoLab = () => {
                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                         Smoke Emission
                       </label>
-                      <span className="text-sm font-bold text-purple-400">{smokeLevel}%</span>
+                      <span className="text-sm font-bold text-purple-400">
+                        {smokeLevel}%
+                      </span>
                     </div>
                     <Slider
                       value={[smokeLevel]}
@@ -933,13 +985,23 @@ const EcoLab = () => {
                       className="w-full"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-slate-700/50 rounded-lg p-3">
                       <div className="text-slate-400 mb-1">AQI Index</div>
-                      <div className="text-xl font-bold" style={{ 
-                        color: smokeLevel < 25 ? '#00e400' : smokeLevel < 50 ? '#ffff00' : smokeLevel < 75 ? '#ff7e00' : '#ff0000'
-                      }}>
+                      <div
+                        className="text-xl font-bold"
+                        style={{
+                          color:
+                            smokeLevel < 25
+                              ? "#00e400"
+                              : smokeLevel < 50
+                              ? "#ffff00"
+                              : smokeLevel < 75
+                              ? "#ff7e00"
+                              : "#ff0000",
+                        }}
+                      >
                         {Math.floor(50 + (smokeLevel / 100) * 200)}
                       </div>
                     </div>
@@ -959,7 +1021,9 @@ const EcoLab = () => {
           <div className="mt-8 grid md:grid-cols-3 gap-6">
             <Card className="bg-blue-900/30 border-blue-800/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-blue-300 mb-2">💧 Water Pollution Facts</h3>
+                <h3 className="text-lg font-semibold text-blue-300 mb-2">
+                  💧 Water Pollution Facts
+                </h3>
                 <ul className="text-sm text-slate-300 space-y-2">
                   <li>• 80% of wastewater flows back untreated</li>
                   <li>• Pollutants increase water temperature</li>
@@ -968,10 +1032,12 @@ const EcoLab = () => {
                 </ul>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-amber-900/30 border-amber-800/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-amber-300 mb-2">🌱 Soil Health Facts</h3>
+                <h3 className="text-lg font-semibold text-amber-300 mb-2">
+                  🌱 Soil Health Facts
+                </h3>
                 <ul className="text-sm text-slate-300 space-y-2">
                   <li>• Plastic takes 500+ years to decompose</li>
                   <li>• Earthworms are vital soil ecosystem engineers</li>
@@ -980,10 +1046,12 @@ const EcoLab = () => {
                 </ul>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-purple-900/30 border-purple-800/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-purple-300 mb-2">💨 Air Quality Facts</h3>
+                <h3 className="text-lg font-semibold text-purple-300 mb-2">
+                  💨 Air Quality Facts
+                </h3>
                 <ul className="text-sm text-slate-300 space-y-2">
                   <li>• AQI above 150 is unhealthy for everyone</li>
                   <li>• PM2.5 particles penetrate deep into lungs</li>

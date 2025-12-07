@@ -1,42 +1,45 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  Video, 
-  LayoutDashboard, 
-  LogOut, 
-  Menu, 
+import React, { useState } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import {
+  Users,
+  Video,
+  LayoutDashboard,
+  LogOut,
+  Menu,
   X,
   GraduationCap,
   UserCog,
   Leaf,
   BookOpen,
   Sparkles,
-  Gamepad2
-} from 'lucide-react';
+  Gamepad2,
+} from "lucide-react";
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  
-  const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+
+  const admin = JSON.parse(localStorage.getItem("admin") || "{}");
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Users', path: '/admin/users', icon: Users },
-    { name: 'Students', path: '/admin/students', icon: GraduationCap },
-    { name: 'Teachers', path: '/admin/teachers', icon: UserCog },
-    { name: 'Games', path: '/admin/game-management', icon: Gamepad2 },
-    { name: 'AI Videos', path: '/admin/ai-videos', icon: Video },
-    { name: 'Courses', path: '/admin/courses', icon: BookOpen },
-    { name: 'Syllabus to Video', path: '/admin/syllabus-video', icon: Sparkles },
+    { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Users", path: "/admin/users", icon: Users },
+    { name: "Students", path: "/admin/students", icon: GraduationCap },
+    { name: "Teachers", path: "/admin/teachers", icon: UserCog },
+    { name: "Games", path: "/admin/game-management", icon: Gamepad2 },
+    { name: "AI Videos", path: "/admin/ai-videos", icon: Video },
+    {
+      name: "Syllabus to Video",
+      path: "/admin/syllabus-video",
+      icon: Sparkles,
+    },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('admin');
-    localStorage.removeItem('adminToken');
-    navigate('/admin/login');
+    localStorage.removeItem("admin");
+    localStorage.removeItem("adminToken");
+    navigate("/admin/login");
   };
 
   const isActive = (path) => location.pathname === path;
@@ -48,8 +51,8 @@ const AdminNavbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <NavLink 
-                to="/admin/dashboard" 
+              <NavLink
+                to="/admin/dashboard"
                 className="flex items-center space-x-2 group"
               >
                 <div className="w-9 h-9 bg-emerald-500 rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
@@ -71,8 +74,8 @@ const AdminNavbar = () => {
                     to={item.path}
                     className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                       isActive(item.path)
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-emerald-600'
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-emerald-600"
                     }`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
@@ -87,11 +90,15 @@ const AdminNavbar = () => {
               {/* User Info */}
               <div className="flex items-center space-x-2 px-2 py-1 bg-gray-50 rounded-lg">
                 <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                  {admin.name ? admin.name.charAt(0).toUpperCase() : 'A'}
+                  {admin.name ? admin.name.charAt(0).toUpperCase() : "A"}
                 </div>
                 <div className="hidden lg:block">
-                  <p className="text-xs font-medium text-gray-700 whitespace-nowrap">{admin.name || 'Admin'}</p>
-                  <p className="text-[10px] text-gray-500 whitespace-nowrap">{admin.schoolName || 'EcoLearn'}</p>
+                  <p className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                    {admin.name || "Admin"}
+                  </p>
+                  <p className="text-[10px] text-gray-500 whitespace-nowrap">
+                    {admin.schoolName || "EcoLearn"}
+                  </p>
                 </div>
               </div>
 
@@ -126,11 +133,15 @@ const AdminNavbar = () => {
               {/* User Info Mobile */}
               <div className="flex items-center space-x-3 px-3 py-3 bg-gray-50 rounded-lg mb-4">
                 <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
-                  {admin.name ? admin.name.charAt(0).toUpperCase() : 'A'}
+                  {admin.name ? admin.name.charAt(0).toUpperCase() : "A"}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-700">{admin.name || 'Admin'}</p>
-                  <p className="text-sm text-gray-500">{admin.schoolName || 'EcoLearn'}</p>
+                  <p className="font-medium text-gray-700">
+                    {admin.name || "Admin"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {admin.schoolName || "EcoLearn"}
+                  </p>
                 </div>
               </div>
 
@@ -144,8 +155,8 @@ const AdminNavbar = () => {
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive(item.path)
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     <Icon className="w-5 h-5" />

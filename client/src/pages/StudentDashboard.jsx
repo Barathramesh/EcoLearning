@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import "@/styles/animations.css";
-import { 
-  GraduationCap, 
-  Trophy, 
-  Zap, 
-  BookOpen, 
-  Gamepad2, 
-  Users, 
+import {
+  GraduationCap,
+  Trophy,
+  Zap,
+  BookOpen,
+  Gamepad2,
+  Users,
   Star,
   TrendingUp,
   Calendar,
@@ -28,9 +28,11 @@ import {
   Heart,
   Brain,
   Leaf,
-  Globe
+  Globe,
+  CheckCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import api from "@/services/api";
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 2000 }) => {
@@ -65,8 +67,13 @@ const FloatingParticle = ({ delay, size, left, duration }) => (
       width: size,
       height: size,
       left: `${left}%`,
-      background: `linear-gradient(135deg, ${Math.random() > 0.5 ? '#10b981' : '#06b6d4'}, ${Math.random() > 0.5 ? '#8b5cf6' : '#f59e0b'})`,
-      animation: `float ${duration}s ease-in-out infinite`,
+      background: `linear-gradient(135deg, ${
+        Math.random() > 0.5 ? "#10b981" : "#06b6d4"
+      }, ${Math.random() > 0.5 ? "#8b5cf6" : "#f59e0b"})`,
+      animationName: "float",
+      animationDuration: `${duration}s`,
+      animationTimingFunction: "ease-in-out",
+      animationIterationCount: "infinite",
       animationDelay: `${delay}s`,
       top: `${Math.random() * 100}%`,
     }}
@@ -119,70 +126,92 @@ const ProgressRing = ({ progress, size = 120, strokeWidth = 8, children }) => {
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
+  const [stats, setStats] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+
+      // Fetch stats from backend - use 'id' or '_id'
+      const studentId = parsedUser.id || parsedUser._id;
+      if (studentId) {
+        fetchStudentStats(studentId);
+      }
     }
     setTimeout(() => setIsLoaded(true), 100);
   }, []);
 
-  // Get real user data from localStorage or defaults
+  const fetchStudentStats = async (studentId) => {
+    try {
+      const response = await api.get(`/student/stats/${studentId}`);
+      if (response.data.success) {
+        setStats(response.data.data);
+        console.log("Student stats:", response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching student stats:", error);
+    }
+  };
+
+  // Get real user data from stats API or localStorage fallback
   const studentData = {
-    name: user?.name || "Student",
+    name: stats?.name || user?.name || "Student",
     institution: user?.school || "Your School",
-    totalPoints: user?.points || 0,
-    todayPoints: user?.todayPoints || 0,
+    totalPoints: stats?.points || user?.points || 0,
+    todayPoints: stats?.todayPoints || user?.todayPoints || 0,
     coursesCompleted: user?.coursesCompleted || 0,
     totalCourses: user?.totalCourses || 0,
     gamesFinished: user?.gamesFinished || 0,
     totalGames: user?.totalGames || 0,
     institutionPosition: user?.institutionPosition || "-",
     globalPosition: user?.globalPosition || "-",
-    level: user?.level || 1,
-    currentXP: user?.currentXP || 0,
-    nextLevelXP: user?.nextLevelXP || 100,
-    streak: user?.streak || 0,
-    badges: user?.badges || 0,
-    hoursLearned: user?.hoursLearned || 0
+    level: stats?.level || user?.level || 1,
+    currentXP: stats?.currentXP || user?.currentXP || 0,
+    nextLevelXP: stats?.nextLevelXP || user?.nextLevelXP || 100,
+    streak: stats?.streak || user?.streak || 0,
+    badges: stats?.badges || user?.badges || 0,
+    hoursLearned: stats?.hoursLearned || user?.hoursLearned || 0,
+    watchedVideosCount: stats?.watchedVideosCount || 0,
   };
 
   const xpProgress = (studentData.currentXP / studentData.nextLevelXP) * 100;
-  const courseProgress = (studentData.coursesCompleted / studentData.totalCourses) * 100;
+  const courseProgress =
+    (studentData.coursesCompleted / studentData.totalCourses) * 100;
 
   const quickStats = [
-    { 
-      label: "Total Points", 
-      value: studentData.totalPoints, 
-      icon: Trophy, 
+    {
+      label: "Total Points",
+      value: studentData.totalPoints,
+      icon: Trophy,
       gradient: "from-amber-400 to-orange-500",
-      bgGradient: "from-amber-500/20 to-orange-500/20"
+      bgGradient: "from-amber-500/20 to-orange-500/20",
     },
-    { 
-      label: "Day Streak", 
-      value: studentData.streak, 
-      icon: Flame, 
+    {
+      label: "Day Streak",
+      value: studentData.streak,
+      icon: Flame,
       gradient: "from-red-400 to-pink-500",
       bgGradient: "from-red-500/20 to-pink-500/20",
-      suffix: " 🔥"
+      suffix: " 🔥",
     },
-    { 
-      label: "Badges Earned", 
-      value: studentData.badges, 
-      icon: Award, 
+    {
+      label: "Badges Earned",
+      value: studentData.badges,
+      icon: Award,
       gradient: "from-purple-400 to-indigo-500",
-      bgGradient: "from-purple-500/20 to-indigo-500/20"
+      bgGradient: "from-purple-500/20 to-indigo-500/20",
     },
-    { 
-      label: "Hours Learned", 
-      value: studentData.hoursLearned, 
-      icon: BookOpen, 
+    {
+      label: "Hours Learned",
+      value: studentData.hoursLearned,
+      icon: BookOpen,
       gradient: "from-emerald-400 to-cyan-500",
       bgGradient: "from-emerald-500/20 to-cyan-500/20",
-      suffix: "h"
+      suffix: "h",
     },
   ];
 
@@ -191,17 +220,66 @@ const StudentDashboard = () => {
 
   // Achievements - start with 0 progress
   const achievements = [
-    { title: "Forest Guardian", description: "Plant 100 virtual trees", icon: "🌳", progress: 0, points: 100, color: "emerald" },
-    { title: "Ocean Protector", description: "Complete marine missions", icon: "🌊", progress: 0, points: 150, color: "cyan" },
-    { title: "Energy Master", description: "Build 10 solar farms", icon: "⚡", progress: 0, points: 200, color: "amber" }
+    {
+      title: "Forest Guardian",
+      description: "Plant 100 virtual trees",
+      icon: "🌳",
+      progress: 0,
+      points: 100,
+      color: "emerald",
+    },
+    {
+      title: "Ocean Protector",
+      description: "Complete marine missions",
+      icon: "🌊",
+      progress: 0,
+      points: 150,
+      color: "cyan",
+    },
+    {
+      title: "Energy Master",
+      description: "Build 10 solar farms",
+      icon: "⚡",
+      progress: 0,
+      points: 200,
+      color: "amber",
+    },
   ];
 
-  // Daily challenges - start with none completed
-  const dailyChallenges = [
-    { title: "Complete 1 Lesson", reward: 50, icon: BookOpen, completed: false },
-    { title: "Play 2 Eco Games", reward: 75, icon: Gamepad2, completed: false, progress: 0, total: 2 },
-    { title: "Score 80%+ on Quiz", reward: 100, icon: Brain, completed: false }
-  ];
+  // Daily challenges - from API or defaults
+  const dailyChallenges =
+    stats?.dailyChallenges?.length > 0
+      ? stats.dailyChallenges.map((challenge) => ({
+          title: challenge.title || challenge.type || "Challenge",
+          reward: challenge.xpReward || challenge.reward || 50,
+          icon:
+            challenge.type === "watch-video"
+              ? BookOpen
+              : challenge.type === "complete-quiz"
+              ? Brain
+              : Gamepad2,
+          completed: challenge.completed || false,
+        }))
+      : [
+          {
+            title: "Watch a Video",
+            reward: 50,
+            icon: BookOpen,
+            completed: false,
+          },
+          {
+            title: "Complete a Quiz",
+            reward: 75,
+            icon: Brain,
+            completed: false,
+          },
+          {
+            title: "Play a Game",
+            reward: 50,
+            icon: Gamepad2,
+            completed: false,
+          },
+        ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-cyan-900 overflow-hidden">
@@ -217,19 +295,29 @@ const StudentDashboard = () => {
           />
         ))}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
 
       <Navigation />
-      
+
       <main className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className={`mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div
+          className={`mb-8 transition-all duration-700 ${
+            isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          }`}
+        >
           <div className="glass rounded-3xl p-8 relative overflow-hidden">
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            
+
             <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               {/* User Info */}
               <div className="flex items-center gap-6">
@@ -248,13 +336,17 @@ const StudentDashboard = () => {
                     </h1>
                     <span className="text-3xl animate-wave">👋</span>
                   </div>
-                  <p className="text-emerald-300 text-lg">{studentData.institution}</p>
+                  <p className="text-emerald-300 text-lg">
+                    {studentData.institution}
+                  </p>
                   <div className="flex items-center gap-4 mt-3">
                     <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0 px-4 py-1">
-                      <Crown className="w-4 h-4 mr-1" /> Level {studentData.level}
+                      <Crown className="w-4 h-4 mr-1" /> Level{" "}
+                      {studentData.level}
                     </Badge>
                     <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 px-4 py-1">
-                      <Flame className="w-4 h-4 mr-1" /> {studentData.streak} Day Streak
+                      <Flame className="w-4 h-4 mr-1" /> {studentData.streak}{" "}
+                      Day Streak
                     </Badge>
                   </div>
                 </div>
@@ -264,17 +356,25 @@ const StudentDashboard = () => {
               <div className="flex items-center gap-6">
                 <ProgressRing progress={xpProgress} size={100}>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white">{Math.round(xpProgress)}%</div>
-                    <div className="text-xs text-emerald-300">to Lv.{studentData.level + 1}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {Math.round(xpProgress)}%
+                    </div>
+                    <div className="text-xs text-emerald-300">
+                      to Lv.{studentData.level + 1}
+                    </div>
                   </div>
                 </ProgressRing>
                 <div>
-                  <p className="text-emerald-300 text-sm mb-1">Experience Points</p>
+                  <p className="text-emerald-300 text-sm mb-1">
+                    Experience Points
+                  </p>
                   <p className="text-white text-2xl font-bold">
-                    <AnimatedCounter value={studentData.currentXP} /> / {studentData.nextLevelXP}
+                    <AnimatedCounter value={studentData.currentXP} /> /{" "}
+                    {studentData.nextLevelXP}
                   </p>
                   <p className="text-cyan-300 text-sm mt-1">
-                    {studentData.nextLevelXP - studentData.currentXP} XP to next level
+                    {studentData.nextLevelXP - studentData.currentXP} XP to next
+                    level
                   </p>
                 </div>
               </div>
@@ -283,22 +383,33 @@ const StudentDashboard = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div
+          className={`grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 transition-all duration-700 delay-100 ${
+            isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          }`}
+        >
           {quickStats.map((stat, index) => (
-            <Card 
+            <Card
               key={index}
               className={`glass border-0 hover-lift cursor-pointer group overflow-hidden`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <CardContent className="p-6 relative">
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                />
                 <div className="relative">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
                   <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
                   <p className="text-3xl font-bold text-white">
-                    <AnimatedCounter value={stat.value} duration={1500 + index * 200} />
+                    <AnimatedCounter
+                      value={stat.value}
+                      duration={1500 + index * 200}
+                    />
                     {stat.suffix}
                   </p>
                 </div>
@@ -311,7 +422,13 @@ const StudentDashboard = () => {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Daily Challenges */}
-            <div className={`transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`transition-all duration-700 delay-200 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
@@ -320,58 +437,115 @@ const StudentDashboard = () => {
                     </div>
                     Daily Challenges
                     <Badge className="ml-auto bg-amber-500/20 text-amber-300 border-amber-500/30">
-                      <Gift className="w-3 h-3 mr-1" /> +225 XP Available
+                      <Gift className="w-3 h-3 mr-1" /> +
+                      {dailyChallenges
+                        .filter((c) => !c.completed)
+                        .reduce((sum, c) => sum + c.reward, 0)}{" "}
+                      XP Available
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {dailyChallenges.map((challenge, index) => (
-                    <div 
-                      key={index}
-                      className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
-                        challenge.completed 
-                          ? 'bg-emerald-500/20 border border-emerald-500/30' 
-                          : 'bg-white/5 hover:bg-white/10 border border-white/10'
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        challenge.completed 
-                          ? 'bg-emerald-500' 
-                          : 'bg-gradient-to-br from-slate-700 to-slate-600'
-                      }`}>
-                        {challenge.completed ? (
-                          <span className="text-2xl">✓</span>
-                        ) : (
-                          <challenge.icon className="w-6 h-6 text-white" />
-                        )}
+                  {dailyChallenges.map((challenge, index) => {
+                    // Determine navigation path based on challenge type
+                    const getChallengePath = () => {
+                      const title = challenge.title || "";
+                      if (title.toLowerCase().includes("video"))
+                        return "/student/lessons";
+                      if (title.toLowerCase().includes("quiz"))
+                        return "/student/lessons";
+                      if (title.toLowerCase().includes("game")) return "/games";
+                      return null;
+                    };
+
+                    const challengePath = getChallengePath();
+
+                    return (
+                      <div
+                        key={index}
+                        onClick={() =>
+                          !challenge.completed &&
+                          challengePath &&
+                          navigate(challengePath)
+                        }
+                        className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
+                          challenge.completed
+                            ? "bg-emerald-500/20 border border-emerald-500/30"
+                            : "bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
+                        }`}
+                      >
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                            challenge.completed
+                              ? "bg-emerald-500"
+                              : "bg-gradient-to-br from-slate-700 to-slate-600"
+                          }`}
+                        >
+                          {challenge.completed ? (
+                            <span className="text-2xl">✓</span>
+                          ) : (
+                            <challenge.icon className="w-6 h-6 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p
+                            className={`font-semibold ${
+                              challenge.completed
+                                ? "text-emerald-300 line-through"
+                                : "text-white"
+                            }`}
+                          >
+                            {challenge.title || "Challenge"}
+                          </p>
+                          {!challenge.completed && challengePath && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Click to start →
+                            </p>
+                          )}
+                          {challenge.progress !== undefined &&
+                            !challenge.completed && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${
+                                        (challenge.progress / challenge.total) *
+                                        100
+                                      }%`,
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                  {challenge.progress}/{challenge.total}
+                                </span>
+                              </div>
+                            )}
+                        </div>
+                        <Badge
+                          className={
+                            challenge.completed
+                              ? "bg-emerald-500/30 text-emerald-300"
+                              : "bg-amber-500/20 text-amber-300"
+                          }
+                        >
+                          +{challenge.reward} XP
+                        </Badge>
                       </div>
-                      <div className="flex-1">
-                        <p className={`font-semibold ${challenge.completed ? 'text-emerald-300 line-through' : 'text-white'}`}>
-                          {challenge.title}
-                        </p>
-                        {challenge.progress !== undefined && !challenge.completed && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-500"
-                                style={{ width: `${(challenge.progress / challenge.total) * 100}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-gray-400">{challenge.progress}/{challenge.total}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Badge className={challenge.completed ? 'bg-emerald-500/30 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}>
-                        +{challenge.reward} XP
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
             </div>
 
             {/* Achievement Progress */}
-            <div className={`transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`transition-all duration-700 delay-300 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
@@ -390,26 +564,37 @@ const StudentDashboard = () => {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-white">{achievement.title}</h4>
+                            <h4 className="font-semibold text-white">
+                              {achievement.title}
+                            </h4>
                             <Badge className="bg-white/10 text-white border-0">
                               +{achievement.points} pts
                             </Badge>
                           </div>
-                          <p className="text-gray-400 text-sm">{achievement.description}</p>
+                          <p className="text-gray-400 text-sm">
+                            {achievement.description}
+                          </p>
                         </div>
                       </div>
                       <div className="ml-18 relative">
                         <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className={`h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r ${
-                              achievement.color === 'emerald' ? 'from-emerald-400 to-emerald-500' :
-                              achievement.color === 'cyan' ? 'from-cyan-400 to-cyan-500' :
-                              'from-amber-400 to-amber-500'
+                              achievement.color === "emerald"
+                                ? "from-emerald-400 to-emerald-500"
+                                : achievement.color === "cyan"
+                                ? "from-cyan-400 to-cyan-500"
+                                : "from-amber-400 to-amber-500"
                             }`}
-                            style={{ width: `${achievement.progress}%`, animationDelay: `${index * 200}ms` }}
+                            style={{
+                              width: `${achievement.progress}%`,
+                              animationDelay: `${index * 200}ms`,
+                            }}
                           />
                         </div>
-                        <span className="absolute right-0 -top-6 text-sm text-gray-400">{achievement.progress}%</span>
+                        <span className="absolute right-0 -top-6 text-sm text-gray-400">
+                          {achievement.progress}%
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -418,12 +603,38 @@ const StudentDashboard = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-700 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-700 delay-400 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               {[
-                { title: "Continue Learning", icon: BookOpen, color: "from-emerald-400 to-emerald-600", path: "/student/lessons" },
-                { title: "Play Games", icon: Gamepad2, color: "from-cyan-400 to-cyan-600", path: "/student/games" },
-                { title: "Virtual Lab", icon: FlaskConical, color: "from-purple-400 to-purple-600", path: "/student/eco-lab" },
-                { title: "AI Tutor", icon: Brain, color: "from-pink-400 to-pink-600", path: "/student/ai" }
+                {
+                  title: "Continue Learning",
+                  icon: BookOpen,
+                  color: "from-emerald-400 to-emerald-600",
+                  path: "/student/lessons",
+                },
+                {
+                  title: "Play Games",
+                  icon: Gamepad2,
+                  color: "from-cyan-400 to-cyan-600",
+                  path: "/student/games",
+                },
+                {
+                  title: "Virtual Lab",
+                  icon: FlaskConical,
+                  color: "from-purple-400 to-purple-600",
+                  path: "/student/eco-lab",
+                },
+                {
+                  title: "AI Tutor",
+                  icon: Brain,
+                  color: "from-pink-400 to-pink-600",
+                  path: "/student/ai",
+                },
               ].map((action, index) => (
                 <Button
                   key={index}
@@ -440,7 +651,13 @@ const StudentDashboard = () => {
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Leaderboard */}
-            <div className={`transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`transition-all duration-700 delay-300 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
@@ -453,30 +670,46 @@ const StudentDashboard = () => {
                 <CardContent className="space-y-3">
                   {leaderboard.length > 0 ? (
                     leaderboard.map((student, index) => (
-                      <div 
+                      <div
                         key={index}
                         className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
-                          student.isCurrentUser 
-                            ? 'bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 scale-105' 
-                            : 'bg-white/5 hover:bg-white/10'
+                          student.isCurrentUser
+                            ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 scale-105"
+                            : "bg-white/5 hover:bg-white/10"
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          student.rank === 1 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-white' :
-                          student.rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800' :
-                          student.rank === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' :
-                          'bg-white/10 text-white'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            student.rank === 1
+                              ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white"
+                              : student.rank === 2
+                              ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800"
+                              : student.rank === 3
+                              ? "bg-gradient-to-br from-orange-400 to-orange-500 text-white"
+                              : "bg-white/10 text-white"
+                          }`}
+                        >
                           {student.badge || student.rank}
                         </div>
                         <span className="text-2xl">{student.avatar}</span>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${student.isCurrentUser ? 'text-emerald-300' : 'text-white'}`}>
-                            {student.name} {student.isCurrentUser && <span className="text-cyan-300">(You)</span>}
+                          <p
+                            className={`font-medium truncate ${
+                              student.isCurrentUser
+                                ? "text-emerald-300"
+                                : "text-white"
+                            }`}
+                          >
+                            {student.name}{" "}
+                            {student.isCurrentUser && (
+                              <span className="text-cyan-300">(You)</span>
+                            )}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-white">{student.points.toLocaleString()}</p>
+                          <p className="font-bold text-white">
+                            {student.points.toLocaleString()}
+                          </p>
                           <p className="text-xs text-gray-400">points</p>
                         </div>
                       </div>
@@ -484,23 +717,34 @@ const StudentDashboard = () => {
                   ) : (
                     <div className="text-center py-6">
                       <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400 font-medium">No Rankings Yet</p>
-                      <p className="text-gray-500 text-sm mt-1">Start learning to appear on the leaderboard!</p>
+                      <p className="text-gray-400 font-medium">
+                        No Rankings Yet
+                      </p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        Start learning to appear on the leaderboard!
+                      </p>
                     </div>
                   )}
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full mt-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
-                    onClick={() => navigate('/student/leaderboard')}
+                    onClick={() => navigate("/student/leaderboard")}
                   >
-                    View Full Leaderboard <ChevronRight className="w-4 h-4 ml-1" />
+                    View Full Leaderboard{" "}
+                    <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </CardContent>
               </Card>
             </div>
 
             {/* Upcoming Events */}
-            <div className={`transition-all duration-700 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`transition-all duration-700 delay-400 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
@@ -513,15 +757,25 @@ const StudentDashboard = () => {
                 <CardContent>
                   <div className="text-center py-6">
                     <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 font-medium">No Events Scheduled</p>
-                    <p className="text-gray-500 text-sm mt-1">Check back later for upcoming activities!</p>
+                    <p className="text-gray-400 font-medium">
+                      No Events Scheduled
+                    </p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Check back later for upcoming activities!
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Motivational Card */}
-            <div className={`transition-all duration-700 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div
+              className={`transition-all duration-700 delay-500 ${
+                isLoaded
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+            >
               <Card className="border-0 bg-gradient-to-br from-emerald-500 to-cyan-500 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -531,15 +785,20 @@ const StudentDashboard = () => {
                   <div className="flex items-start gap-4">
                     <div className="text-4xl animate-float">🌱</div>
                     <div>
-                      <h3 className="font-bold text-white text-lg mb-1">Start Your Journey!</h3>
+                      <h3 className="font-bold text-white text-lg mb-1">
+                        Start Your Journey!
+                      </h3>
                       <p className="text-emerald-100 text-sm">
-                        Begin learning today and help build a greener, more sustainable future!
+                        Begin learning today and help build a greener, more
+                        sustainable future!
                       </p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center gap-2">
                     <Heart className="w-4 h-4 text-white/80" />
-                    <span className="text-sm text-white/80">Every lesson counts towards a better planet!</span>
+                    <span className="text-sm text-white/80">
+                      Every lesson counts towards a better planet!
+                    </span>
                   </div>
                 </CardContent>
               </Card>

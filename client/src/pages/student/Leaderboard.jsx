@@ -4,10 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import "@/styles/animations.css";
 import { useState, useEffect } from "react";
-import { 
-  Trophy, 
-  Medal, 
-  Crown, 
+import {
+  getQuizLeaderboard,
+  getStudentQuizHistory,
+} from "../../services/syllabusService";
+import {
+  Trophy,
+  Medal,
+  Crown,
   Star,
   TrendingUp,
   Users,
@@ -18,7 +22,9 @@ import {
   Zap,
   Calendar,
   Sparkles,
-  Flame
+  Flame,
+  BookOpen,
+  Loader,
 } from "lucide-react";
 
 const Leaderboard = () => {
@@ -27,12 +33,15 @@ const Leaderboard = () => {
     globalRank: "-",
     schoolRank: "-",
     totalPoints: 0,
-    streak: 0
+    streak: 0,
   });
+  const [quizLeaderboard, setQuizLeaderboard] = useState([]);
+  const [studentQuizHistory, setStudentQuizHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Load user data from localStorage
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUserData(user);
@@ -41,10 +50,53 @@ const Leaderboard = () => {
         globalRank: "-",
         schoolRank: "-",
         totalPoints: user.points || 0,
-        streak: user.streak || 0
+        streak: user.streak || 0,
       });
+
+      // Fetch quiz leaderboard and history
+      fetchLeaderboardData(user.id);
+    } else {
+      setLoading(false);
     }
   }, []);
+
+  const fetchLeaderboardData = async (studentId) => {
+    try {
+      setLoading(true);
+
+      // Fetch quiz leaderboard
+      const leaderboardResponse = await getQuizLeaderboard();
+      if (leaderboardResponse.success) {
+        setQuizLeaderboard(leaderboardResponse.data);
+
+        // Find user's rank in leaderboard
+        const userRank =
+          leaderboardResponse.data.findIndex(
+            (entry) => entry.studentId === studentId
+          ) + 1;
+
+        if (userRank > 0) {
+          setUserStats((prev) => ({
+            ...prev,
+            globalRank: userRank,
+            totalPoints:
+              leaderboardResponse.data[userRank - 1]?.totalScore ||
+              prev.totalPoints,
+          }));
+        }
+      }
+
+      // Fetch student's quiz history
+      const historyResponse = await getStudentQuizHistory(studentId);
+      if (historyResponse.success) {
+        setStudentQuizHistory(historyResponse.data);
+      }
+    } catch (error) {
+      console.error("Error fetching leaderboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Empty leaderboard data - would be fetched from backend
   const globalLeaderboard = [];
@@ -52,30 +104,84 @@ const Leaderboard = () => {
   const weeklyTopPerformers = [];
 
   const achievements = [
-    { title: "Top 5% Globally", description: "Ranked in top 5% worldwide", icon: Crown, color: "text-yellow-400", gradient: "from-yellow-400 to-amber-600", unlocked: false },
-    { title: "Streak Master", description: "20+ day learning streak", icon: Zap, color: "text-orange-400", gradient: "from-orange-400 to-red-600", unlocked: false },
-    { title: "Knowledge Seeker", description: "Completed 50+ lessons", icon: Star, color: "text-blue-400", gradient: "from-blue-400 to-cyan-600", unlocked: false },
-    { title: "Institution Leader", description: "Top 3 in your school", icon: School, color: "text-purple-400", gradient: "from-purple-400 to-pink-600", unlocked: false },
-    { title: "Global Elite", description: "Top 1% worldwide", icon: Trophy, color: "text-gold-400", gradient: "from-gray-400 to-gray-600", unlocked: false },
-    { title: "Perfect Score", description: "100% on 10 assessments", icon: Target, color: "text-green-400", gradient: "from-gray-400 to-gray-600", unlocked: false }
+    {
+      title: "Top 5% Globally",
+      description: "Ranked in top 5% worldwide",
+      icon: Crown,
+      color: "text-yellow-400",
+      gradient: "from-yellow-400 to-amber-600",
+      unlocked: false,
+    },
+    {
+      title: "Streak Master",
+      description: "20+ day learning streak",
+      icon: Zap,
+      color: "text-orange-400",
+      gradient: "from-orange-400 to-red-600",
+      unlocked: false,
+    },
+    {
+      title: "Knowledge Seeker",
+      description: "Completed 50+ lessons",
+      icon: Star,
+      color: "text-blue-400",
+      gradient: "from-blue-400 to-cyan-600",
+      unlocked: false,
+    },
+    {
+      title: "Institution Leader",
+      description: "Top 3 in your school",
+      icon: School,
+      color: "text-purple-400",
+      gradient: "from-purple-400 to-pink-600",
+      unlocked: false,
+    },
+    {
+      title: "Global Elite",
+      description: "Top 1% worldwide",
+      icon: Trophy,
+      color: "text-gold-400",
+      gradient: "from-gray-400 to-gray-600",
+      unlocked: false,
+    },
+    {
+      title: "Perfect Score",
+      description: "100% on 10 assessments",
+      icon: Target,
+      color: "text-green-400",
+      gradient: "from-gray-400 to-gray-600",
+      unlocked: false,
+    },
   ];
 
   const getRankIcon = (rank) => {
     switch (rank) {
-      case 1: return <Crown className="w-6 h-6 text-yellow-400" />;
-      case 2: return <Medal className="w-6 h-6 text-gray-300" />;
-      case 3: return <Award className="w-6 h-6 text-orange-400" />;
-      default: return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-gray-400">{rank}</span>;
+      case 1:
+        return <Crown className="w-6 h-6 text-yellow-400" />;
+      case 2:
+        return <Medal className="w-6 h-6 text-gray-300" />;
+      case 3:
+        return <Award className="w-6 h-6 text-orange-400" />;
+      default:
+        return (
+          <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-gray-400">
+            {rank}
+          </span>
+        );
     }
   };
 
   const getRankStyle = (rank, isCurrentUser = false) => {
     if (isCurrentUser) return "bg-emerald-500/20 border border-emerald-500/40";
     switch (rank) {
-      case 1: return "bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30";
-      case 2: return "bg-gradient-to-r from-gray-400/20 to-gray-500/20 border border-gray-400/30";
-      case 3: return "bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30";
-      default: return "glass border-0";
+      case 1:
+        return "bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30";
+      case 2:
+        return "bg-gradient-to-r from-gray-400/20 to-gray-500/20 border border-gray-400/30";
+      case 3:
+        return "bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30";
+      default:
+        return "glass border-0";
     }
   };
 
@@ -84,8 +190,14 @@ const Leaderboard = () => {
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "4s" }}
+        ></div>
         {/* Sparkle particles */}
         {[...Array(20)].map((_, i) => (
           <div
@@ -95,7 +207,7 @@ const Leaderboard = () => {
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
-              opacity: 0.6
+              opacity: 0.6,
             }}
           />
         ))}
@@ -115,7 +227,9 @@ const Leaderboard = () => {
                   Leaderboard
                   <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
                 </h1>
-                <p className="text-gray-400">See how you rank among environmental champions worldwide</p>
+                <p className="text-gray-400">
+                  See how you rank among environmental champions worldwide
+                </p>
               </div>
             </div>
 
@@ -127,7 +241,9 @@ const Leaderboard = () => {
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
                     <Globe className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-3xl font-bold text-white">{userStats.globalRank}</div>
+                  <div className="text-3xl font-bold text-white">
+                    {userStats.globalRank}
+                  </div>
                   <p className="text-gray-400">Global Rank</p>
                 </CardContent>
               </Card>
@@ -137,7 +253,9 @@ const Leaderboard = () => {
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
                     <School className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-3xl font-bold text-white">{userStats.schoolRank}</div>
+                  <div className="text-3xl font-bold text-white">
+                    {userStats.schoolRank}
+                  </div>
                   <p className="text-gray-400">School Rank</p>
                 </CardContent>
               </Card>
@@ -147,7 +265,9 @@ const Leaderboard = () => {
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-yellow-500/30">
                     <Star className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-3xl font-bold text-white">{userStats.totalPoints.toLocaleString()}</div>
+                  <div className="text-3xl font-bold text-white">
+                    {userStats.totalPoints.toLocaleString()}
+                  </div>
                   <p className="text-gray-400">Total Points</p>
                 </CardContent>
               </Card>
@@ -157,7 +277,9 @@ const Leaderboard = () => {
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/30 animate-pulse">
                     <Flame className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-3xl font-bold text-white">{userStats.streak}</div>
+                  <div className="text-3xl font-bold text-white">
+                    {userStats.streak}
+                  </div>
                   <p className="text-gray-400">Day Streak</p>
                 </CardContent>
               </Card>
@@ -167,6 +289,108 @@ const Leaderboard = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Leaderboards */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Quiz Leaderboard */}
+              <Card className="glass border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-white" />
+                    </div>
+                    Quiz Leaderboard
+                    <Badge className="ml-auto bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      <BookOpen className="w-3 h-3 mr-1" /> Quiz Scores
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader className="w-8 h-8 text-emerald-400 animate-spin mr-3" />
+                      <span className="text-gray-400">
+                        Loading leaderboard...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {quizLeaderboard.length > 0 ? (
+                        quizLeaderboard.map((entry, index) => {
+                          const rank = index + 1;
+                          const isCurrentUser =
+                            entry.studentId === userData?.id;
+                          return (
+                            <div
+                              key={entry.studentId}
+                              className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
+                                rank,
+                                isCurrentUser
+                              )}`}
+                              style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-800/50">
+                                  {getRankIcon(rank)}
+                                </div>
+                                <div className="text-3xl">
+                                  {rank === 1
+                                    ? "🏆"
+                                    : rank === 2
+                                    ? "🥈"
+                                    : rank === 3
+                                    ? "🥉"
+                                    : "🎓"}
+                                </div>
+                                <div>
+                                  <p
+                                    className={`font-semibold ${
+                                      isCurrentUser
+                                        ? "text-emerald-400"
+                                        : "text-white"
+                                    }`}
+                                  >
+                                    {entry.studentName}{" "}
+                                    {isCurrentUser && (
+                                      <span className="text-emerald-400">
+                                        (You)
+                                      </span>
+                                    )}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                      {entry.quizzesCompleted} Quizzes
+                                    </Badge>
+                                    <Badge className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                      Avg: {entry.averageScore}%
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-xl text-white">
+                                  {entry.totalScore.toLocaleString()}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  total points
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-12">
+                          <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                          <p className="text-gray-400 text-lg font-medium">
+                            No Quiz Scores Yet
+                          </p>
+                          <p className="text-gray-500 text-sm mt-1">
+                            Complete video quizzes to appear on the leaderboard!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Global Leaderboard */}
               <Card className="glass border-0">
                 <CardHeader>
@@ -181,9 +405,12 @@ const Leaderboard = () => {
                   <div className="space-y-3">
                     {globalLeaderboard.length > 0 ? (
                       globalLeaderboard.map((student, index) => (
-                        <div 
+                        <div
                           key={student.rank}
-                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(student.rank, student.isCurrentUser)}`}
+                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
+                            student.rank,
+                            student.isCurrentUser
+                          )}`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <div className="flex items-center gap-4">
@@ -192,18 +419,37 @@ const Leaderboard = () => {
                             </div>
                             <div className="text-3xl">{student.avatar}</div>
                             <div>
-                              <p className={`font-semibold ${student.isCurrentUser ? 'text-emerald-400' : 'text-white'}`}>
-                                {student.name} {student.isCurrentUser && <span className="text-emerald-400">(You)</span>}
+                              <p
+                                className={`font-semibold ${
+                                  student.isCurrentUser
+                                    ? "text-emerald-400"
+                                    : "text-white"
+                                }`}
+                              >
+                                {student.name}{" "}
+                                {student.isCurrentUser && (
+                                  <span className="text-emerald-400">
+                                    (You)
+                                  </span>
+                                )}
                               </p>
-                              <p className="text-sm text-gray-400">{student.institution}</p>
+                              <p className="text-sm text-gray-400">
+                                {student.institution}
+                              </p>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">{student.country}</Badge>
-                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">Lvl {student.level}</Badge>
+                                <Badge className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                  {student.country}
+                                </Badge>
+                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  Lvl {student.level}
+                                </Badge>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-xl text-white">{student.points.toLocaleString()}</p>
+                            <p className="font-bold text-xl text-white">
+                              {student.points.toLocaleString()}
+                            </p>
                             <p className="text-sm text-gray-500">points</p>
                             <div className="flex items-center gap-1 text-xs text-orange-400 mt-1">
                               <Flame className="w-3 h-3" />
@@ -215,8 +461,12 @@ const Leaderboard = () => {
                     ) : (
                       <div className="text-center py-12">
                         <Globe className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400 text-lg font-medium">No Leaderboard Data Yet</p>
-                        <p className="text-gray-500 text-sm mt-1">Start learning to appear on the leaderboard!</p>
+                        <p className="text-gray-400 text-lg font-medium">
+                          No Leaderboard Data Yet
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1">
+                          Start learning to appear on the leaderboard!
+                        </p>
                       </div>
                     )}
                   </div>
@@ -237,9 +487,12 @@ const Leaderboard = () => {
                   <div className="space-y-3">
                     {institutionLeaderboard.length > 0 ? (
                       institutionLeaderboard.map((student, index) => (
-                        <div 
+                        <div
                           key={student.rank}
-                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(student.rank, student.isCurrentUser)}`}
+                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
+                            student.rank,
+                            student.isCurrentUser
+                          )}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800/50">
@@ -247,11 +500,24 @@ const Leaderboard = () => {
                             </div>
                             <div className="text-2xl">{student.avatar}</div>
                             <div>
-                              <p className={`font-semibold ${student.isCurrentUser ? 'text-emerald-400' : 'text-white'}`}>
-                                {student.name} {student.isCurrentUser && <span className="text-emerald-400">(You)</span>}
+                              <p
+                                className={`font-semibold ${
+                                  student.isCurrentUser
+                                    ? "text-emerald-400"
+                                    : "text-white"
+                                }`}
+                              >
+                                {student.name}{" "}
+                                {student.isCurrentUser && (
+                                  <span className="text-emerald-400">
+                                    (You)
+                                  </span>
+                                )}
                               </p>
                               <div className="flex items-center gap-2">
-                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">Lvl {student.level}</Badge>
+                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  Lvl {student.level}
+                                </Badge>
                                 <div className="flex items-center gap-1 text-xs text-orange-400">
                                   <Flame className="w-3 h-3" />
                                   {student.streak}
@@ -260,7 +526,9 @@ const Leaderboard = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-lg text-white">{student.points.toLocaleString()}</p>
+                            <p className="font-bold text-lg text-white">
+                              {student.points.toLocaleString()}
+                            </p>
                             <p className="text-sm text-gray-500">points</p>
                           </div>
                         </div>
@@ -268,8 +536,12 @@ const Leaderboard = () => {
                     ) : (
                       <div className="text-center py-12">
                         <School className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400 text-lg font-medium">No School Data Yet</p>
-                        <p className="text-gray-500 text-sm mt-1">Be the first to appear on your school's leaderboard!</p>
+                        <p className="text-gray-400 text-lg font-medium">
+                          No School Data Yet
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1">
+                          Be the first to appear on your school's leaderboard!
+                        </p>
                       </div>
                     )}
                   </div>
@@ -279,6 +551,78 @@ const Leaderboard = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Your Quiz History */}
+              <Card className="glass border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-white" />
+                    </div>
+                    Your Quiz History
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader className="w-6 h-6 text-purple-400 animate-spin" />
+                    </div>
+                  ) : studentQuizHistory.length > 0 ? (
+                    <div className="space-y-3">
+                      {studentQuizHistory.slice(0, 5).map((quiz, index) => (
+                        <div
+                          key={quiz._id}
+                          className="p-3 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium text-white text-sm truncate flex-1 mr-2">
+                              {quiz.syllabusTitle || "Quiz"}
+                            </p>
+                            <Badge
+                              className={`text-xs ${
+                                quiz.score >= 70
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                              }`}
+                            >
+                              {quiz.score}%
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>
+                              {new Date(quiz.completedAt).toLocaleDateString()}
+                            </span>
+                            <span
+                              className={
+                                quiz.passed
+                                  ? "text-emerald-400"
+                                  : "text-amber-400"
+                              }
+                            >
+                              {quiz.passed ? "✓ Passed" : "✗ Not Passed"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      {studentQuizHistory.length > 5 && (
+                        <p className="text-center text-gray-500 text-sm">
+                          +{studentQuizHistory.length - 5} more quizzes
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-400 text-sm">
+                        No quizzes completed yet
+                      </p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        Watch videos and take quizzes!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Weekly Top Performers */}
               <Card className="glass border-0">
                 <CardHeader>
@@ -293,16 +637,25 @@ const Leaderboard = () => {
                   {weeklyTopPerformers.length > 0 ? (
                     <div className="space-y-3">
                       {weeklyTopPerformers.map((team, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300">
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="text-3xl">{team.avatar}</div>
                             <div>
-                              <p className="font-semibold text-white">{team.name}</p>
-                              <p className="text-xs text-gray-400">{team.members} members</p>
+                              <p className="font-semibold text-white">
+                                {team.name}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {team.members} members
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-white">{team.points}</p>
+                            <p className="font-bold text-white">
+                              {team.points}
+                            </p>
                             <p className="text-xs text-gray-500">pts</p>
                           </div>
                         </div>
@@ -311,8 +664,12 @@ const Leaderboard = () => {
                   ) : (
                     <div className="text-center py-8">
                       <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400 font-medium">No Team Data Yet</p>
-                      <p className="text-gray-500 text-sm mt-1">Join a team to compete!</p>
+                      <p className="text-gray-400 font-medium">
+                        No Team Data Yet
+                      </p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        Join a team to compete!
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -331,26 +688,36 @@ const Leaderboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {achievements.map((achievement, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 ${
-                          achievement.unlocked 
-                            ? 'bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30' 
-                            : 'bg-gray-800/30 border border-gray-700/50 opacity-50'
+                          achievement.unlocked
+                            ? "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30"
+                            : "bg-gray-800/30 border border-gray-700/50 opacity-50"
                         }`}
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                          achievement.unlocked 
-                            ? `bg-gradient-to-br ${achievement.gradient} shadow-lg` 
-                            : 'bg-gray-700'
-                        }`}>
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            achievement.unlocked
+                              ? `bg-gradient-to-br ${achievement.gradient} shadow-lg`
+                              : "bg-gray-700"
+                          }`}
+                        >
                           <achievement.icon className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1">
-                          <p className={`font-medium ${achievement.unlocked ? 'text-white' : 'text-gray-500'}`}>
+                          <p
+                            className={`font-medium ${
+                              achievement.unlocked
+                                ? "text-white"
+                                : "text-gray-500"
+                            }`}
+                          >
                             {achievement.title}
                           </p>
-                          <p className="text-xs text-gray-400">{achievement.description}</p>
+                          <p className="text-xs text-gray-400">
+                            {achievement.description}
+                          </p>
                         </div>
                         {achievement.unlocked && (
                           <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -377,17 +744,28 @@ const Leaderboard = () => {
                 <CardContent className="relative">
                   <div className="space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-white">{userData?.points || 0} points</div>
-                      <p className="text-sm text-gray-400">Start earning points to climb the ranks!</p>
+                      <div className="text-3xl font-bold text-white">
+                        {userData?.points || 0} points
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        Start earning points to climb the ranks!
+                      </p>
                     </div>
                     <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-purple-400 to-pink-500 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min((userData?.points || 0) / 10, 100)}%` }}
+                        style={{
+                          width: `${Math.min(
+                            (userData?.points || 0) / 10,
+                            100
+                          )}%`,
+                        }}
                       ></div>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">Complete lessons and quizzes to earn points!</p>
+                      <p className="text-sm text-gray-400">
+                        Complete lessons and quizzes to earn points!
+                      </p>
                     </div>
                     <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg shadow-purple-500/30 transition-all duration-300">
                       <Star className="w-4 h-4 mr-2" />
