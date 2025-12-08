@@ -87,7 +87,6 @@ const LanguageSwitcher = ({ variant = 'default', className = '' }) => {
     setIsOpen(false);
     localStorage.setItem('selectedLanguage', langCode);
 
-    // Trigger Google Translate
     const googleTranslateSelect = document.querySelector('.goog-te-combo');
     if (googleTranslateSelect) {
       googleTranslateSelect.value = langCode;
