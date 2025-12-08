@@ -116,14 +116,14 @@ const TeacherDashboard = () => {
     }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-amber-50">
       <Navigation />
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-[#237a57] rounded-full flex items-center justify-center">
                 <Users className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -204,7 +204,7 @@ const TeacherDashboard = () => {
                     {myStudents.map((student, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 bg-[#3b9b8f] rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-sm">
                               {student.name.split(' ').map(n => n[0]).join('')}
                             </span>

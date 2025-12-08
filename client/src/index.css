@@ -8,52 +8,52 @@ All colors MUST be HSL. Eco-friendly, modern, youthful palette.
 
 @layer base {
   :root {
-    /* Base Colors - Clean and fresh */
-    --background: 120 20% 98%;
-    --foreground: 160 40% 15%;
+    /* Base Colors - Warm and sophisticated */
+    --background: 40 18% 97%;
+    --foreground: 158 35% 18%;
 
-    /* Card system - Clean with subtle eco tints */
-    --card: 120 15% 99%;
-    --card-foreground: 160 35% 20%;
+    /* Card system - Warm cream tones */
+    --card: 38 25% 98%;
+    --card-foreground: 158 30% 22%;
 
     --popover: 120 15% 99%;
     --popover-foreground: 160 35% 20%;
 
-    /* Primary - Forest Green (Eco-themed) */
-    --primary: 142 76% 36%;
-    --primary-foreground: 120 20% 98%;
-    --primary-glow: 142 86% 45%;
+    /* Primary - Deep Forest */
+    --primary: 158 64% 28%;
+    --primary-foreground: 40 20% 97%;
+    --primary-glow: 158 70% 38%;
 
-    /* Secondary - Ocean Blue */
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 120 20% 98%;
+    /* Secondary - Warm Amber */
+    --secondary: 32 94% 54%;
+    --secondary-foreground: 158 40% 12%;
 
-    /* Muted - Natural gray-green */
-    --muted: 120 15% 95%;
-    --muted-foreground: 160 25% 45%;
+    /* Muted - Warm gray */
+    --muted: 30 8% 92%;
+    --muted-foreground: 25 10% 42%;
 
-    /* Accent - Vibrant eco-green */
-    --accent: 142 86% 45%;
-    --accent-foreground: 160 40% 15%;
+    /* Accent - Rich Teal */
+    --accent: 180 58% 42%;
+    --accent-foreground: 40 20% 97%;
 
-    /* Success/Growth - Bright green */
-    --success: 120 100% 35%;
-    --success-foreground: 120 20% 98%;
+    /* Success/Growth - Sage green */
+    --success: 145 48% 48%;
+    --success-foreground: 40 20% 97%;
 
     /* Destructive - Earth red */
     --destructive: 0 84% 60%;
     --destructive-foreground: 120 20% 98%;
 
     /* Interactive elements */
-    --border: 120 25% 88%;
-    --input: 120 25% 88%;
-    --ring: 142 76% 36%;
+    --border: 30 12% 86%;
+    --input: 30 12% 86%;
+    --ring: 158 64% 28%;
 
-    /* Gradients - Nature-inspired */
-    --gradient-eco: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-    --gradient-ocean: linear-gradient(135deg, hsl(var(--secondary)), hsl(120 100% 35%));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(120 15% 96%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(217 91% 60%), hsl(120 100% 35%));
+    /* Solid color alternatives */
+    --gradient-eco: hsl(158 64% 28%);
+    --gradient-ocean: hsl(180 58% 42%);
+    --gradient-subtle: hsl(var(--background));
+    --gradient-hero: hsl(158 64% 28%);
 
     /* Shadows - Eco-themed with green tints */
     --shadow-eco: 0 10px 30px -10px hsl(var(--primary) / 0.3);
@@ -84,19 +84,19 @@ All colors MUST be HSL. Eco-friendly, modern, youthful palette.
   }
 
   .dark {
-    /* Dark mode - Deep forest theme */
-    --background: 160 40% 8%;
-    --foreground: 120 25% 90%;
+    /* Dark mode - Sophisticated charcoal */
+    --background: 220 15% 12%;
+    --foreground: 40 20% 88%;
 
-    --card: 160 35% 10%;
-    --card-foreground: 120 25% 90%;
+    --card: 220 14% 15%;
+    --card-foreground: 40 18% 86%;
 
-    --popover: 160 35% 10%;
-    --popover-foreground: 120 25% 90%;
+    --popover: 220 14% 15%;
+    --popover-foreground: 40 18% 86%;
 
-    --primary: 142 86% 45%;
-    --primary-foreground: 160 40% 8%;
-    --primary-glow: 142 86% 55%;
+    --primary: 158 58% 52%;
+    --primary-foreground: 220 15% 12%;
+    --primary-glow: 158 62% 58%;
 
     --secondary: 217 91% 65%;
     --secondary-foreground: 160 40% 8%;
@@ -117,11 +117,11 @@ All colors MUST be HSL. Eco-friendly, modern, youthful palette.
     --input: 160 25% 20%;
     --ring: 142 86% 45%;
 
-    /* Dark gradients */
-    --gradient-eco: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-    --gradient-ocean: linear-gradient(135deg, hsl(var(--secondary)), hsl(120 100% 40%));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(160 35% 12%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 86% 45%), hsl(217 91% 65%), hsl(120 100% 40%));
+    /* Solid colors for dark mode */
+    --gradient-eco: hsl(var(--primary));
+    --gradient-ocean: hsl(180 58% 48%);
+    --gradient-subtle: hsl(var(--background));
+    --gradient-hero: hsl(158 58% 52%);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

@@ -445,7 +445,7 @@ const SolarPowerMaster = () => {
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 relative overflow-hidden">
+    <div className="min-h-screen bg-amber-50 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Sun rays */}
@@ -586,7 +586,7 @@ const SolarPowerMaster = () => {
                 <div className="flex gap-4 justify-center">
                   <Button
                     onClick={startGame}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold px-8 py-3 text-lg shadow-lg"
+                    className="bg-[#237a57] hover:bg-[#f59e0b] text-white font-bold px-8 py-3 text-lg shadow-lg"
                   >
                     🚀 Start Mission
                   </Button>
@@ -609,7 +609,7 @@ const SolarPowerMaster = () => {
             <Sun className="w-16 h-16 text-white animate-spin-gentle" />
           </div>
 
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 bg-clip-text text-transparent mb-4 tracking-wide">
+          <h1 className="text-5xl font-bold text-[#f59e0b] mb-4 tracking-wide">
             ⚡ Solar Power Master Adventure
           </h1>
           <p className="text-2xl text-orange-700 mb-6 font-medium">
@@ -649,7 +649,7 @@ const SolarPowerMaster = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white border-[#3b9b8f]">
               <CardContent className="p-4 text-center">
                 <Zap className="w-8 h-8 text-blue-500 mx-auto mb-2 group-hover:animate-pulse" />
                 <div className="text-2xl font-bold text-blue-700">
@@ -660,7 +660,7 @@ const SolarPowerMaster = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white border-[#237a57]">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl mb-2 group-hover:animate-bounce">
                   🌍
@@ -673,7 +673,7 @@ const SolarPowerMaster = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white border-[#3b9b8f]">
               <CardContent className="p-4 text-center">
                 <Trophy className="w-8 h-8 text-purple-500 mx-auto mb-2 group-hover:animate-spin" />
                 <div className="text-2xl font-bold text-purple-700">

@@ -473,7 +473,7 @@ const Lessons = () => {
   }, [isVideoPlaying, videoProgress]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-[#1a3a2e] overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
@@ -516,8 +516,8 @@ const Lessons = () => {
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                     showVideoQuiz
-                      ? "bg-gradient-to-br from-emerald-500 to-cyan-600"
-                      : "bg-gradient-to-br from-purple-500 to-pink-600"
+                      ? "bg-[#237a57]"
+                      : "bg-[#3b9b8f]"
                   }`}
                 >
                   {showVideoQuiz ? (
@@ -585,7 +585,7 @@ const Lessons = () => {
                   {videoWatched && (
                     <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center">
                       <div className="text-center p-8">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#237a57] flex items-center justify-center">
                           {pointsEarned ? (
                             <Trophy className="w-10 h-10 text-white" />
                           ) : (
@@ -1249,41 +1249,6 @@ const Lessons = () => {
                 {user?.class && `for ${user.class}`}
               </p>
             </div>
-          </div>
-
-          {/* Progress Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="glass border-0 hover-lift">
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-purple-500/30">
-                  <Video className="w-7 h-7 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {totalLessons}
-                </div>
-                <p className="text-gray-400">Available Videos</p>
-              </CardContent>
-            </Card>
-            <Card className="glass border-0 hover-lift">
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-green-500/30">
-                  <CheckCircle className="w-7 h-7 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {completedLessons}
-                </div>
-                <p className="text-gray-400">Completed</p>
-              </CardContent>
-            </Card>
-            <Card className="glass border-0 hover-lift">
-              <CardContent className="p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
-                  <Sparkles className="w-7 h-7 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-white">AI</div>
-                <p className="text-gray-400">Generated Content</p>
-              </CardContent>
-            </Card>
           </div>
         </div>
 

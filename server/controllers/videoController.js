@@ -1,19 +1,9 @@
-import { fal } from '@fal-ai/client';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Configure Fal.ai with API key
-fal.config({
-  credentials: process.env.FAL_KEY || process.env.FAL_API_KEY
-});
+import * as polloAI from '../services/polloAIService.js';
 
 // Store video generation jobs
 const videoJobs = new Map();
 
-// Generate video from text prompt using Fal.ai
+// Generate video from text prompt using Pollo AI
 export const generateVideo = async (req, res) => {
   try {
     const { prompt, duration = 5, aspectRatio = '16:9' } = req.body;
@@ -59,10 +49,10 @@ export const generateVideo = async (req, res) => {
   }
 };
 
-// Async video generation with Fal.ai
+// Async video generation with Pollo AI
 const generateVideoAsync = async (jobId, prompt, aspectRatio) => {
   try {
-    console.log(`Starting video generation for job: ${jobId}`);
+    console.log(`Starting video generation for job: ${jobId} with Pollo AI`);
     
     // Update progress
     videoJobs.set(jobId, {
@@ -85,24 +75,21 @@ const generateVideoAsync = async (jobId, prompt, aspectRatio) => {
     // Enhanced prompt for educational content
     const enhancedPrompt = `${prompt}. High quality, educational, cinematic visuals.`;
 
-    // Use Fal.ai's video generation model
-    const result = await fal.subscribe("fal-ai/minimax-video/video-01", {
-      input: {
-        prompt: enhancedPrompt,
-        prompt_optimizer: true
-      },
-      logs: true,
-      onQueueUpdate: (update) => {
-        console.log(`Queue update for ${jobId}:`, update.status);
-      }
+    // Use Pollo AI's video generation
+    const result = await polloAI.generateAndWaitForVideo(enhancedPrompt, {
+      duration: 5,
+      aspectRatio: aspectRatio,
+      quality: 'high',
+      model: 'pollo-1.5'
     });
 
     clearInterval(progressInterval);
 
     console.log(`Video generation completed for job: ${jobId}`, JSON.stringify(result, null, 2));
 
-    // Extract video URL - Fal.ai returns it in data.video.url
-    const videoUrl = result?.data?.video?.url || result?.video?.url || null;
+    // Extract video URL
+    const videoUrl = result?.videoUrl || null;
+    const thumbnailUrl = result?.thumbnailUrl || `https://picsum.photos/seed/${jobId}/640/360`;
     
     if (!videoUrl) {
       console.error(`No video URL found in result for job ${jobId}`);
@@ -114,7 +101,7 @@ const generateVideoAsync = async (jobId, prompt, aspectRatio) => {
       status: 'completed',
       progress: 100,
       videoUrl: videoUrl,
-      thumbnailUrl: `https://picsum.photos/seed/${jobId}/640/360`,
+      thumbnailUrl: thumbnailUrl,
       completedAt: new Date()
     });
 

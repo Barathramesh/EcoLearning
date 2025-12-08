@@ -32,7 +32,7 @@ const EcoQuestAdventure = () => {
       name: "Tropical Rainforest",
       emoji: "🌴",
       description: "Explore the world's most biodiverse ecosystem",
-      color: "from-green-400 to-emerald-600",
+      color: "bg-[#237a57]",
       species: [
         {
           name: "Toucan",
@@ -65,7 +65,7 @@ const EcoQuestAdventure = () => {
       name: "Ocean Deep",
       emoji: "🌊",
       description: "Dive into the mysterious depths of the ocean",
-      color: "from-blue-400 to-cyan-600",
+      color: "bg-[#3b9b8f]",
       species: [
         {
           name: "Dolphin",
@@ -98,7 +98,7 @@ const EcoQuestAdventure = () => {
       name: "African Savanna",
       emoji: "🦁",
       description: "Journey through the grasslands where giants roam",
-      color: "from-yellow-400 to-orange-600",
+      color: "bg-[#f59e0b]",
       species: [
         {
           name: "Elephant",
@@ -177,7 +177,7 @@ const EcoQuestAdventure = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+    <div className="min-h-screen bg-amber-50 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Nature-themed floating elements */}
@@ -204,10 +204,10 @@ const EcoQuestAdventure = () => {
         </div>
 
         {/* Floating particles */}
-        <div className="absolute top-32 left-1/2 w-3 h-3 bg-emerald-300 rounded-full opacity-60 animate-particle-1"></div>
-        <div className="absolute top-1/2 right-20 w-4 h-4 bg-green-300 rounded-full opacity-50 animate-particle-2"></div>
-        <div className="absolute bottom-1/4 left-20 w-2 h-2 bg-teal-300 rounded-full opacity-70 animate-particle-3"></div>
-        <div className="absolute top-3/4 right-1/3 w-3 h-3 bg-emerald-400 rounded-full opacity-40 animate-particle-1"></div>
+        <div className="absolute top-32 left-1/2 w-3 h-3 bg-[#3b9b8f] rounded-full opacity-60 animate-particle-1"></div>
+        <div className="absolute top-1/2 right-20 w-4 h-4 bg-[#237a57] rounded-full opacity-50 animate-particle-2"></div>
+        <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-[#f59e0b] rounded-full opacity-70 animate-particle-1"></div>
+        <div className="absolute top-3/4 right-1/3 w-3 h-3 bg-[#3b9b8f] rounded-full opacity-40 animate-particle-1"></div>
       </div>
 
       {/* CSS Animations */}
@@ -265,14 +265,14 @@ const EcoQuestAdventure = () => {
 
         {/* Game Header */}
         <div className="text-center mb-8">
-          <div className="w-32 h-32 bg-gradient-to-br from-green-400 via-emerald-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-pulse-slow">
+          <div className="w-32 h-32 bg-[#237a57] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl animate-pulse-slow">
             <Leaf className="w-16 h-16 text-white animate-bounce-gentle" />
           </div>
 
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent mb-4 tracking-wide">
+          <h1 className="text-5xl font-bold text-[#237a57] mb-4 tracking-wide">
             🌿 EcoQuest Adventure
           </h1>
-          <p className="text-2xl text-green-700 mb-6 font-medium">
+          <p className="text-2xl text-[#237a57] mb-6 font-medium">
             🦋 Explore ecosystems and discover amazing species! 🌺
           </p>
 
@@ -292,7 +292,7 @@ const EcoQuestAdventure = () => {
 
           {/* Game Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-amber-50 border-[#f59e0b]">
               <CardContent className="p-6 text-center">
                 <Star className="w-8 h-8 text-yellow-500 mx-auto mb-3 group-hover:animate-spin" />
                 <div className="text-3xl font-bold text-yellow-700">
@@ -303,7 +303,7 @@ const EcoQuestAdventure = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-orange-50 border-orange-400">
               <CardContent className="p-6 text-center">
                 <Trophy className="w-8 h-8 text-orange-500 mx-auto mb-3 group-hover:animate-bounce" />
                 <div className="text-3xl font-bold text-orange-700">
@@ -325,7 +325,7 @@ const EcoQuestAdventure = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 bg-teal-50 border-[#3b9b8f]">
               <CardContent className="p-6 text-center">
                 <MapPin className="w-8 h-8 text-purple-500 mx-auto mb-3 group-hover:animate-pulse" />
                 <div className="text-3xl font-bold text-purple-700">
@@ -353,7 +353,7 @@ const EcoQuestAdventure = () => {
                 value={gameState.explorationProgress}
                 className="h-4 bg-gray-200"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full opacity-20 animate-pulse"></div>
+              <div className="absolute inset-0 bg-[#237a57] rounded-full opacity-20 animate-pulse"></div>
             </div>
             <div className="text-center mt-2 text-sm text-emerald-600">
               {gameState.discoveredSpecies.length} of {biomes.length * 4}{" "}
@@ -366,7 +366,7 @@ const EcoQuestAdventure = () => {
         <Card className="max-w-6xl mx-auto mb-8 shadow-2xl border-2 hover:border-emerald-300 transition-all duration-500">
           <CardHeader>
             <div
-              className={`w-full h-48 bg-gradient-to-r ${currentBiome.color} rounded-2xl flex items-center justify-center mb-6 relative overflow-hidden shadow-inner`}
+              className={`w-full h-48 ${currentBiome.color} rounded-2xl flex items-center justify-center mb-6 relative overflow-hidden shadow-inner`}
             >
               <div className="text-8xl animate-bounce-gentle">
                 {currentBiome.emoji}
@@ -412,7 +412,7 @@ const EcoQuestAdventure = () => {
                 </>
               )}
             </div>
-            <CardTitle className="text-4xl text-center font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            <CardTitle className="text-4xl text-center font-bold text-[#237a57]">
               {currentBiome.name}
             </CardTitle>
             <p className="text-center text-gray-700 text-lg font-medium">
@@ -457,7 +457,7 @@ const EcoQuestAdventure = () => {
                     key={index}
                     className={`cursor-pointer transition-all duration-500 hover:shadow-2xl group relative overflow-hidden ${
                       isDiscovered
-                        ? "bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 shadow-lg"
+                        ? "bg-amber-50 border-2 border-[#f59e0b] shadow-lg"
                         : "hover:bg-gradient-to-br hover:from-gray-50 hover:to-emerald-50 border-2 border-gray-200 hover:border-emerald-300"
                     }`}
                     onClick={() => exploreSpecies(species)}
@@ -485,8 +485,8 @@ const EcoQuestAdventure = () => {
                               <Award className="w-4 h-4 mr-2" />
                               Discovered! +{species.points} pts ✨
                             </Badge>
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                              <p className="text-sm text-green-800 italic leading-relaxed font-medium">
+                            <div className="bg-amber-50 border border-[#f59e0b] rounded-lg p-4">
+                              <p className="text-sm text-[#237a57] italic leading-relaxed font-medium">
                                 "💡 {species.fact}"
                               </p>
                             </div>

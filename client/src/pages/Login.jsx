@@ -105,7 +105,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <div className="mb-6">
@@ -125,7 +125,7 @@ const Login = () => {
             <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
               <Leaf className="w-7 h-7 text-white" />
             </div>
-            <span className="font-bold text-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+            <span className="font-bold text-2xl text-[#237a57]">
               EcoLearn
             </span>
           </div>
@@ -204,7 +204,7 @@ const Login = () => {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white"
+                    className="w-full bg-[#237a57] hover:bg-[#f59e0b] text-white"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -263,7 +263,7 @@ const Login = () => {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                    className="w-full bg-[#3b9b8f] hover:bg-[#f59e0b] text-white"
                     disabled={isLoading}
                   >
                     {isLoading ? (

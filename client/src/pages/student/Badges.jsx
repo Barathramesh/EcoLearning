@@ -42,27 +42,40 @@ const Badges = () => {
     }
   };
 
+  const getBadgeBackground = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'bg-[#f59e0b]';
+      case 'epic':
+        return 'bg-[#237a57]';
+      case 'rare':
+        return 'bg-[#3b9b8f]';
+      default:
+        return 'bg-gray-400';
+    }
+  };
+
   const getRarityColor = (rarity) => {
     switch (rarity) {
       case 'legendary':
-        return 'from-yellow-400 to-orange-500';
+        return 'from-[#f59e0b] to-[#f59e0b]';
       case 'epic':
-        return 'from-purple-400 to-pink-500';
+        return 'from-[#237a57] to-[#237a57]';
       case 'rare':
-        return 'from-blue-400 to-cyan-500';
+        return 'from-[#3b9b8f] to-[#3b9b8f]';
       default:
-        return 'from-gray-300 to-gray-400';
+        return 'from-gray-400 to-gray-400';
     }
   };
 
   const getRarityBorder = (rarity) => {
     switch (rarity) {
       case 'legendary':
-        return 'border-yellow-400 shadow-lg shadow-yellow-500/30';
+        return 'border-[#f59e0b] shadow-lg shadow-[#f59e0b]/30';
       case 'epic':
-        return 'border-purple-400 shadow-lg shadow-purple-500/30';
+        return 'border-[#237a57] shadow-lg shadow-[#237a57]/30';
       case 'rare':
-        return 'border-blue-400 shadow-lg shadow-blue-500/30';
+        return 'border-[#3b9b8f] shadow-lg shadow-[#3b9b8f]/30';
       default:
         return 'border-gray-300';
     }
@@ -73,9 +86,9 @@ const Badges = () => {
       case 'legendary':
         return 'text-yellow-400';
       case 'epic':
-        return 'text-purple-400';
+        return 'text-[#237a57]';
       case 'rare':
-        return 'text-blue-400';
+        return 'text-[#f59e0b]';
       default:
         return 'text-gray-400';
     }
@@ -83,9 +96,9 @@ const Badges = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#237a57] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading badges...</p>
         </div>
       </div>
@@ -93,22 +106,22 @@ const Badges = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+    <div className="min-h-screen bg-amber-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-8 mb-8 text-white shadow-xl">
+        <div className="bg-[#237a57] rounded-2xl p-8 mb-8 text-white shadow-xl">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
                 <Trophy className="w-10 h-10" />
                 My Badges
               </h1>
-              <p className="text-green-100 text-lg">
+              <p className="text-amber-50 text-lg">
                 Collect badges by leveling up through playing games!
               </p>
             </div>
             <div className="text-right">
-              <p className="text-green-100 text-sm">Current Level</p>
+              <p className="text-amber-50 text-sm">Current Level</p>
               <p className="text-5xl font-bold">{stats.level}</p>
             </div>
           </div>
@@ -116,21 +129,21 @@ const Badges = () => {
           {/* Stats Bar */}
           <div className="grid grid-cols-3 gap-4 mt-6">
             <div className="bg-white/20 backdrop-blur rounded-xl p-4">
-              <p className="text-green-100 text-sm">Total Badges</p>
+              <p className="text-amber-50 text-sm">Total Badges</p>
               <p className="text-3xl font-bold flex items-center gap-2">
                 <Award className="w-7 h-7" />
                 {stats.totalBadges}
               </p>
             </div>
             <div className="bg-white/20 backdrop-blur rounded-xl p-4">
-              <p className="text-green-100 text-sm">Game Points</p>
+              <p className="text-amber-50 text-sm">Game Points</p>
               <p className="text-3xl font-bold flex items-center gap-2">
                 <Star className="w-7 h-7" />
                 {stats.gamePoints}
               </p>
             </div>
             <div className="bg-white/20 backdrop-blur rounded-xl p-4">
-              <p className="text-green-100 text-sm">Rarest Badge</p>
+              <p className="text-amber-50 text-sm">Rarest Badge</p>
               <p className="text-2xl font-bold">
                 {badges.some(b => b.rarity === 'legendary') ? '🌟 Legendary' :
                  badges.some(b => b.rarity === 'epic') ? '💜 Epic' :
@@ -153,7 +166,7 @@ const Badges = () => {
             </p>
             <a
               href="/student/games"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+              className="inline-block bg-[#237a57] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#f59e0b] transition-colors"
             >
               Play Games
             </a>
@@ -169,7 +182,7 @@ const Badges = () => {
                 >
                   <div className="flex items-start gap-4">
                     {/* Badge Icon */}
-                    <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${getRarityColor(badge.rarity)} flex items-center justify-center text-4xl shadow-lg flex-shrink-0 relative`}>
+                    <div className={`w-20 h-20 rounded-full ${getBadgeBackground(badge.rarity)} flex items-center justify-center text-4xl shadow-lg flex-shrink-0 relative`}>
                       {badge.icon}
                       {badge.rarity === 'legendary' && (
                         <div className="absolute inset-0 rounded-full animate-ping bg-yellow-400/30"></div>
@@ -217,19 +230,19 @@ const Badges = () => {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
-              <span className="text-sm text-gray-600">Common</span>
+              <div className="w-8 h-8 rounded-full bg-gray-400"></div>
+              <span className="text-gray-600">Common</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500"></div>
-              <span className="text-sm text-gray-600">Rare</span>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#3b9b8f]"></div>
+              <span className="text-gray-600">Rare</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500"></div>
-              <span className="text-sm text-gray-600">Epic</span>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#237a57]"></div>
+              <span className="text-gray-600">Epic</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 animate-pulse"></div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#f59e0b] animate-pulse"></div>
               <span className="text-sm text-gray-600">Legendary</span>
             </div>
           </div>

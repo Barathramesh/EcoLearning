@@ -453,7 +453,7 @@ const UploadAssignment = () => {
 
   const getTypeColor = (type) => {
     switch(type) {
-      case 'project-based': return 'bg-purple-100 text-purple-800';
+      case 'project-based': return 'bg-[#3b9b8f]/20 text-[#3b9b8f]';
       case 'quiz-assessment': return 'bg-blue-100 text-blue-800';
       case 'multimedia': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -477,7 +477,7 @@ const UploadAssignment = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-amber-50">
         <Navigation userType="student" />
         <div className="container mx-auto px-4 py-24">
           <div className="flex items-center justify-center h-64">
@@ -514,28 +514,28 @@ const UploadAssignment = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
-          <Card className="bg-gradient-to-br from-yellow-100 to-yellow-200 border-none">
+          <Card className="bg-[#f59e0b]/30 border-[#f59e0b]">
             <CardContent className="p-4 text-center">
               <Timer className="w-8 h-8 mx-auto mb-2 text-yellow-700" />
               <p className="text-2xl font-bold text-yellow-800">{pendingAssignments.length}</p>
               <p className="text-sm text-yellow-700">Pending</p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-red-100 to-red-200 border-none">
+          <Card className="bg-red-100 border-red-500">
             <CardContent className="p-4 text-center">
               <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-700" />
               <p className="text-2xl font-bold text-red-800">{overdueAssignments.length}</p>
               <p className="text-sm text-red-700">Overdue</p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-100 to-blue-200 border-none">
+          <Card className="bg-[#3b9b8f]/30 border-[#3b9b8f]">
             <CardContent className="p-4 text-center">
               <Send className="w-8 h-8 mx-auto mb-2 text-blue-700" />
               <p className="text-2xl font-bold text-blue-800">{submittedAssignments.length}</p>
               <p className="text-sm text-blue-700">Submitted</p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-green-100 to-green-200 border-none">
+          <Card className="bg-[#237a57]/30 border-[#237a57]">
             <CardContent className="p-4 text-center">
               <Award className="w-8 h-8 mx-auto mb-2 text-green-700" />
               <p className="text-2xl font-bold text-green-800">{gradedAssignments.length}</p>
@@ -641,7 +641,7 @@ const UploadAssignment = () => {
                 <>
                   {/* Summary Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-4 border border-green-200">
+                    <div className="bg-[#237a57]/10 rounded-xl p-4 border border-[#237a57]">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-500 rounded-lg">
                           <CheckCircle className="w-5 h-5 text-white" />
@@ -652,7 +652,7 @@ const UploadAssignment = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                    <div className="bg-[#3b9b8f]/10 rounded-xl p-4 border border-[#3b9b8f]">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-500 rounded-lg">
                           <TrendingUp className="w-5 h-5 text-white" />
@@ -698,7 +698,7 @@ const UploadAssignment = () => {
                   {/* Grades Table */}
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                     {/* Table Header */}
-                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+                    <div className="bg-[#237a57] px-6 py-4">
                       <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <Award className="w-5 h-5" />
                         Your Graded Assignments
@@ -794,7 +794,7 @@ const UploadAssignment = () => {
                 </Button>
                 <Button
                   variant={isOcrMode ? "default" : "ghost"}
-                  className={`flex-1 ${isOcrMode ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                  className={`flex-1 ${isOcrMode ? 'bg-[#f59e0b] hover:bg-[#237a57]' : ''}`}
                   onClick={() => setIsOcrMode(true)}
                 >
                   <ScanLine className="w-4 h-4 mr-2" />
@@ -806,9 +806,9 @@ const UploadAssignment = () => {
               {isOcrMode ? (
                 <div className="space-y-4">
                   {/* OCR Instructions */}
-                  <Alert className="bg-purple-50 border-purple-200">
-                    <Sparkles className="h-4 w-4 text-purple-600" />
-                    <AlertDescription className="text-purple-800">
+                  <Alert className="bg-[#f59e0b]/10 border-[#f59e0b]">
+                    <Sparkles className="h-4 w-4 text-[#f59e0b]" />
+                    <AlertDescription className="text-[#f59e0b]">
                       <strong>OCR Mode:</strong> Capture or upload photos of your handwritten assignment. 
                       Our AI will extract the text automatically!
                     </AlertDescription>
@@ -819,7 +819,7 @@ const UploadAssignment = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <Button
                         onClick={startCamera}
-                        className="h-24 flex-col gap-2 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                        className="h-24 flex-col gap-2 bg-[#f59e0b] hover:bg-[#237a57]"
                       >
                         <Camera className="w-8 h-8" />
                         <span>Open Camera</span>
@@ -827,10 +827,10 @@ const UploadAssignment = () => {
                       <Button
                         onClick={() => ocrImageInputRef.current?.click()}
                         variant="outline"
-                        className="h-24 flex-col gap-2 border-2 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50"
+                        className="h-24 flex-col gap-2 border-2 border-dashed border-[#f59e0b] hover:border-[#237a57] hover:bg-[#f59e0b]/10"
                       >
-                        <Upload className="w-8 h-8 text-purple-500" />
-                        <span className="text-purple-700">Upload Images</span>
+                        <Upload className="w-8 h-8 text-[#f59e0b]" />
+                        <span className="text-[#f59e0b]">Upload Images</span>
                       </Button>
                       <input
                         ref={ocrImageInputRef}
@@ -859,7 +859,7 @@ const UploadAssignment = () => {
                             onClick={captureImage}
                             className="rounded-full w-14 h-14 bg-white hover:bg-gray-100"
                           >
-                            <Camera className="w-6 h-6 text-purple-600" />
+                            <Camera className="w-6 h-6 text-[#f59e0b]" />
                           </Button>
                           <Button
                             onClick={stopCamera}
@@ -902,7 +902,7 @@ const UploadAssignment = () => {
                               alt={`Page ${index + 1}`}
                               className={`w-full h-32 object-cover rounded-lg border-2 cursor-pointer transition-all ${
                                 img.processed ? 'border-green-400' : 'border-gray-200'
-                              } hover:border-purple-400`}
+                              } hover:border-[#f59e0b]`}
                               onClick={() => setPreviewImage(img)}
                             />
                             <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
@@ -937,7 +937,7 @@ const UploadAssignment = () => {
                       <Button
                         onClick={processAllImagesWithOcr}
                         disabled={isProcessingOcr || capturedImages.length === 0}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="w-full bg-[#f59e0b] hover:bg-[#237a57]"
                       >
                         {isProcessingOcr ? (
                           <>

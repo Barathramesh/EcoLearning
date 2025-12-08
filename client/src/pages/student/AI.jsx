@@ -264,7 +264,7 @@ const AI = () => {
           const [, header, rest] = boldHeaderMatch;
           return (
             <div key={index} className="flex items-start gap-3 my-2">
-              <span className="bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+              <span className="bg-[#237a57] text-white rounded-fill w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                 {numberedMatch[1]}
               </span>
               <div className="flex-1">
@@ -541,8 +541,8 @@ Use simple student-friendly language.`
                         {/* Avatar */}
                         <div className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center ${
                           message.type === 'ai' 
-                            ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
-                            : 'bg-gradient-to-br from-purple-500 to-pink-600'
+                            ? 'bg-[#237a57]' 
+                            : 'bg-[#3b9b8f]'
                         }`}>
                           {message.type === 'ai' ? (
                             <Leaf className="w-4 h-4 text-white" />

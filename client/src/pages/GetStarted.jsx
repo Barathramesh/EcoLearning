@@ -8,16 +8,16 @@ const GetStarted = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50">
+    <div className="min-h-screen bg-amber-50">
       <Navigation />
       <main className="pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-full mb-6 shadow-lg">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-[#f59e0b] rounded-full mb-6 shadow-lg">
               <BookOpen className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-[#237a57] mb-4">
               Welcome to EcoLearn
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
@@ -30,7 +30,7 @@ const GetStarted = () => {
             {/* Student Card */}
             <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 hover:border-emerald-200">
               <CardContent className="p-8 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-24 h-24 bg-[#3b9b8f] rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                   <GraduationCap className="w-12 h-12 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">I'm a Student</h2>
@@ -53,7 +53,7 @@ const GetStarted = () => {
                 </ul>
                 <Button 
                   onClick={() => navigate('/login?type=student')}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold py-3"
+                  className="w-full bg-[#237a57] hover:bg-[#f59e0b] text-white font-semibold py-3"
                 >
                   Continue as Student
                 </Button>

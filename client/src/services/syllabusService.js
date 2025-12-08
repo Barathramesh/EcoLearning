@@ -82,7 +82,7 @@ export const generatePromptFromSyllabus = async (
 };
 
 /**
- * Generate video from syllabus using Kling AI
+ * Generate video from syllabus using Pollo AI
  */
 export const generateVideoFromSyllabus = async (syllabusId, options = {}) => {
   try {

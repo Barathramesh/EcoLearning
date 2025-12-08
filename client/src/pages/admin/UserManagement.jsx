@@ -306,7 +306,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f0f9ff, #f0fdf4)' }}>
+    <div style={{ minHeight: '100vh', background: '#fef3c7' }}>
       <AdminNavbar />
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 2rem' }}>
         {/* Success/Error Messages */}

@@ -202,15 +202,15 @@ const StudentDashboard = () => {
       label: "Badges Earned",
       value: studentData.badges,
       icon: Award,
-      gradient: "from-purple-400 to-indigo-500",
-      bgGradient: "from-purple-500/20 to-indigo-500/20",
+      gradient: "bg-[#f59e0b]",
+      bgGradient: "bg-[#f59e0b]/20",
     },
     {
       label: "Hours Learned",
       value: studentData.hoursLearned,
       icon: BookOpen,
-      gradient: "from-emerald-400 to-cyan-500",
-      bgGradient: "from-emerald-500/20 to-cyan-500/20",
+      gradient: "bg-[#237a57]",
+      bgGradient: "bg-[#237a57]/20",
       suffix: "h",
     },
   ];
@@ -282,7 +282,7 @@ const StudentDashboard = () => {
         ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-cyan-900 overflow-hidden">
+    <div className="min-h-screen bg-[#1a3a2e] overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -294,13 +294,13 @@ const StudentDashboard = () => {
             duration={Math.random() * 3 + 4}
           />
         ))}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#237a57]/15 rounded-full blur-3xl animate-pulse" />
         <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#3b9b8f]/15 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         />
         <div
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-[#3b9b8f]/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "2s" }}
         />
       </div>
@@ -316,16 +316,16 @@ const StudentDashboard = () => {
         >
           <div className="glass rounded-3xl p-8 relative overflow-hidden">
             {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#3b9b8f]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
             <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               {/* User Info */}
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center animate-pulse-glow">
+                  <div className="w-24 h-24 rounded-2xl bg-[#f59e0b] flex items-center justify-center animate-pulse-glow">
                     <span className="text-5xl">🦸</span>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm border-4 border-slate-900">
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-[#f59e0b] flex items-center justify-center text-white font-bold text-sm border-4 border-[#1a3a2e]">
                     {studentData.level}
                   </div>
                 </div>
@@ -418,7 +418,7 @@ const StudentDashboard = () => {
                     {stat.suffix}
                   </p>
                   {stat.label === "Badges Earned" && (
-                    <p className="text-xs text-purple-400 mt-2">Click to view →</p>
+                    <p className="text-xs text-[#f59e0b] mt-2">Click to view →</p>
                   )}
                 </div>
               </CardContent>
@@ -440,7 +440,7 @@ const StudentDashboard = () => {
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
                       <Target className="w-5 h-5 text-white" />
                     </div>
                     Daily Challenges
@@ -478,14 +478,14 @@ const StudentDashboard = () => {
                         }
                         className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
                           challenge.completed
-                            ? "bg-emerald-500/20 border border-emerald-500/30"
+                            ? "bg-[#237a57]/20 border border-[#237a57]/30"
                             : "bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
                         }`}
                       >
                         <div
                           className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                             challenge.completed
-                              ? "bg-emerald-500"
+                              ? "bg-[#237a57]"
                               : "bg-gradient-to-br from-slate-700 to-slate-600"
                           }`}
                         >
@@ -515,7 +515,7 @@ const StudentDashboard = () => {
                               <div className="flex items-center gap-2 mt-1">
                                 <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-500"
+                                    className="h-full bg-[#3b9b8f] rounded-full transition-all duration-500"
                                     style={{
                                       width: `${
                                         (challenge.progress / challenge.total) *
@@ -533,7 +533,7 @@ const StudentDashboard = () => {
                         <Badge
                           className={
                             challenge.completed
-                              ? "bg-emerald-500/30 text-emerald-300"
+                              ? "bg-[#237a57]/30 text-[#3b9b8f]"
                               : "bg-amber-500/20 text-amber-300"
                           }
                         >
@@ -557,7 +557,7 @@ const StudentDashboard = () => {
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
                       <Award className="w-5 h-5 text-white" />
                     </div>
                     Achievement Progress
@@ -622,7 +622,7 @@ const StudentDashboard = () => {
                 {
                   title: "Continue Learning",
                   icon: BookOpen,
-                  color: "from-emerald-400 to-emerald-600",
+                  color: "bg-[#237a57]",
                   path: "/student/lessons",
                 },
                 {
@@ -669,7 +669,7 @@ const StudentDashboard = () => {
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
                       <Trophy className="w-5 h-5 text-white" />
                     </div>
                     Leaderboard
@@ -682,7 +682,7 @@ const StudentDashboard = () => {
                         key={index}
                         className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
                           student.isCurrentUser
-                            ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 scale-105"
+                            ? "bg-[#237a57]/20 border border-[#237a57]/30 scale-105"
                             : "bg-white/5 hover:bg-white/10"
                         }`}
                       >
@@ -735,7 +735,7 @@ const StudentDashboard = () => {
                   )}
                   <Button
                     variant="ghost"
-                    className="w-full mt-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                    className="w-full mt-2 text-[#3b9b8f] hover:text-[#f59e0b] hover:bg-[#237a57]/10"
                     onClick={() => navigate("/student/leaderboard")}
                   >
                     View Full Leaderboard{" "}
@@ -756,7 +756,7 @@ const StudentDashboard = () => {
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#3b9b8f] flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
                     Upcoming Events
@@ -784,7 +784,7 @@ const StudentDashboard = () => {
                   : "opacity-0 translate-y-10"
               }`}
             >
-              <Card className="border-0 bg-gradient-to-br from-emerald-500 to-cyan-500 relative overflow-hidden">
+              <Card className="border-0 bg-[#237a57] relative overflow-hidden">
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />

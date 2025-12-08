@@ -8,7 +8,7 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-      <div className="bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900 rounded-2xl p-8 max-w-md w-full shadow-2xl border-4 border-yellow-400 relative overflow-hidden">
+      <div className="bg-[#237a57] rounded-2xl p-8 max-w-md w-full shadow-2xl border-4 border-[#f59e0b] relative overflow-hidden">
         {/* Sparkle effects */}
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(20)].map((_, i) => (
@@ -82,14 +82,14 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
             </div>
             <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-purple-400 to-pink-400 h-full rounded-full transition-all duration-1000 ease-out"
+                className="bg-[#3b9b8f] h-full rounded-full transition-all duration-1000 ease-out"
                 style={{
                   width: `${(rewards.currentXP / rewards.nextLevelXP) * 100}%`
                 }}
               />
             </div>
             {rewards.currentLevel === 1 && (
-              <p className="text-center text-sm text-purple-200 mt-2">
+              <p className="text-center text-sm text-[#3b9b8f] mt-2">
                 🏆 Reach Level 2 to earn your first badge!
               </p>
             )}
@@ -97,7 +97,7 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
 
           {/* Level Up Rewards */}
           {rewards.leveledUp && rewards.levelUpRewards?.length > 0 && (
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur rounded-xl p-4 mb-4 border-2 border-yellow-400 animate-pulse">
+            <div className="bg-[#f59e0b]/20 backdrop-blur rounded-xl p-4 mb-4 border-2 border-[#f59e0b] animate-pulse">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-6 h-6 text-yellow-400" />
                 <h3 className="text-xl font-bold text-yellow-400">
@@ -126,10 +126,10 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
                     {reward.type === 'badge' && (
                       <>
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                          reward.badge.rarity === 'legendary' ? 'bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-yellow-500/50' :
-                          reward.badge.rarity === 'epic' ? 'bg-gradient-to-br from-purple-400 to-pink-500 shadow-lg shadow-purple-500/50' :
-                          reward.badge.rarity === 'rare' ? 'bg-gradient-to-br from-blue-400 to-cyan-500 shadow-lg shadow-blue-500/50' :
-                          'bg-gradient-to-br from-gray-300 to-gray-400 shadow-lg'
+                          reward.badge.rarity === 'legendary' ? 'bg-[#f59e0b] shadow-lg shadow-[#f59e0b]/50' :
+                          reward.badge.rarity === 'epic' ? 'bg-[#237a57] shadow-lg shadow-[#237a57]/50' :
+                          reward.badge.rarity === 'rare' ? 'bg-[#3b9b8f] shadow-lg shadow-[#3b9b8f]/50' :
+                          'bg-gray-400 shadow-lg'
                         }`}>
                           {reward.badge.icon}
                         </div>
@@ -142,7 +142,7 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
                           </p>
                           <p className={`text-xs font-bold mt-1 ${
                             reward.badge.rarity === 'legendary' ? 'text-yellow-400' :
-                            reward.badge.rarity === 'epic' ? 'text-purple-400' :
+                            reward.badge.rarity === 'epic' ? 'text-[#237a57]' :
                             reward.badge.rarity === 'rare' ? 'text-blue-400' :
                             'text-gray-300'
                           }`}>
@@ -160,7 +160,7 @@ const GameCompletionModal = ({ show, onClose, rewards }) => {
           {/* Continue Button */}
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-green-900 font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+            className="w-full bg-[#f59e0b] hover:bg-[#237a57] text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
           >
             Continue
             <ArrowRight className="w-5 h-5" />

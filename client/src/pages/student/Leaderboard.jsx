@@ -124,7 +124,7 @@ const Leaderboard = () => {
       title: "Knowledge Seeker",
       description: "Completed 50+ lessons",
       icon: Star,
-      color: "text-blue-400",
+      color: "text-[#f59e0b]",
       gradient: "from-blue-400 to-cyan-600",
       unlocked: false,
     },
@@ -148,7 +148,7 @@ const Leaderboard = () => {
       title: "Perfect Score",
       description: "100% on 10 assessments",
       icon: Target,
-      color: "text-green-400",
+      color: "text-[#3b9b8f]",
       gradient: "from-gray-400 to-gray-600",
       unlocked: false,
     },
@@ -172,37 +172,37 @@ const Leaderboard = () => {
   };
 
   const getRankStyle = (rank, isCurrentUser = false) => {
-    if (isCurrentUser) return "bg-emerald-500/20 border border-emerald-500/40";
+    if (isCurrentUser) return "bg-[#237a57]/20 border border-[#237a57]/40";
     switch (rank) {
       case 1:
-        return "bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30";
+        return "bg-[#f59e0b]/20 border border-[#f59e0b]/30";
       case 2:
-        return "bg-gradient-to-r from-gray-400/20 to-gray-500/20 border border-gray-400/30";
+        return "bg-gray-500/20 border border-gray-400/30";
       case 3:
-        return "bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30";
+        return "bg-[#3b9b8f]/20 border border-[#3b9b8f]/30";
       default:
         return "glass border-0";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-900/30 to-slate-900">
+    <div className="min-h-screen bg-[#1a3a2e]">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#237a57]/10 rounded-full blur-3xl animate-float"></div>
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-float"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-[#f59e0b]/10 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "2s" }}
         ></div>
         <div
-          className="absolute top-1/2 left-1/2 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-float"
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#3b9b8f]/10 rounded-full blur-3xl animate-float"
           style={{ animationDelay: "4s" }}
         ></div>
         {/* Sparkle particles */}
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-[#f59e0b] rounded-full animate-pulse"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
@@ -219,13 +219,13 @@ const Leaderboard = () => {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-yellow-500/30 animate-float">
+              <div className="w-20 h-20 bg-[#f59e0b] rounded-3xl flex items-center justify-center shadow-2xl shadow-[#f59e0b]/30 animate-float">
                 <Trophy className="w-10 h-10 text-white" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-white flex items-center gap-3">
                   Leaderboard
-                  <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
+                  <Sparkles className="w-8 h-8 text-[#f59e0b] animate-pulse" />
                 </h1>
                 <p className="text-gray-400">
                   See how you rank among environmental champions worldwide
@@ -236,9 +236,9 @@ const Leaderboard = () => {
             {/* Current User Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <Card className="glass border-0 hover-lift overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-[#237a57]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
+                  <div className="w-14 h-14 rounded-2xl bg-[#237a57] flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#237a57]/30">
                     <Globe className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-3xl font-bold text-white">
@@ -248,9 +248,9 @@ const Leaderboard = () => {
                 </CardContent>
               </Card>
               <Card className="glass border-0 hover-lift overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-[#3b9b8f]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
+                  <div className="w-14 h-14 rounded-2xl bg-[#3b9b8f] flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#3b9b8f]/30">
                     <School className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-3xl font-bold text-white">
@@ -260,9 +260,9 @@ const Leaderboard = () => {
                 </CardContent>
               </Card>
               <Card className="glass border-0 hover-lift overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-[#f59e0b]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-yellow-500/30">
+                  <div className="w-14 h-14 rounded-2xl bg-[#f59e0b] flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#f59e0b]/30">
                     <Star className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-3xl font-bold text-white">
@@ -272,9 +272,9 @@ const Leaderboard = () => {
                 </CardContent>
               </Card>
               <Card className="glass border-0 hover-lift overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/30 animate-pulse">
+                  <div className="w-14 h-14 rounded-2xl bg-red-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-red-500/30 animate-pulse">
                     <Flame className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-3xl font-bold text-white">
@@ -297,7 +297,7 @@ const Leaderboard = () => {
                       <Trophy className="w-5 h-5 text-white" />
                     </div>
                     Quiz Leaderboard
-                    <Badge className="ml-auto bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <Badge className="ml-auto bg-[#237a57]/20 text-[#3b9b8f] border border-[#237a57]/30">
                       <BookOpen className="w-3 h-3 mr-1" /> Quiz Scores
                     </Badge>
                   </CardTitle>
@@ -305,7 +305,7 @@ const Leaderboard = () => {
                 <CardContent>
                   {loading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader className="w-8 h-8 text-emerald-400 animate-spin mr-3" />
+                      <Loader className="w-8 h-8 text-[#237a57] animate-spin mr-3" />
                       <span className="text-gray-400">
                         Loading leaderboard...
                       </span>
@@ -343,22 +343,22 @@ const Leaderboard = () => {
                                   <p
                                     className={`font-semibold ${
                                       isCurrentUser
-                                        ? "text-emerald-400"
+                                        ? "text-[#237a57]"
                                         : "text-white"
                                     }`}
                                   >
                                     {entry.studentName}{" "}
                                     {isCurrentUser && (
-                                      <span className="text-emerald-400">
+                                      <span className="text-[#237a57]">
                                         (You)
                                       </span>
                                     )}
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                    <Badge className="text-xs bg-[#3b9b8f]/20 text-[#3b9b8f] border border-[#3b9b8f]/30">
                                       {entry.quizzesCompleted} Quizzes
                                     </Badge>
-                                    <Badge className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                    <Badge className="text-xs bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/30">
                                       Avg: {entry.averageScore}%
                                     </Badge>
                                   </div>

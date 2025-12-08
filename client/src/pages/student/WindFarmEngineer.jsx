@@ -183,15 +183,15 @@ const WindFarmEngineer = () => {
 
   if (!gameStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50">
+      <div className="min-h-screen bg-amber-50">
         <Navigation userType="student" />
         <main className="pt-20 pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                <Wind className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 bg-[#237a57] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <Wind className="w-16 h-16 text-white" />
               </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              <h1 className="text-4xl font-bold text-[#237a57] mb-4">
                 Wind Farm Engineer
               </h1>
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -200,7 +200,7 @@ const WindFarmEngineer = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <Card className="bg-gradient-to-br from-white to-sky-50 border-sky-200">
+              <Card className="bg-white border-[#237a57]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sky-700">
                     <Lightbulb className="w-6 h-6" />
@@ -229,7 +229,7 @@ const WindFarmEngineer = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-white to-green-50 border-green-200">
+              <Card className="bg-white border-[#3b9b8f]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-700">
                     <Award className="w-6 h-6" />
@@ -262,7 +262,7 @@ const WindFarmEngineer = () => {
             <div className="text-center">
               <Button 
                 onClick={startGame}
-                className="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-[#237a57] hover:bg-[#f59e0b] text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Play className="w-6 h-6 mr-2" />
                 Start Engineering
@@ -282,7 +282,7 @@ const WindFarmEngineer = () => {
           {/* Game Header */}
           <div className="flex flex-wrap items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-[#237a57] rounded-lg flex items-center justify-center">
                 <Wind className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -312,7 +312,7 @@ const WindFarmEngineer = () => {
 
           {/* Game Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card className="bg-white border-[#237a57]">
               <CardContent className="p-4 text-center">
                 <DollarSign className="w-6 h-6 text-green-600 mx-auto mb-2" />
                 <div className="text-lg font-bold text-green-700">${money.toLocaleString()}</div>
@@ -320,7 +320,7 @@ const WindFarmEngineer = () => {
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+            <Card className="bg-white border-[#f59e0b]">
               <CardContent className="p-4 text-center">
                 <Zap className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
                 <div className="text-lg font-bold text-yellow-700">{Math.round(currentProduction)}</div>
@@ -328,7 +328,7 @@ const WindFarmEngineer = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+            <Card className="bg-white border-[#3b9b8f]">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                 <div className="text-lg font-bold text-blue-700">{Math.round(energyProduced)}</div>
@@ -336,15 +336,15 @@ const WindFarmEngineer = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+            <Card className="bg-white border-[#3b9b8f]">
               <CardContent className="p-4 text-center">
-                <Wind className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                <div className="text-lg font-bold text-purple-700">{windTurbines.length}</div>
-                <div className="text-xs text-purple-600">Turbines</div>
+                <Wind className="w-6 h-6 text-[#3b9b8f] mx-auto mb-2" />
+                <div className="text-lg font-bold text-[#3b9b8f]">{windTurbines.length}</div>
+                <div className="text-xs text-[#3b9b8f]">Turbines</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
+            <Card className="bg-white border-[#237a57]">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl mb-1">{getWeatherIcon()}</div>
                 <div className="text-sm font-bold text-indigo-700 capitalize">{weather}</div>
@@ -352,7 +352,7 @@ const WindFarmEngineer = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
+            <Card className="bg-white border-red-500">
               <CardContent className="p-4 text-center">
                 <BarChart3 className="w-6 h-6 text-red-600 mx-auto mb-2" />
                 <div className="text-lg font-bold text-red-700">{Math.round(demandMet)}%</div>
@@ -372,7 +372,7 @@ const WindFarmEngineer = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative w-full h-64 bg-gradient-to-br from-green-100 to-blue-200 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-64 bg-[#3b9b8f]/20 rounded-lg overflow-hidden">
                     {/* Locations */}
                     {locations.map(location => (
                       <div
@@ -457,7 +457,7 @@ const WindFarmEngineer = () => {
                         key={turbine.id}
                         onClick={() => selectedLocation && placeTurbine(selectedLocation, turbine.id)}
                         disabled={!selectedLocation || money < (locations.find(loc => loc.id === selectedLocation)?.cost + turbine.cost)}
-                        className="w-full text-left justify-start bg-gradient-to-r from-sky-500 to-blue-500 hover:from-sky-600 hover:to-blue-600 disabled:from-gray-300 disabled:to-gray-400"
+                        className="w-full text-left justify-start bg-[#237a57] hover:bg-[#f59e0b] disabled:bg-gray-400"
                       >
                         <div className="text-left">
                           <div className="font-semibold">{turbine.name}</div>

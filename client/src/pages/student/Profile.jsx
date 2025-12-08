@@ -103,8 +103,8 @@ const Profile = () => {
       title: "Eco Warrior",
       description: "Completed 50 environmental lessons",
       icon: Leaf,
-      gradient: "from-green-400 to-emerald-600",
-      bgGradient: "from-green-900/80 to-emerald-900/80",
+      gradient: "#237a57",
+      bgGradient: "#237a57",
       earned: false,
       progress: 0
     },
@@ -113,8 +113,8 @@ const Profile = () => {
       title: "Knowledge Seeker",
       description: "Asked 200 questions to AI tutor",
       icon: BookOpen,
-      gradient: "from-purple-400 to-pink-600",
-      bgGradient: "from-purple-900/80 to-pink-900/80",
+      gradient: "#f59e0b",
+      bgGradient: "#f59e0b",
       earned: false,
       progress: 0
     },
@@ -143,8 +143,8 @@ const Profile = () => {
       title: "Sustainability Champion",
       description: "Complete all climate change modules",
       icon: Star,
-      gradient: "from-emerald-400 to-cyan-600",
-      bgGradient: "from-emerald-900/80 to-cyan-900/80",
+      gradient: "#3b9b8f",
+      bgGradient: "#3b9b8f",
       earned: false,
       progress: 0
     }
@@ -172,10 +172,10 @@ const Profile = () => {
   const userStats = getUserStats();
 
   const stats = [
-    { label: "Lessons Completed", value: userStats.lessonsCompleted.toString(), icon: BookOpen, gradient: "from-blue-400 to-cyan-600" },
-    { label: "Quiz Score Average", value: userStats.quizAverage ? `${userStats.quizAverage}%` : "0%", icon: Target, gradient: "from-green-400 to-emerald-600" },
+    { label: "Lessons Completed", value: userStats.lessonsCompleted.toString(), icon: BookOpen, gradient: "#3b9b8f" },
+    { label: "Quiz Score Average", value: userStats.quizAverage ? `${userStats.quizAverage}%` : "0%", icon: Target, gradient: "#237a57" },
     { label: "Learning Streak", value: `${userStats.streak} days`, icon: Flame, gradient: "from-orange-400 to-red-600" },
-    { label: "AI Questions Asked", value: userStats.questionsAsked.toString(), icon: Sparkles, gradient: "from-purple-400 to-pink-600" }
+    { label: "AI Questions Asked", value: userStats.questionsAsked.toString(), icon: Sparkles, gradient: "#f59e0b" }
   ];
 
   // Recent activity would be fetched from backend - empty for now
@@ -205,11 +205,11 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900">
+      <div className="min-h-screen bg-[#1a3a2e]">
         <Navigation userType="student" />
         <main className="pt-20 pb-16 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-[#f59e0b] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-400">Loading profile...</p>
           </div>
         </main>
@@ -218,17 +218,17 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900">
+    <div className="min-h-screen bg-[#1a3a2e]">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#3b9b8f]/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#f59e0b]/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#237a57]/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
         {/* Floating particles */}
         {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-purple-400 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-[#f59e0b] rounded-full animate-pulse"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
@@ -247,13 +247,13 @@ const Profile = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-400 via-pink-500 to-cyan-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/30 animate-float">
+                <div className="w-20 h-20 bg-[#237a57] rounded-3xl flex items-center justify-center shadow-2xl shadow-[#237a57]/30 animate-float">
                   <User className="w-10 h-10 text-white" />
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold text-white flex items-center gap-3">
                     My Profile
-                    <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
+                    <Sparkles className="w-8 h-8 text-[#f59e0b] animate-pulse" />
                   </h1>
                   <p className="text-gray-400">Manage your account and track your learning progress</p>
                 </div>
@@ -266,16 +266,16 @@ const Profile = () => {
             <div className="lg:col-span-1 space-y-6">
               {/* Profile Card */}
               <Card className="glass border-0 overflow-hidden">
-                <div className="h-24 bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-cyan-500/30"></div>
+                <div className="h-24 bg-[#237a57]"></div>
                 <CardContent className="p-6 -mt-12">
                   <div className="text-center mb-6">
                     <div className="relative inline-block">
-                      <div className="w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-purple-500/30 ring-4 ring-slate-800">
+                      <div className="w-24 h-24 bg-[#237a57] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-[#237a57]/30 ring-4 ring-slate-800">
                         <User className="w-12 h-12 text-white" />
                       </div>
                       <Button 
                         size="icon" 
-                        className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg"
+                        className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-[#f59e0b] hover:bg-[#237a57] shadow-lg"
                         title="Upload profile picture"
                       >
                         <Camera className="w-4 h-4" />
@@ -284,7 +284,7 @@ const Profile = () => {
                     
                     <div>
                       <h2 className="text-2xl font-bold text-white">{profileData.name}</h2>
-                      <Badge className="mt-2 bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      <Badge className="mt-2 bg-[#3b9b8f]/20 text-[#3b9b8f] border border-[#3b9b8f]/30">
                         {profileData.class}
                       </Badge>
                     </div>
@@ -323,7 +323,7 @@ const Profile = () => {
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
                       <Trophy className="w-5 h-5 text-white" />
                     </div>
                     Learning Stats
@@ -334,7 +334,7 @@ const Profile = () => {
                     {stats.map((stat, index) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 hover:bg-gray-800/50 transition-all duration-300">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg`}>
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: stat.gradient }}>
                             <stat.icon className="w-5 h-5 text-white" />
                           </div>
                           <span className="text-sm font-medium text-gray-300">{stat.label}</span>

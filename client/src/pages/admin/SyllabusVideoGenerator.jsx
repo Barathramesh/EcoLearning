@@ -1903,7 +1903,7 @@ const SyllabusVideoGenerator = () => {
                       color: "#8b5cf6",
                     }}
                   />
-                  Generate Video with Kling AI
+                  Generate Video with Pollo AI
                 </h3>
                 <button
                   onClick={() => {

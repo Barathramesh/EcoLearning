@@ -794,7 +794,7 @@ const EcoLab = () => {
   const airStatus = getAirQualityStatus(smokeLevel);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-[#1a3a2e]">
       <Navigation />
 
       <main className="pt-20 pb-16">
@@ -802,10 +802,10 @@ const EcoLab = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl">
+              <div className="p-3 bg-[#237a57] rounded-xl">
                 <FlaskConical className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-[#237a57]">
                 Eco-Lab Virtual Experiments
               </h1>
             </div>
@@ -820,7 +820,7 @@ const EcoLab = () => {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Water Lab Panel */}
             <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm overflow-hidden">
-              <CardHeader className="border-b border-slate-700 bg-gradient-to-r from-blue-900/50 to-cyan-900/50">
+              <CardHeader className="border-b border-slate-700 bg-[#3b9b8f]/50">
                 <CardTitle className="flex items-center gap-3 text-white">
                   <div className="p-2 bg-blue-500/20 rounded-lg">
                     <Beaker className="w-5 h-5 text-blue-400" />
@@ -972,7 +972,7 @@ const EcoLab = () => {
                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                         Smoke Emission
                       </label>
-                      <span className="text-sm font-bold text-purple-400">
+                      <span className="text-sm font-bold text-[#3b9b8f]">
                         {smokeLevel}%
                       </span>
                     </div>
@@ -1047,9 +1047,9 @@ const EcoLab = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-purple-900/30 border-purple-800/50 backdrop-blur-sm">
+            <Card className="bg-[#3b9b8f]/30 border-[#3b9b8f]/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-purple-300 mb-2">
+                <h3 className="text-lg font-semibold text-[#3b9b8f] mb-2">
                   💨 Air Quality Facts
                 </h3>
                 <ul className="text-sm text-slate-300 space-y-2">

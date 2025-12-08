@@ -1,11 +1,13 @@
 import Syllabus from "../models/Syllabus.js";
 import QuizResult from "../models/QuizResult.js";
 import aiGradingService from "../services/aiGradingService.js";
-import {
-  generateVideoFromPrompt,
-  getVideoTaskStatus,
-  generatePromptFromSyllabus,
-} from "../services/klingAIService.js";
+import * as polloAI from '../services/polloAIService.js';
+
+// Helper to generate prompt from syllabus
+const generatePromptFromSyllabus = (syllabus) => {
+  const { title, subject, grade, content } = syllabus;
+  return `Create an educational video about: ${title}. Subject: ${subject}, Grade: ${grade}. Content: ${content.substring(0, 200)}...`;
+};
 
 /**
  * Create a new syllabus with AI-generated quiz
@@ -334,7 +336,7 @@ export const generatePrompt = async (req, res) => {
 };
 
 /**
- * Generate video from syllabus using Kling AI
+ * Generate video from syllabus using Pollo AI
  */
 export const generateVideo = async (req, res) => {
   try {
@@ -387,12 +389,12 @@ export const generateVideo = async (req, res) => {
     syllabus.generatedPrompt = prompt;
     syllabus.videoGenerationStatus = "generating";
 
-    // Call Kling AI to generate video
-    const result = await generateVideoFromPrompt(prompt, {
-      duration: options?.duration || "5",
+    // Call Pollo AI to generate video
+    const result = await polloAI.generateVideoFromPrompt(prompt, {
+      duration: parseInt(options?.duration) || 5,
       aspectRatio: options?.aspectRatio || "16:9",
-      mode: options?.mode || "std",
-      ...options,
+      quality: options?.quality || "high",
+      model: "pollo-1.5",
     });
 
     if (result.success) {
@@ -448,11 +450,11 @@ export const checkVideoStatus = async (req, res) => {
       });
     }
 
-    // Check status from Kling AI
-    const status = await getVideoTaskStatus(syllabus.videoTaskId);
+    // Check status from Pollo AI
+    const status = await polloAI.checkVideoStatus(syllabus.videoTaskId);
 
     // Update syllabus based on status
-    if (status.status === "succeed") {
+    if (status.status === "completed") {
       syllabus.videoGenerationStatus = "completed";
       syllabus.videoUrl = status.videoUrl;
       syllabus.thumbnailUrl = status.thumbnailUrl;
@@ -499,12 +501,12 @@ export const generateVideoFromText = async (req, res) => {
       });
     }
 
-    // Call Kling AI to generate video
-    const result = await generateVideoFromPrompt(prompt, {
-      duration: options?.duration || "5",
+    // Call Pollo AI to generate video
+    const result = await polloAI.generateVideoFromPrompt(prompt, {
+      duration: parseInt(options?.duration) || 5,
       aspectRatio: options?.aspectRatio || "16:9",
-      mode: options?.mode || "std",
-      ...options,
+      quality: options?.quality || "high",
+      model: "pollo-1.5",
     });
 
     if (result.success) {
@@ -545,7 +547,7 @@ export const checkTaskStatus = async (req, res) => {
       });
     }
 
-    const status = await getVideoTaskStatus(taskId);
+    const status = await polloAI.checkVideoStatus(taskId);
 
     res.status(200).json({
       success: true,

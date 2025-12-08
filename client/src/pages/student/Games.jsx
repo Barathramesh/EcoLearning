@@ -223,10 +223,10 @@ const Games = () => {
   const totalPoints = games.filter(game => game.completed).reduce((sum, game) => sum + game.points, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-[#1a3a2e] overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#237a57]/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
         
@@ -241,96 +241,12 @@ const Games = () => {
       <Navigation userType="student" />
       
       <main className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Hero Header */}
-        <div className={`mb-10 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="glass rounded-3xl p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 flex items-center justify-center animate-pulse-glow shadow-2xl">
-                  <Gamepad2 className="w-12 h-12 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2">
-                    Eco Games Hub <span className="animate-bounce inline-block">🎮</span>
-                  </h1>
-                  <p className="text-purple-200 text-lg">
-                    Learn environmental science through epic adventures!
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="flex gap-4">
-                <div className="text-center p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <div className="text-3xl font-bold text-amber-400">
-                    {completedGames}/{totalGames}
-                  </div>
-                  <div className="text-sm text-gray-400">Completed</div>
-                </div>
-                <div className="text-center p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <div className="text-3xl font-bold text-emerald-400">
-                    {totalPoints}
-                  </div>
-                  <div className="text-sm text-gray-400">Points</div>
-                </div>
-                <div className="text-center p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <div className="text-3xl font-bold text-cyan-400">
-                    {Math.round((completedGames / totalGames) * 100) || 0}%
-                  </div>
-                  <div className="text-sm text-gray-400">Progress</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Search and Filter Bar */}
-        <div className={`mb-8 transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="glass rounded-2xl p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-              {/* Search */}
-              <div className="relative w-full lg:w-96">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search games..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-
-              {/* Category Filter */}
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <Button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`transition-all duration-300 ${
-                      selectedCategory === category
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/25"
-                        : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {category}
-                    <Badge className="ml-2 bg-white/20 text-white border-0">
-                      {category === "All" ? games.length : games.filter(g => g.category === category).length}
-                    </Badge>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full border-4 border-purple-500/30 border-t-purple-500 animate-spin" />
-              <Gamepad2 className="w-8 h-8 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              <div className="w-20 h-20 rounded-full border-4 border-[#f59e0b]/30 border-t-[#f59e0b] animate-spin" />
+              <Gamepad2 className="w-8 h-8 text-[#f59e0b] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
             <p className="mt-6 text-gray-400 font-medium">Loading your games...</p>
           </div>
@@ -360,7 +276,7 @@ const Games = () => {
                     onClick={() => navigate(game.route)}
                   >
                     {/* Gradient overlay on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                    <div className={`absolute inset-0 bg-[#3b9b8f]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                     
                     {/* Shine effect */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
@@ -371,9 +287,9 @@ const Games = () => {
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
-                          game.difficulty === 'Easy' ? 'bg-gradient-to-br from-emerald-400 to-green-500' :
-                          game.difficulty === 'Medium' ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
-                          'bg-gradient-to-br from-red-400 to-pink-500'
+                          game.difficulty === 'Easy' ? 'bg-[#237a57]' :
+                          game.difficulty === 'Medium' ? 'bg-[#f59e0b]' :
+                          'bg-[#dc2626]'
                         }`}>
                           <IconComponent className="w-8 h-8 text-white" />
                         </div>
@@ -393,7 +309,7 @@ const Games = () => {
                       </div>
 
                       {/* Content */}
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors duration-300">
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#f59e0b] transition-colors duration-300">
                         {game.title}
                       </h3>
                       <p className="text-gray-400 text-sm mb-4 line-clamp-2">
@@ -406,7 +322,7 @@ const Games = () => {
                           <Clock className="w-4 h-4" />
                           {game.duration}
                         </div>
-                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        <Badge className="bg-[#3b9b8f]/20 text-[#3b9b8f] border-[#3b9b8f]/30">
                           {game.category}
                         </Badge>
                       </div>
@@ -424,17 +340,17 @@ const Games = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-400">Progress</span>
-                            <span className="text-purple-300 font-semibold">{game.progress}%</span>
+                            <span className="text-[#f59e0b] font-semibold">{game.progress}%</span>
                           </div>
                           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                              className="h-full bg-[#f59e0b] rounded-full transition-all duration-500"
                               style={{ width: `${game.progress}%` }}
                             />
                           </div>
                         </div>
                       ) : (
-                        <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-all duration-300">
+                        <Button className="w-full bg-[#237a57] hover:bg-[#f59e0b] text-white border-0 shadow-lg shadow-[#237a57]/25 group-hover:shadow-[#f59e0b]/40 transition-all duration-300">
                           <Play className="w-4 h-4 mr-2" />
                           Start Adventure
                         </Button>
@@ -452,7 +368,7 @@ const Games = () => {
                 </p>
                 <Button 
                   onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  className="bg-[#237a57] text-white"
                 >
                   Show All Games
                 </Button>
@@ -475,13 +391,13 @@ const Games = () => {
               { title: "Climate Challenge", emoji: "🌪️", color: "from-blue-500 to-cyan-500" },
               { title: "Biodiversity Quest", emoji: "🦋", color: "from-green-500 to-emerald-500" },
               { title: "Green City Builder", emoji: "🏙️", color: "from-amber-500 to-orange-500" },
-              { title: "Space Monitor", emoji: "🛰️", color: "from-purple-500 to-indigo-500" }
+              { title: "Space Monitor", emoji: "🛰️", color: "bg-[#3b9b8f]" }
             ].map((game, index) => (
               <Card key={index} className="glass border-0 group cursor-not-allowed">
                 <CardContent className="p-6 text-center">
                   <div className="text-5xl mb-4 group-hover:scale-125 transition-transform duration-300">{game.emoji}</div>
                   <h3 className="font-bold text-white mb-2">{game.title}</h3>
-                  <Badge className={`bg-gradient-to-r ${game.color} text-white border-0`}>
+                  <Badge className={`${game.color} text-white border-0`}>
                     Coming Soon
                   </Badge>
                 </CardContent>

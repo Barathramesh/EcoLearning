@@ -41,7 +41,7 @@ syllabusRouter.delete("/:id", deleteSyllabus);
 // POST /api/syllabus/:id/generate-prompt - Generate prompt from syllabus
 syllabusRouter.post("/:id/generate-prompt", generatePrompt);
 
-// POST /api/syllabus/:id/generate-video - Generate video from syllabus using Kling AI
+// POST /api/syllabus/:id/generate-video - Generate video from syllabus using Pollo AI
 syllabusRouter.post("/:id/generate-video", generateVideo);
 
 // GET /api/syllabus/:id/video-status - Check video generation status

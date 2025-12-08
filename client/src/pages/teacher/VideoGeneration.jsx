@@ -169,7 +169,7 @@ const VideoGeneration = () => {
       }
     } catch (error) {
       console.error('Error generating video:', error);
-      setError(error.response?.data?.message || 'Failed to generate video. Check if FAL_KEY is configured.');
+      setError(error.response?.data?.message || 'Failed to generate video. Check if POLLO_API_KEY is configured.');
     } finally {
       setIsGenerating(false);
     }
@@ -505,7 +505,7 @@ const VideoGeneration = () => {
                   <ul className="space-y-2 text-sm text-purple-200">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                      Powered by Fal.ai video generation
+                      Powered by Pollo AI video generation
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
