@@ -77,7 +77,7 @@ const syllabusSchema = new mongoose.Schema({
   },
   videoGenerationStatus: {
     type: String,
-    enum: ["pending", "generating", "completed", "failed"],
+    enum: ["pending", "generating", "completed", "failed", "demo"],
     default: "pending",
   },
   videoUrl: {

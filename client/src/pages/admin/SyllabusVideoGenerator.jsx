@@ -499,7 +499,7 @@ const SyllabusVideoGenerator = () => {
               Syllabus to Video Generator
             </h1>
             <p style={{ color: "#6b7280" }}>
-              Create syllabi and generate animated educational videos using AI
+              Create syllabus and generate animated educational videos using AI
             </p>
           </div>
           <button
@@ -1903,7 +1903,7 @@ const SyllabusVideoGenerator = () => {
                       color: "#8b5cf6",
                     }}
                   />
-                  Generate Video with Pollo AI
+                  Generate Video with AI
                 </h3>
                 <button
                   onClick={() => {

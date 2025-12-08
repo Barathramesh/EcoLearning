@@ -1,7 +1,7 @@
 import Syllabus from "../models/Syllabus.js";
 import QuizResult from "../models/QuizResult.js";
 import aiGradingService from "../services/aiGradingService.js";
-import * as polloAI from '../services/polloAIService.js';
+import * as klingAI from '../services/klingAIService.js';
 
 // Helper to generate prompt from syllabus
 const generatePromptFromSyllabus = (syllabus) => {
@@ -389,33 +389,36 @@ export const generateVideo = async (req, res) => {
     syllabus.generatedPrompt = prompt;
     syllabus.videoGenerationStatus = "generating";
 
-    // Call Pollo AI to generate video
-    const result = await polloAI.generateVideoFromPrompt(prompt, {
-      duration: parseInt(options?.duration) || 5,
-      aspectRatio: options?.aspectRatio || "16:9",
-      quality: options?.quality || "high",
-      model: "pollo-1.5",
-    });
+    await syllabus.save();
 
-    if (result.success) {
-      syllabus.videoTaskId = result.taskId;
+    // Start video generation with Kling AI
+    const videoOptions = options || {
+      duration: 5,
+      aspectRatio: '16:9',
+      mode: 'std'
+    };
+    
+    console.log('Starting Kling AI video generation:', { prompt, videoOptions });
+    
+    const videoResult = await klingAI.generateVideo(prompt, videoOptions);
+    
+    if (videoResult.success && videoResult.taskId) {
+      syllabus.videoTaskId = videoResult.taskId;
+      syllabus.videoGenerationStatus = "generating";
       await syllabus.save();
 
       res.status(200).json({
         success: true,
-        message: "Video generation started",
+        message: "Video generation started with Kling AI",
         data: {
           syllabusId: syllabus._id,
-          taskId: result.taskId,
+          taskId: videoResult.taskId,
           prompt,
           status: "generating",
         },
       });
     } else {
-      syllabus.videoGenerationStatus = "failed";
-      await syllabus.save();
-
-      throw new Error(result.message || "Failed to start video generation");
+      throw new Error("Failed to start video generation");
     }
   } catch (error) {
     console.error("Generate video error:", error);
@@ -450,39 +453,31 @@ export const checkVideoStatus = async (req, res) => {
       });
     }
 
-    // Check status from Pollo AI
-    const status = await polloAI.checkVideoStatus(syllabus.videoTaskId);
+    // Check status with Kling AI
+    const statusResult = await klingAI.checkVideoStatus(syllabus.videoTaskId);
 
-    // Update syllabus based on status
-    if (status.status === "completed") {
+    if (statusResult.completed) {
       syllabus.videoGenerationStatus = "completed";
-      syllabus.videoUrl = status.videoUrl;
-      syllabus.thumbnailUrl = status.thumbnailUrl;
-    } else if (status.status === "failed") {
+      syllabus.videoUrl = statusResult.videoUrl;
+      await syllabus.save();
+    } else if (statusResult.failed) {
       syllabus.videoGenerationStatus = "failed";
-    } else {
-      syllabus.videoGenerationStatus = "generating";
+      await syllabus.save();
     }
-
-    await syllabus.save();
 
     res.status(200).json({
       success: true,
       data: {
-        syllabusId: syllabus._id,
+        status: syllabus.videoGenerationStatus,
+        videoUrl: syllabus.videoUrl,
         taskId: syllabus.videoTaskId,
-        status: status.status,
-        progress: status.progress,
-        videoUrl: status.videoUrl,
-        thumbnailUrl: status.thumbnailUrl,
       },
     });
   } catch (error) {
     console.error("Check video status error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error checking video status",
-      error: error.message,
+      message: error.message || "Server error checking video status",
     });
   }
 };
@@ -494,35 +489,15 @@ export const generateVideoFromText = async (req, res) => {
   try {
     const { prompt, title, options } = req.body;
 
-    if (!prompt) {
-      return res.status(400).json({
-        success: false,
-        message: "Prompt is required",
-      });
-    }
-
-    // Call Pollo AI to generate video
-    const result = await polloAI.generateVideoFromPrompt(prompt, {
-      duration: parseInt(options?.duration) || 5,
-      aspectRatio: options?.aspectRatio || "16:9",
-      quality: options?.quality || "high",
-      model: "pollo-1.5",
+    // Video generation disabled
+    res.status(200).json({
+      success: true,
+      message: "Video generation is disabled",
+      data: {
+        status: "demo",
+        message: "Video generation feature has been removed",
+      },
     });
-
-    if (result.success) {
-      res.status(200).json({
-        success: true,
-        message: "Video generation started",
-        data: {
-          taskId: result.taskId,
-          title: title || "Custom Video",
-          prompt,
-          status: "generating",
-        },
-      });
-    } else {
-      throw new Error(result.message || "Failed to start video generation");
-    }
   } catch (error) {
     console.error("Generate video from text error:", error);
     res.status(500).json({
@@ -540,24 +515,13 @@ export const checkTaskStatus = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    if (!taskId) {
-      return res.status(400).json({
-        success: false,
-        message: "Task ID is required",
-      });
-    }
-
-    const status = await polloAI.checkVideoStatus(taskId);
-
+    // Video generation disabled
     res.status(200).json({
       success: true,
       data: {
         taskId,
-        status: status.status,
-        progress: status.progress,
-        videoUrl: status.videoUrl,
-        thumbnailUrl: status.thumbnailUrl,
-        duration: status.duration,
+        status: "demo",
+        message: "Video generation is disabled",
       },
     });
   } catch (error) {

@@ -1,4 +1,4 @@
-import * as polloAI from '../services/polloAIService.js';
+import * as klingAI from '../services/klingAIService.js';
 
 // Store video generation jobs
 const videoJobs = new Map();
@@ -75,12 +75,11 @@ const generateVideoAsync = async (jobId, prompt, aspectRatio) => {
     // Enhanced prompt for educational content
     const enhancedPrompt = `${prompt}. High quality, educational, cinematic visuals.`;
 
-    // Use Pollo AI's video generation
-    const result = await polloAI.generateAndWaitForVideo(enhancedPrompt, {
+    // Generate video with Kling AI
+    const result = await klingAI.generateAndWaitForVideo(enhancedPrompt, {
       duration: 5,
       aspectRatio: aspectRatio,
-      quality: 'high',
-      model: 'pollo-1.5'
+      mode: 'std'
     });
 
     clearInterval(progressInterval);

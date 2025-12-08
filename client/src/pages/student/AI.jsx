@@ -31,12 +31,21 @@ const AI = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [studentData, setStudentData] = useState(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [lastRequestTime, setLastRequestTime] = useState(0);
   
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
   
-  // Gemini API configuration
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  // Rate limiting: minimum 2 seconds between requests
+  const MIN_REQUEST_INTERVAL = 2000;
+  
+  // Gemini API configuration - Multiple keys for rotation
+  const GEMINI_API_KEYS = import.meta.env.VITE_GEMINI_API_KEY
+    ? import.meta.env.VITE_GEMINI_API_KEY.split(',').map(k => k.trim()).filter(Boolean)
+    : [];
+  
+  const [currentKeyIndex, setCurrentKeyIndex] = useState(0);
+  const GEMINI_API_KEY = GEMINI_API_KEYS[currentKeyIndex] || GEMINI_API_KEYS[0];
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // Quick suggestion chips
@@ -362,12 +371,37 @@ Use simple student-friendly language.`
         body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Try rotating to next API key if available
+          if (GEMINI_API_KEYS.length > 1 && currentKeyIndex < GEMINI_API_KEYS.length - 1) {
+            const nextIndex = currentKeyIndex + 1;
+            setCurrentKeyIndex(nextIndex);
+            console.log(`🔄 Rate limited! Rotating to API key ${nextIndex + 1}/${GEMINI_API_KEYS.length}`);
+            
+            // Automatically retry with the next key
+            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+            return sendToGemini(message, image); // Recursive retry with new key
+          }
+          throw new Error(`Rate limit exceeded. All ${GEMINI_API_KEYS.length} API key(s) exhausted.`);
+        }
+        throw new Error(`API request failed: ${response.status}`);
+      }
 
       const data = await response.json();
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that. Please try again!";
     } catch (error) {
       console.error('Error calling Gemini API:', error);
+      
+      // Provide user-friendly error messages
+      if (error.message.includes('429') || error.message.includes('Rate limit')) {
+        // Check if all keys are exhausted
+        if (GEMINI_API_KEYS.length > 1) {
+          return "⏰ **All API Keys Rate Limited!**\n\nAll available API keys have reached their quota.\n\n**Solutions:**\n1. ⏳ Wait 1-2 hours for quotas to reset\n2. 🆕 Add more API keys (ask admin)\n3. 💳 Upgrade to paid tier for unlimited access\n\n📧 Contact: admin@ecolearning.com";
+        }
+        return "⏰ **Rate Limit Reached!**\n\nThe AI chat has reached its quota limit.\n\n**Solutions:**\n1. ⏳ Wait 1-2 hours and try again\n2. 🆕 Create a new Google Cloud project with a fresh API key\n3. 💳 Enable billing for unlimited access\n\n💡 Tip: The free tier has strict limits!";
+      }
+      
       return "🌿 Connection issue. Please check your internet and try again!";
     } finally {
       setIsLoading(false);
@@ -376,6 +410,24 @@ Use simple student-friendly language.`
 
   const handleSendMessage = async () => {
     if (chatInput.trim() || selectedImage) {
+      // Rate limiting check
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        const waitTime = Math.ceil((MIN_REQUEST_INTERVAL - timeSinceLastRequest) / 1000);
+        const warningMessage = {
+          type: "ai",
+          message: `⏳ Please wait ${waitTime} second${waitTime > 1 ? 's' : ''} before sending another message to avoid rate limits.`,
+          timestamp: new Date().toISOString(),
+          category: 'System'
+        };
+        setChatHistory(prev => [...prev, warningMessage]);
+        return;
+      }
+      
+      setLastRequestTime(now);
+      
       const messageText = chatInput || (selectedImage ? "🖼 Analyze this image" : "");
       const category = selectedImage ? 'AI Vision' : detectCategory(messageText);
       const hasImage = !!selectedImage;
