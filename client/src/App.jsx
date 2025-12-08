@@ -17,6 +17,7 @@ import Lessons from "./pages/student/Lessons";
 import AI from "./pages/student/AI";
 import Profile from "./pages/student/Profile";
 import Leaderboard from "./pages/student/Leaderboard";
+import Achievements from "./pages/student/Achievements";
 import Badges from "./pages/student/Badges";
 import UploadAssignment from "./pages/student/UploadAssignment";
 import ChangePassword from "./pages/student/ChangePassword";
@@ -97,6 +98,7 @@ const App = () => (
           <Route path="/student/ai" element={<AI />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/leaderboard" element={<Leaderboard />} />
+          <Route path="/student/achievements" element={<Achievements />} />
           <Route
             path="/student/save-the-trees"
             element={<SaveTheTreesGame />}

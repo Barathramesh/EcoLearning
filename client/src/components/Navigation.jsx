@@ -31,6 +31,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
     { name: "AI", path: "/student/ai", icon: Brain, group: "explore" },
     { name: "Profile", path: "/student/profile", icon: User, group: "account" },
     { name: "Leaderboard", path: "/student/leaderboard", icon: Trophy, group: "account" },
+    { name: "Achievements", path: "/student/achievements", icon: Target, group: "account" },
   ];
 
   // Teacher navigation items

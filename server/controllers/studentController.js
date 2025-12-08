@@ -550,3 +550,100 @@ export const awardQuizPoints = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get global leaderboard - top students by points
+ */
+export const getGlobalLeaderboard = async (req, res) => {
+  try {
+    const { limit = 50 } = req.query;
+
+    const students = await Student.find({})
+      .select('name school class points level streak badges gamePoints')
+      .sort({ points: -1 })
+      .limit(parseInt(limit));
+
+    const leaderboard = students.map((student, index) => ({
+      rank: index + 1,
+      studentId: student._id,
+      name: student.name,
+      school: student.school || 'Unknown School',
+      class: student.class,
+      totalPoints: student.points || 0,
+      gamePoints: student.gamePoints || 0,
+      level: student.level || 1,
+      streak: student.streak || 0,
+      badgeCount: student.badges?.length || 0,
+      avatar: getAvatarEmoji(index + 1),
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: leaderboard,
+    });
+  } catch (error) {
+    console.error("Get global leaderboard error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching global leaderboard",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get school-specific leaderboard
+ */
+export const getSchoolLeaderboard = async (req, res) => {
+  try {
+    const { school } = req.params;
+    const { limit = 50 } = req.query;
+
+    if (!school) {
+      return res.status(400).json({
+        success: false,
+        message: "School name is required",
+      });
+    }
+
+    const students = await Student.find({ school })
+      .select('name school class points level streak badges gamePoints')
+      .sort({ points: -1 })
+      .limit(parseInt(limit));
+
+    const leaderboard = students.map((student, index) => ({
+      rank: index + 1,
+      studentId: student._id,
+      name: student.name,
+      school: student.school,
+      class: student.class,
+      totalPoints: student.points || 0,
+      gamePoints: student.gamePoints || 0,
+      level: student.level || 1,
+      streak: student.streak || 0,
+      badgeCount: student.badges?.length || 0,
+      avatar: getAvatarEmoji(index + 1),
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: leaderboard,
+    });
+  } catch (error) {
+    console.error("Get school leaderboard error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching school leaderboard",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Helper function to get avatar emoji based on rank
+ */
+const getAvatarEmoji = (rank) => {
+  const avatars = ['👑', '🥇', '🥈', '🥉', '🌟', '⭐', '✨', '💫', '🎯', '🔥', '🌱', '🌿', '🍃', '🌳', '🌲'];
+  if (rank <= 3) return avatars[rank - 1];
+  return avatars[Math.floor(Math.random() * (avatars.length - 3)) + 3];
+};
