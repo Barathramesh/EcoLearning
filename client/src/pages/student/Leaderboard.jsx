@@ -111,7 +111,34 @@ const Leaderboard = () => {
         console.error("Error fetching quiz leaderboard:", error);
       }
 
-      // Fetch global leaderboard
+      // Fetch school leaderboard first (primary) - Top 10
+      if (currentUser?.school) {
+        try {
+          const schoolResponse = await getSchoolLeaderboard(currentUser.school, 10);
+          console.log("School leaderboard response:", schoolResponse);
+          if (schoolResponse.success) {
+            setSchoolLeaderboard(schoolResponse.data);
+            
+            // Find user's school rank
+            const schoolRank = schoolResponse.data.findIndex(
+              (student) => student.studentId.toString() === studentId.toString()
+            ) + 1;
+            
+            console.log("User school rank:", schoolRank);
+            
+            if (schoolRank > 0) {
+              setUserStats((prev) => ({
+                ...prev,
+                schoolRank: schoolRank,
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching school leaderboard:", error);
+        }
+      }
+
+      // Fetch global leaderboard (secondary)
       try {
         const globalResponse = await getGlobalLeaderboard(50);
         console.log("Global leaderboard response:", globalResponse);
@@ -134,33 +161,6 @@ const Leaderboard = () => {
         }
       } catch (error) {
         console.error("Error fetching global leaderboard:", error);
-      }
-
-      // Fetch school leaderboard if user has school
-      if (currentUser?.school) {
-        try {
-          const schoolResponse = await getSchoolLeaderboard(currentUser.school, 50);
-          console.log("School leaderboard response:", schoolResponse);
-          if (schoolResponse.success) {
-            setSchoolLeaderboard(schoolResponse.data);
-            
-            // Find user's school rank
-            const schoolRank = schoolResponse.data.findIndex(
-              (student) => student.studentId.toString() === studentId.toString()
-            ) + 1;
-            
-            console.log("User school rank:", schoolRank);
-            
-            if (schoolRank > 0) {
-              setUserStats((prev) => ({
-                ...prev,
-                schoolRank: schoolRank,
-              }));
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching school leaderboard:", error);
-        }
       }
 
       // Fetch student's quiz history
@@ -457,6 +457,89 @@ const Leaderboard = () => {
                 </CardContent>
               </Card>
 
+              {/* School Leaderboard - Top 10 */}
+              <Card className="glass border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                      <School className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span>{userData?.school || "Your School"} - Top 10</span>
+                      <span className="text-sm text-gray-400 font-normal">Highest scoring students</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {schoolLeaderboard.length > 0 ? (
+                      schoolLeaderboard.slice(0, 10).map((student, index) => {
+                        const currentUserId = userData?.id || userData?._id;
+                        const isCurrentUser = student.studentId.toString() === currentUserId?.toString();
+                        return (
+                        <div
+                          key={index}
+                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
+                            index + 1,
+                            isCurrentUser
+                          )}`}
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-800/50">
+                              {getRankIcon(index + 1)}
+                            </div>
+                            <div className="text-3xl">{student.avatar}</div>
+                            <div>
+                              <p
+                                className={`font-semibold ${
+                                  isCurrentUser
+                                    ? "text-emerald-400"
+                                    : "text-white"
+                                }`}
+                              >
+                                {student.name}{" "}
+                                {isCurrentUser && (
+                                  <span className="text-emerald-400">
+                                    (You)
+                                  </span>
+                                )}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                  Lvl {student.level}
+                                </Badge>
+                                <div className="flex items-center gap-1 text-xs text-orange-400">
+                                  <Flame className="w-3 h-3" />
+                                  {student.streak || 0} days
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-xl text-white">
+                              {student.totalPoints.toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-500">points</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                    ) : (
+                      <div className="text-center py-12">
+                        <School className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                        <p className="text-gray-400 text-lg font-medium">
+                          No School Data Yet
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1">
+                          Be the first to appear on your school's leaderboard!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Global Leaderboard */}
               <Card className="glass border-0">
                 <CardHeader>
@@ -533,85 +616,6 @@ const Leaderboard = () => {
                         </p>
                         <p className="text-gray-500 text-sm mt-1">
                           Start learning to appear on the leaderboard!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Institution Leaderboard */}
-              <Card className="glass border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                      <School className="w-5 h-5 text-white" />
-                    </div>
-                    {userData?.school || "Your School"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {schoolLeaderboard.length > 0 ? (
-                      schoolLeaderboard.map((student, index) => {
-                        const currentUserId = userData?.id || userData?._id;
-                        const isCurrentUser = student.studentId.toString() === currentUserId?.toString();
-                        return (
-                        <div
-                          key={index}
-                          className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
-                            index + 1,
-                            isCurrentUser
-                          )}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800/50">
-                              {getRankIcon(index + 1)}
-                            </div>
-                            <div className="text-2xl">{student.avatar}</div>
-                            <div>
-                              <p
-                                className={`font-semibold ${
-                                  isCurrentUser
-                                    ? "text-emerald-400"
-                                    : "text-white"
-                                }`}
-                              >
-                                {student.name}{" "}
-                                {isCurrentUser && (
-                                  <span className="text-emerald-400">
-                                    (You)
-                                  </span>
-                                )}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                  Lvl {student.level}
-                                </Badge>
-                                <div className="flex items-center gap-1 text-xs text-orange-400">
-                                  <Flame className="w-3 h-3" />
-                                  {student.streak || 0}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg text-white">
-                              {student.totalPoints.toLocaleString()}
-                            </p>
-                            <p className="text-sm text-gray-500">points</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                    ) : (
-                      <div className="text-center py-12">
-                        <School className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400 text-lg font-medium">
-                          No School Data Yet
-                        </p>
-                        <p className="text-gray-500 text-sm mt-1">
-                          Be the first to appear on your school's leaderboard!
                         </p>
                       </div>
                     )}

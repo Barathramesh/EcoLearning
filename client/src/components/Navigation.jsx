@@ -79,8 +79,8 @@ const Navigation = ({ userType = null, onLogout = null }) => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-gray-800 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-gray-800 z-50 shadow-lg overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Fixed width to prevent shifting */}
           <div className="flex-shrink-0">
@@ -91,26 +91,26 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                 currentUserType === 'admin' ? '/admin/users' :
                 '/'
               } 
-              className="flex items-center space-x-3 group"
+              className="flex items-center space-x-2 group"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 transition-all duration-300 group-hover:scale-105">
-                <Leaf className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 transition-all duration-300 group-hover:scale-105">
+                <Leaf className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
+              <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
                 EcoLearn
               </span>
             </NavLink>
           </div>
 
           {/* Desktop Navigation - Centered and responsive */}
-          <div className="hidden lg:flex items-center justify-center flex-1 mx-8">
-            <div className="flex items-center space-x-1 xl:space-x-2">
+          <div className="hidden xl:flex items-center justify-center flex-1 mx-4">
+            <div className="flex items-center space-x-1">
               {navItems.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center space-x-1 px-2 xl:px-3 py-2 rounded-lg transition-all duration-300 text-sm xl:text-base whitespace-nowrap ${
+                    `flex items-center space-x-1 px-2 py-2 rounded-lg transition-all duration-300 text-sm whitespace-nowrap ${
                       isActive 
                         ? "text-emerald-400 font-medium bg-emerald-500/20 shadow-lg shadow-emerald-500/10" 
                         : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
@@ -118,31 +118,29 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   }
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xl:inline">{getDisplayName(item, true)}</span>
-                  <span className="xl:hidden">{getDisplayName(item, false)}</span>
+                  <span>{getDisplayName(item, false)}</span>
                 </NavLink>
               ))}
             </div>
           </div>
 
           {/* Right side - Language Switcher & Auth button */}
-          <div className="flex-shrink-0 flex items-center space-x-3">
+          <div className="flex-shrink-0 flex items-center space-x-2">
             {/* Language Switcher - Desktop */}
-            <div className="hidden lg:block">
+            <div className="hidden xl:block">
               <LanguageSwitcher variant="minimal" />
             </div>
             
             {/* Desktop Auth Button */}
-            <div className="hidden lg:block">
+            <div className="hidden xl:block">
               {isLoggedIn ? (
                 <Button 
                   className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30" 
                   size="sm"
                   onClick={handleLogout}
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span className="hidden xl:inline">Logout</span>
-                  <span className="xl:hidden">Exit</span>
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Exit
                 </Button>
               ) : (
                 <Button 
@@ -150,14 +148,13 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   size="sm"
                   onClick={() => navigate('/login')}
                 >
-                  <span className="hidden xl:inline">Get Started</span>
-                  <span className="xl:hidden">Login</span>
+                  Login
                 </Button>
               )}
             </div>
 
             {/* Mobile menu button */}
-            <div className="lg:hidden">
+            <div className="xl:hidden">
               <Button
                 variant="ghost"
                 size="icon"
@@ -173,7 +170,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="lg:hidden absolute left-0 right-0 top-16 bg-slate-900/98 backdrop-blur-lg border-b border-gray-800 shadow-2xl">
+          <div className="xl:hidden absolute left-0 right-0 top-16 bg-slate-900/98 backdrop-blur-lg border-b border-gray-800 shadow-2xl">
             <div className="px-4 py-3 space-y-2 max-h-96 overflow-y-auto">
               {currentUserType === 'student' ? (
                 // Grouped navigation for students
@@ -463,7 +460,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
               <div className="pt-3 border-t border-gray-800 space-y-2">
                 {/* Language Switcher - Mobile */}
                 <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-gray-400 text-sm">{t('nav.language')}</span>
+                  <span className="text-gray-400 text-sm">Language</span>
                   <LanguageSwitcher variant="minimal" />
                 </div>
                 
