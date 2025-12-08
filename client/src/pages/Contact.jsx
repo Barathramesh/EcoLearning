@@ -113,8 +113,7 @@ const Contact = () => {
                 <span className="bg-gradient-eco bg-clip-text text-transparent"> Conversation</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Have questions about our platform? Want to partner with us? 
-                We'd love to hear from you and help you on your environmental learning journey.
+                Have questions about our platform? Want to partner with us? We'd love to hear from you and help you on your environmental learning journey.
               </p>
             </div>
           </div>

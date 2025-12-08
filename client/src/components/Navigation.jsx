@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Leaf, Award, BookOpen, Users, Mail, Globe, Camera, Gamepad2, Brain, LogOut, Trophy, User, Upload, Shield, BarChart3, AlertTriangle, School, Settings, FileCheck, ClipboardCheck } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Navigation = ({ userType = null, onLogout = null }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,8 +124,13 @@ const Navigation = ({ userType = null, onLogout = null }) => {
             </div>
           </div>
 
-          {/* Right side - Auth button */}
-          <div className="flex-shrink-0 flex items-center space-x-4">
+          {/* Right side - Language Switcher & Auth button */}
+          <div className="flex-shrink-0 flex items-center space-x-3">
+            {/* Language Switcher - Desktop */}
+            <div className="hidden lg:block">
+              <LanguageSwitcher variant="minimal" />
+            </div>
+            
             {/* Desktop Auth Button */}
             <div className="hidden lg:block">
               {isLoggedIn ? (
@@ -453,7 +459,13 @@ const Navigation = ({ userType = null, onLogout = null }) => {
               )}
               
               {/* Mobile Auth Button */}
-              <div className="pt-3 border-t border-gray-800">
+              <div className="pt-3 border-t border-gray-800 space-y-2">
+                {/* Language Switcher - Mobile */}
+                <div className="flex items-center justify-between px-4 py-2">
+                  <span className="text-gray-400 text-sm">{t('nav.language')}</span>
+                  <LanguageSwitcher variant="minimal" />
+                </div>
+                
                 {isLoggedIn ? (
                   <Button 
                     className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white justify-start shadow-lg shadow-red-500/30" 

@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 // Create a new assignment
 export const createAssignment = async (req, res) => {
   try {
-    const { title, subject, description, classId, className, maxPoints, type, teacherId, teacherName, dueDate } = req.body;
+    const { title, subject, description, classId, className, maxPoints, type, teacherId, teacherName, dueDate, expectedAnswer, keyPoints, enableAIGrading } = req.body;
 
     // Validate required fields
     if (!title || !subject || !classId || !className || !teacherId || !teacherName || !dueDate) {
@@ -45,7 +45,10 @@ export const createAssignment = async (req, res) => {
       avgScore: 0,
       teacherId,
       teacherName,
-      status: 'published'
+      status: 'published',
+      expectedAnswer: expectedAnswer || '',
+      keyPoints: keyPoints || [],
+      enableAIGrading: enableAIGrading !== false
     });
 
     await assignment.save();
@@ -172,6 +175,40 @@ export const getAssignmentsByGradeSection = async (req, res) => {
   }
 };
 
+// Helper function to call Gemini API with retry logic
+const callGeminiWithRetry = async (prompt, apiKey, maxRetries = 3) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024
+          }
+        })
+      }
+    );
+
+    if (response.ok) {
+      return response;
+    }
+
+    if (response.status === 429 && attempt < maxRetries) {
+      // Rate limited - wait with exponential backoff (5s, 10s, 20s)
+      const waitTime = Math.pow(2, attempt) * 2500;
+      console.log(`Rate limited. Waiting ${waitTime/1000}s before retry ${attempt + 1}/${maxRetries}...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      continue;
+    }
+
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
+};
+
 // Generate expected answer using Gemini AI
 export const generateExpectedAnswer = async (req, res) => {
   try {
@@ -213,24 +250,7 @@ Format your response as JSON:
 
 Focus on environmental science concepts and ensure the answer is educational and appropriate for students.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
+    const response = await callGeminiWithRetry(prompt, GEMINI_API_KEY);
 
     const data = await response.json();
     const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -331,7 +351,7 @@ export const extractTextFromImage = async (req, res) => {
     console.log('Calling Gemini API...');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -356,7 +376,17 @@ export const extractTextFromImage = async (req, res) => {
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Gemini API error:', errorData);
-      throw new Error(`Gemini API error: ${response.status}`);
+      
+      // Handle rate limit specifically
+      if (response.status === 429) {
+        return res.status(429).json({
+          success: false,
+          message: 'API rate limit exceeded. Please wait a moment and try again.',
+          error: 'Rate limit exceeded'
+        });
+      }
+      
+      throw new Error(`Gemini API error: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();

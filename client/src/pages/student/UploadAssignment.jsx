@@ -1149,6 +1149,8 @@ const UploadAssignment = () => {
       {/* AI Grading Result Dialog - Beautiful Student-Friendly UI */}
       <Dialog open={showGradingResult} onOpenChange={setShowGradingResult}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0 bg-gradient-to-b from-slate-50 to-white">
+          {/* Hidden title for accessibility */}
+          <DialogTitle className="sr-only">AI Grading Result</DialogTitle>
           {/* Animated Header with Grade */}
           {gradingResult && (
             <>

@@ -129,7 +129,7 @@ const Login = () => {
               EcoLearn
             </span>
           </div>
-          <p className="text-gray-600 mt-2">Welcome back to your eco-learning journey</p>
+          <p className="text-gray-600 mt-2">Welcome back! Please sign in to continue your learning journey.</p>
         </div>
 
         {/* Login Card */}
@@ -137,7 +137,7 @@ const Login = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
             <CardDescription>
-              Choose your role and sign in to continue
+              Select your role to continue
             </CardDescription>
           </CardHeader>
           <CardContent>
