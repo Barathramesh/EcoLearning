@@ -9,6 +9,13 @@ import {
   getStudentQuizHistory,
 } from "../../services/syllabusService";
 import {
+  getGlobalLeaderboard,
+  getSchoolLeaderboard,
+} from "../../services/leaderboardService";
+import {
+  getStudentAchievements,
+} from "../../services/achievementService";
+import {
   Trophy,
   Medal,
   Crown,
@@ -36,7 +43,10 @@ const Leaderboard = () => {
     streak: 0,
   });
   const [quizLeaderboard, setQuizLeaderboard] = useState([]);
+  const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
+  const [schoolLeaderboard, setSchoolLeaderboard] = useState([]);
   const [studentQuizHistory, setStudentQuizHistory] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,8 +63,13 @@ const Leaderboard = () => {
         streak: user.streak || 0,
       });
 
-      // Fetch quiz leaderboard and history
-      fetchLeaderboardData(user.id);
+      // Fetch quiz leaderboard and history - use id from user object
+      const studentId = user.id || user._id;
+      if (studentId) {
+        fetchLeaderboardData(studentId);
+      } else {
+        setLoading(false);
+      }
     } else {
       setLoading(false);
     }
@@ -63,33 +78,111 @@ const Leaderboard = () => {
   const fetchLeaderboardData = async (studentId) => {
     try {
       setLoading(true);
+      console.log("Fetching leaderboard data for student:", studentId);
+
+      // Get user data from localStorage for school info
+      const storedUser = localStorage.getItem("user");
+      const currentUser = storedUser ? JSON.parse(storedUser) : null;
+      console.log("Current user:", currentUser);
 
       // Fetch quiz leaderboard
-      const leaderboardResponse = await getQuizLeaderboard();
-      if (leaderboardResponse.success) {
-        setQuizLeaderboard(leaderboardResponse.data);
+      try {
+        const leaderboardResponse = await getQuizLeaderboard();
+        console.log("Quiz leaderboard response:", leaderboardResponse);
+        if (leaderboardResponse.success) {
+          setQuizLeaderboard(leaderboardResponse.data);
 
-        // Find user's rank in leaderboard
-        const userRank =
-          leaderboardResponse.data.findIndex(
-            (entry) => entry.studentId === studentId
+          // Find user's rank in leaderboard
+          const userRank =
+            leaderboardResponse.data.findIndex(
+              (entry) => entry.studentId === studentId
+            ) + 1;
+
+          if (userRank > 0) {
+            setUserStats((prev) => ({
+              ...prev,
+              totalPoints:
+                leaderboardResponse.data[userRank - 1]?.totalScore ||
+                prev.totalPoints,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching quiz leaderboard:", error);
+      }
+
+      // Fetch global leaderboard
+      try {
+        const globalResponse = await getGlobalLeaderboard(50);
+        console.log("Global leaderboard response:", globalResponse);
+        if (globalResponse.success) {
+          setGlobalLeaderboard(globalResponse.data);
+          
+          // Find user's global rank
+          const globalRank = globalResponse.data.findIndex(
+            (student) => student.studentId.toString() === studentId.toString()
           ) + 1;
+          
+          console.log("User global rank:", globalRank, "Student ID:", studentId);
+          
+          if (globalRank > 0) {
+            setUserStats((prev) => ({
+              ...prev,
+              globalRank: globalRank,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching global leaderboard:", error);
+      }
 
-        if (userRank > 0) {
-          setUserStats((prev) => ({
-            ...prev,
-            globalRank: userRank,
-            totalPoints:
-              leaderboardResponse.data[userRank - 1]?.totalScore ||
-              prev.totalPoints,
-          }));
+      // Fetch school leaderboard if user has school
+      if (currentUser?.school) {
+        try {
+          const schoolResponse = await getSchoolLeaderboard(currentUser.school, 50);
+          console.log("School leaderboard response:", schoolResponse);
+          if (schoolResponse.success) {
+            setSchoolLeaderboard(schoolResponse.data);
+            
+            // Find user's school rank
+            const schoolRank = schoolResponse.data.findIndex(
+              (student) => student.studentId.toString() === studentId.toString()
+            ) + 1;
+            
+            console.log("User school rank:", schoolRank);
+            
+            if (schoolRank > 0) {
+              setUserStats((prev) => ({
+                ...prev,
+                schoolRank: schoolRank,
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching school leaderboard:", error);
         }
       }
 
       // Fetch student's quiz history
-      const historyResponse = await getStudentQuizHistory(studentId);
-      if (historyResponse.success) {
-        setStudentQuizHistory(historyResponse.data);
+      try {
+        const historyResponse = await getStudentQuizHistory(studentId);
+        console.log("Quiz history response:", historyResponse);
+        if (historyResponse.success) {
+          setStudentQuizHistory(historyResponse.data.history || []);
+        }
+      } catch (error) {
+        console.error("Error fetching quiz history:", error);
+      }
+
+      // Fetch student's achievements
+      try {
+        const achievementsResponse = await getStudentAchievements(studentId);
+        console.log("Achievements response:", achievementsResponse);
+        if (achievementsResponse.success) {
+          setAchievements(achievementsResponse.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
       }
     } catch (error) {
       console.error("Error fetching leaderboard data:", error);
@@ -98,61 +191,34 @@ const Leaderboard = () => {
     }
   };
 
-  // Empty leaderboard data - would be fetched from backend
-  const globalLeaderboard = [];
-  const institutionLeaderboard = [];
+  // Weekly top performers - would be fetched from backend or calculated
   const weeklyTopPerformers = [];
 
-  const achievements = [
-    {
-      title: "Top 5% Globally",
-      description: "Ranked in top 5% worldwide",
-      icon: Crown,
-      color: "text-yellow-400",
-      gradient: "from-yellow-400 to-amber-600",
-      unlocked: false,
-    },
-    {
-      title: "Streak Master",
-      description: "20+ day learning streak",
-      icon: Zap,
-      color: "text-orange-400",
-      gradient: "from-orange-400 to-red-600",
-      unlocked: false,
-    },
-    {
-      title: "Knowledge Seeker",
-      description: "Completed 50+ lessons",
-      icon: Star,
-      color: "text-[#f59e0b]",
-      gradient: "from-blue-400 to-cyan-600",
-      unlocked: false,
-    },
-    {
-      title: "Institution Leader",
-      description: "Top 3 in your school",
-      icon: School,
-      color: "text-purple-400",
-      gradient: "from-purple-400 to-pink-600",
-      unlocked: false,
-    },
-    {
-      title: "Global Elite",
-      description: "Top 1% worldwide",
-      icon: Trophy,
-      color: "text-gold-400",
-      gradient: "from-gray-400 to-gray-600",
-      unlocked: false,
-    },
-    {
-      title: "Perfect Score",
-      description: "100% on 10 assessments",
-      icon: Target,
-      color: "text-[#3b9b8f]",
-      gradient: "from-gray-400 to-gray-600",
-      unlocked: false,
-    },
-  ];
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'from-yellow-400 to-orange-600';
+      case 'epic':
+        return 'from-purple-400 to-pink-600';
+      case 'rare':
+        return 'from-blue-400 to-cyan-600';
+      default:
+        return 'from-gray-400 to-gray-600';
+    }
+  };
+
+  const getRarityBadgeColor = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'epic':
+        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      case 'rare':
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
 
   const getRankIcon = (rank) => {
     switch (rank) {
@@ -404,42 +470,42 @@ const Leaderboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {globalLeaderboard.length > 0 ? (
-                      globalLeaderboard.map((student, index) => (
+                      globalLeaderboard.map((student, index) => {
+                        const currentUserId = userData?.id || userData?._id;
+                        const isCurrentUser = student.studentId.toString() === currentUserId?.toString();
+                        return (
                         <div
-                          key={student.rank}
+                          key={index}
                           className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
-                            student.rank,
-                            student.isCurrentUser
+                            index + 1,
+                            isCurrentUser
                           )}`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <div className="flex items-center gap-4">
                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-800/50">
-                              {getRankIcon(student.rank)}
+                              {getRankIcon(index + 1)}
                             </div>
                             <div className="text-3xl">{student.avatar}</div>
                             <div>
                               <p
                                 className={`font-semibold ${
-                                  student.isCurrentUser
+                                  isCurrentUser
                                     ? "text-emerald-400"
                                     : "text-white"
                                 }`}
                               >
                                 {student.name}{" "}
-                                {student.isCurrentUser && (
+                                {isCurrentUser && (
                                   <span className="text-emerald-400">
                                     (You)
                                   </span>
                                 )}
                               </p>
                               <p className="text-sm text-gray-400">
-                                {student.institution}
+                                {student.school || "No School"}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                  {student.country}
-                                </Badge>
                                 <Badge className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
                                   Lvl {student.level}
                                 </Badge>
@@ -448,16 +514,17 @@ const Leaderboard = () => {
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-xl text-white">
-                              {student.points.toLocaleString()}
+                              {student.totalPoints.toLocaleString()}
                             </p>
                             <p className="text-sm text-gray-500">points</p>
                             <div className="flex items-center gap-1 text-xs text-orange-400 mt-1">
                               <Flame className="w-3 h-3" />
-                              {student.streak} days
+                              {student.streak || 0} days
                             </div>
                           </div>
                         </div>
-                      ))
+                      );
+                    })
                     ) : (
                       <div className="text-center py-12">
                         <Globe className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -485,30 +552,33 @@ const Leaderboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {institutionLeaderboard.length > 0 ? (
-                      institutionLeaderboard.map((student, index) => (
+                    {schoolLeaderboard.length > 0 ? (
+                      schoolLeaderboard.map((student, index) => {
+                        const currentUserId = userData?.id || userData?._id;
+                        const isCurrentUser = student.studentId.toString() === currentUserId?.toString();
+                        return (
                         <div
-                          key={student.rank}
+                          key={index}
                           className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] ${getRankStyle(
-                            student.rank,
-                            student.isCurrentUser
+                            index + 1,
+                            isCurrentUser
                           )}`}
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-800/50">
-                              {getRankIcon(student.rank)}
+                              {getRankIcon(index + 1)}
                             </div>
                             <div className="text-2xl">{student.avatar}</div>
                             <div>
                               <p
                                 className={`font-semibold ${
-                                  student.isCurrentUser
+                                  isCurrentUser
                                     ? "text-emerald-400"
                                     : "text-white"
                                 }`}
                               >
                                 {student.name}{" "}
-                                {student.isCurrentUser && (
+                                {isCurrentUser && (
                                   <span className="text-emerald-400">
                                     (You)
                                   </span>
@@ -520,19 +590,20 @@ const Leaderboard = () => {
                                 </Badge>
                                 <div className="flex items-center gap-1 text-xs text-orange-400">
                                   <Flame className="w-3 h-3" />
-                                  {student.streak}
+                                  {student.streak || 0}
                                 </div>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-lg text-white">
-                              {student.points.toLocaleString()}
+                              {student.totalPoints.toLocaleString()}
                             </p>
                             <p className="text-sm text-gray-500">points</p>
                           </div>
                         </div>
-                      ))
+                      );
+                    })
                     ) : (
                       <div className="text-center py-12">
                         <School className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -682,50 +753,85 @@ const Leaderboard = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
                       <Award className="w-5 h-5 text-white" />
                     </div>
-                    Your Achievements
+                    Achievement Progress
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {achievements.map((achievement, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 ${
-                          achievement.unlocked
-                            ? "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30"
-                            : "bg-gray-800/30 border border-gray-700/50 opacity-50"
-                        }`}
-                      >
+                    {achievements.length > 0 ? (
+                      achievements.map((achievement, index) => (
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            achievement.unlocked
-                              ? `bg-gradient-to-br ${achievement.gradient} shadow-lg`
-                              : "bg-gray-700"
+                          key={achievement.achievementId || index}
+                          className={`p-4 rounded-xl transition-all duration-300 ${
+                            achievement.completed
+                              ? "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30"
+                              : "bg-gray-800/30 border border-gray-700/50"
                           }`}
                         >
-                          <achievement.icon className="w-5 h-5 text-white" />
+                          <div className="flex items-center gap-3 mb-3">
+                            <div
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                                achievement.completed
+                                  ? `bg-gradient-to-br ${getRarityColor(achievement.rarity)} shadow-lg`
+                                  : "bg-gray-700"
+                              }`}
+                            >
+                              {achievement.icon}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p
+                                  className={`font-medium ${
+                                    achievement.completed
+                                      ? "text-white"
+                                      : "text-gray-300"
+                                  }`}
+                                >
+                                  {achievement.title}
+                                </p>
+                                <Badge className={`text-xs ${getRarityBadgeColor(achievement.rarity)}`}>
+                                  {achievement.rarity}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {achievement.description}
+                              </p>
+                            </div>
+                            {achievement.completed && (
+                              <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                +{achievement.points} pts
+                              </Badge>
+                            )}
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-400">
+                                {achievement.currentProgress} / {achievement.targetValue} {achievement.targetType}
+                              </span>
+                              <span className={achievement.completed ? "text-emerald-400 font-medium" : "text-gray-400"}>
+                                {achievement.percentage}%
+                              </span>
+                            </div>
+                            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  achievement.completed
+                                    ? "bg-gradient-to-r from-emerald-400 to-cyan-500"
+                                    : "bg-gradient-to-r from-gray-600 to-gray-500"
+                                }`}
+                                style={{ width: `${achievement.percentage}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p
-                            className={`font-medium ${
-                              achievement.unlocked
-                                ? "text-white"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {achievement.title}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {achievement.description}
-                          </p>
-                        </div>
-                        {achievement.unlocked && (
-                          <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            ✓
-                          </Badge>
-                        )}
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <Award className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>No achievements available</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>

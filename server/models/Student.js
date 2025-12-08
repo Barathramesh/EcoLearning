@@ -37,6 +37,19 @@ const studentSchema = new mongoose.Schema(
         earnedAt: { type: Date, default: Date.now },
       },
     ],
+    
+    // Achievements tracking
+    achievements: [
+      {
+        achievementId: { type: String },
+        title: { type: String },
+        currentProgress: { type: Number, default: 0 },
+        targetValue: { type: Number },
+        completed: { type: Boolean, default: false },
+        completedAt: { type: Date },
+      },
+    ],
+    
     hoursLearned: { type: Number, default: 0 },
 
     // Daily challenges - array format

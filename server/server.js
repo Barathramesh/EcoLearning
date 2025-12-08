@@ -14,6 +14,7 @@ import aiChatRouter from './routes/aiChatRoutes.js';
 import videoRouter from './routes/videoRoutes.js';
 import syllabusRouter from './routes/syllabusRoutes.js';
 import gameRouter from './routes/gameRoutes.js';
+import achievementRouter from './routes/achievementRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,9 +49,11 @@ app.use('/api/video', videoRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/syllabus', syllabusRouter);
 app.use('/api/game', gameRouter);
+app.use('/api/achievement', achievementRouter);
 
 
 
 app.listen(port, ()=>{
     console.log(`Server is running on http://localhost:${port}`)
 })
+
