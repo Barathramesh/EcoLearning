@@ -3,8 +3,19 @@
 @tailwind utilities;
 
 /* Global responsive fix - prevent horizontal overflow */
-html, body {
+html {
   overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+  position: relative;
+}
+
+/* Prevent any element from causing horizontal scroll */
+*, *::before, *::after {
   max-width: 100vw;
 }
 

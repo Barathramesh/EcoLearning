@@ -129,8 +129,13 @@ const LanguageSwitcher = ({ variant = 'default', className = '' }) => {
           <Button 
             variant="ghost" 
             size="sm" 
+            type="button"
             className={`flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500 shadow-md ${className}`}
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(!isOpen);
+            }}
           >
             <Globe className="h-4 w-4 text-white" />
             <span className="hidden sm:inline text-sm font-medium text-white">
@@ -144,7 +149,12 @@ const LanguageSwitcher = ({ variant = 'default', className = '' }) => {
               {languages.map((lang) => (
                 <button
                   key={lang.code}
-                  onClick={() => handleLanguageChange(lang.code)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleLanguageChange(lang.code);
+                  }}
                   className={`w-full flex items-center justify-between px-3 py-2 text-sm cursor-pointer transition-colors ${
                     currentLang === lang.code 
                       ? 'bg-green-50 text-green-700' 
@@ -174,8 +184,13 @@ const LanguageSwitcher = ({ variant = 'default', className = '' }) => {
       <div className="relative" ref={dropdownRef}>
         <Button 
           variant="outline" 
+          type="button"
           className={`flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500 shadow-md ${className}`}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
         >
           <Globe className="h-4 w-4 text-white" />
           <span className="font-medium text-white">{currentLanguage.nativeName}</span>
@@ -183,11 +198,16 @@ const LanguageSwitcher = ({ variant = 'default', className = '' }) => {
         </Button>
         
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[9999]">
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => handleLanguageChange(lang.code)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleLanguageChange(lang.code);
+                }}
                 className={`w-full flex items-center justify-between px-3 py-2 cursor-pointer transition-colors ${
                   currentLang === lang.code 
                     ? 'bg-green-100 text-green-800' 

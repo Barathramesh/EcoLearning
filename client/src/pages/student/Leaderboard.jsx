@@ -540,20 +540,23 @@ const Leaderboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Global Leaderboard */}
+              {/* Global Leaderboard - Top 5 */}
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-white" />
                     </div>
-                    Global Leaderboard
+                    <div className="flex flex-col">
+                      <span>Global Leaderboard - Top 5</span>
+                      <span className="text-sm text-gray-400 font-normal">Top performers across all schools</span>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {globalLeaderboard.length > 0 ? (
-                      globalLeaderboard.map((student, index) => {
+                      globalLeaderboard.slice(0, 5).map((student, index) => {
                         const currentUserId = userData?.id || userData?._id;
                         const isCurrentUser = student.studentId.toString() === currentUserId?.toString();
                         return (
