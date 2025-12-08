@@ -609,62 +609,11 @@ const StudentDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Quick Actions */}
-            <div
-              className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 transition-all duration-700 delay-400 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-            >
-              {[
-                {
-                  title: "Continue Learning",
-                  icon: BookOpen,
-                  color: "bg-[#237a57]",
-                  path: "/student/lessons",
-                },
-                {
-                  title: "Play Games",
-                  icon: Gamepad2,
-                  color: "from-cyan-400 to-cyan-600",
-                  path: "/student/games",
-                },
-                {
-                  title: "My Badges",
-                  icon: Trophy,
-                  color: "from-yellow-400 to-orange-600",
-                  path: "/student/badges",
-                },
-                {
-                  title: "AI Tutor",
-                  icon: Brain,
-                  color: "from-pink-400 to-pink-600",
-                  path: "/student/ai",
-                },
-                {
-                  title: "Eco Labs",
-                  icon: FlaskConical,
-                  color: "from-purple-400 to-purple-600",
-                  path: "/student/eco-lab",
-                },
-              ].map((action, index) => (
-                <Button
-                  key={index}
-                  onClick={() => navigate(action.path)}
-                  className={`h-auto py-6 flex flex-col items-center gap-3 bg-gradient-to-br ${action.color} hover:scale-105 transition-all duration-300 border-0 shadow-lg hover:shadow-xl`}
-                >
-                  <action.icon className="w-8 h-8" />
-                  <span className="text-sm font-medium">{action.title}</span>
-                </Button>
-              ))}
-            </div>
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            {/* Leaderboard */}
+          <div className="space-y-4">
+            {/* Quick Action Buttons */}
             <div
               className={`transition-all duration-700 delay-300 ${
                 isLoaded
@@ -672,114 +621,90 @@ const StudentDashboard = () => {
                   : "opacity-0 translate-y-10"
               }`}
             >
-              <Card className="glass border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
-                      <Trophy className="w-5 h-5 text-white" />
-                    </div>
-                    Leaderboard
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {leaderboard.length > 0 ? (
-                    leaderboard.map((student, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
-                          student.isCurrentUser
-                            ? "bg-[#237a57]/20 border border-[#237a57]/30 scale-105"
-                            : "bg-white/5 hover:bg-white/10"
-                        }`}
-                      >
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                            student.rank === 1
-                              ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white"
-                              : student.rank === 2
-                              ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800"
-                              : student.rank === 3
-                              ? "bg-gradient-to-br from-orange-400 to-orange-500 text-white"
-                              : "bg-white/10 text-white"
-                          }`}
-                        >
-                          {student.badge || student.rank}
-                        </div>
-                        <span className="text-2xl">{student.avatar}</span>
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`font-medium truncate ${
-                              student.isCurrentUser
-                                ? "text-emerald-300"
-                                : "text-white"
-                            }`}
-                          >
-                            {student.name}{" "}
-                            {student.isCurrentUser && (
-                              <span className="text-cyan-300">(You)</span>
-                            )}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-white">
-                            {student.points.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-gray-400">points</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6">
-                      <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400 font-medium">
-                        No Rankings Yet
-                      </p>
-                      <p className="text-gray-500 text-sm mt-1">
-                        Start learning to appear on the leaderboard!
-                      </p>
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    className="w-full mt-2 text-[#3b9b8f] hover:text-[#f59e0b] hover:bg-[#237a57]/10"
-                    onClick={() => navigate("/student/leaderboard")}
-                  >
-                    View Full Leaderboard{" "}
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Upcoming Events */}
-            <div
-              className={`transition-all duration-700 delay-400 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-            >
-              <Card className="glass border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-[#3b9b8f] flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-white" />
-                    </div>
-                    Upcoming Events
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-6">
-                    <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 font-medium">
-                      No Events Scheduled
-                    </p>
-                    <p className="text-gray-500 text-sm mt-1">
-                      Check back later for upcoming activities!
-                    </p>
+              {/* Continue Learning */}
+              <button
+                onClick={() => navigate("/student/lessons")}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25 mb-3 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-6 h-6 text-white" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-lg">Continue Learning</h3>
+                    <p className="text-emerald-100 text-sm">Resume your lessons</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Play Games */}
+              <button
+                onClick={() => navigate("/student/games")}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/25 mb-3 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Gamepad2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-lg">Play Games</h3>
+                    <p className="text-amber-100 text-sm">Learn while having fun</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* My Badges */}
+              <button
+                onClick={() => navigate("/student/achievements")}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/25 mb-3 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Award className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-lg">My Badges</h3>
+                    <p className="text-pink-100 text-sm">View your achievements</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* AI Tutor */}
+              <button
+                onClick={() => navigate("/student/ai")}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-violet-500/25 mb-3 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-lg">AI Tutor</h3>
+                    <p className="text-violet-100 text-sm">Get personalized help</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Eco Labs */}
+              <button
+                onClick={() => navigate("/student/eco-lab")}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FlaskConical className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-lg">Eco Labs</h3>
+                    <p className="text-cyan-100 text-sm">Interactive experiments</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
             </div>
 
             {/* Motivational Card */}
