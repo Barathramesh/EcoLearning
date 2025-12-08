@@ -10,7 +10,9 @@ import {
   submitQuiz,
   checkQuizCompletion,
 } from "../../services/syllabusService";
+import { getVideosByGrade } from "../../services/videoLessonService";
 import api from "../../services/api";
+import EcoSnakesLadders from "../../games/SnakeAndLadder";
 import {
   BookOpen,
   Play,
@@ -36,6 +38,7 @@ import {
   Flame,
   GraduationCap,
   Loader,
+  Gamepad2,
 } from "lucide-react";
 
 const Lessons = () => {
@@ -50,6 +53,7 @@ const Lessons = () => {
 
   // Syllabus videos from backend
   const [syllabusVideos, setSyllabusVideos] = useState([]);
+  const [uploadedVideos, setUploadedVideos] = useState([]); // Videos uploaded via admin VideoUpload
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [user, setUser] = useState(null);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
@@ -66,6 +70,10 @@ const Lessons = () => {
   const [videoQuizScore, setVideoQuizScore] = useState(0);
   const [videoQuizSubmitting, setVideoQuizSubmitting] = useState(false);
   const [completedQuizzes, setCompletedQuizzes] = useState({}); // Track completed quizzes by syllabusId
+  
+  // Game state - shows game after video, before quiz
+  const [showGame, setShowGame] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
 
   // Lesson completion state - in a real app, this would come from a database or context
   const [lessonCompletionStatus, setLessonCompletionStatus] = useState({
@@ -79,6 +87,34 @@ const Lessons = () => {
 
   // Empty lessons array - videos come from backend now
   const lessons = [];
+
+  // Listen for game completion event
+  useEffect(() => {
+    const handleGameCompleted = (event) => {
+      console.log("Game completed!", event.detail);
+      
+      // Wait a bit for the win animation to play
+      setTimeout(() => {
+        setShowGame(false);
+        setGameCompleted(true);
+        
+        // Show quiz if available
+        if (currentVideo?.quiz?.questions?.length > 0 && !completedQuizzes[currentVideo._id]) {
+          setShowVideoQuiz(true);
+        } else {
+          // Close the modal if no quiz
+          setShowVideoPlayer(false);
+          setCurrentVideo(null);
+        }
+      }, 2000); // 2 second delay to let winner message show
+    };
+
+    window.addEventListener('ecoGameCompleted', handleGameCompleted);
+    
+    return () => {
+      window.removeEventListener('ecoGameCompleted', handleGameCompleted);
+    };
+  }, [currentVideo, completedQuizzes]);
 
   // Fetch user and syllabus videos on mount
   useEffect(() => {
@@ -176,10 +212,43 @@ const Lessons = () => {
           setCompletedQuizzes(completionChecks);
         }
       }
+
+      // Also fetch uploaded video lessons
+      await fetchUploadedVideos(studentClass);
+      
     } catch (error) {
       console.error("Error fetching syllabus videos:", error);
     } finally {
       setLoadingVideos(false);
+    }
+  };
+
+  // Fetch uploaded video lessons from admin
+  const fetchUploadedVideos = async (studentClass) => {
+    try {
+      if (!studentClass) return;
+      
+      // Format grade for API (e.g., "10" -> "Grade 10")
+      const classNum = studentClass.toString().replace(/[^0-9]/g, "");
+      const gradeParam = `Grade ${classNum}`;
+      
+      const response = await getVideosByGrade(gradeParam);
+      if (response.success && response.data) {
+        // Add a flag to distinguish from syllabus videos
+        // Get base URL without /api suffix for static files
+        const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+        const videos = response.data.map(v => ({
+          ...v,
+          isUploadedVideo: true,
+          // Map videoUrl to work with server uploads path
+          videoUrl: v.videoUrl.startsWith('/uploads') 
+            ? `${baseUrl}${v.videoUrl}`
+            : v.videoUrl,
+        }));
+        setUploadedVideos(videos);
+      }
+    } catch (error) {
+      console.error("Error fetching uploaded videos:", error);
     }
   };
 
@@ -258,6 +327,15 @@ const Lessons = () => {
     setVideoQuizScore(0);
     setVideoWatched(false);
     setPointsEarned(null);
+    setShowGame(false);
+    setGameCompleted(false);
+  };
+
+  // Handle game completion
+  const handleGameComplete = () => {
+    setGameCompleted(true);
+    // Award points for game completion if needed
+    // After game completion, allow moving to quiz
   };
 
   // Award points for watching video
@@ -561,8 +639,84 @@ const Lessons = () => {
               </Button>
             </div>
 
-            {/* Video Player or Quiz Content */}
-            {!showVideoQuiz ? (
+            {/* Content: Video Player / Game / Quiz */}
+            {showGame ? (
+              /* Game View - Fullscreen Responsive */
+              <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+                {/* Game Header */}
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 md:p-4 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <Gamepad2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    <div>
+                      <h3 className="text-white font-bold text-sm md:text-base">🎮 Eco Snake & Ladder</h3>
+                      <p className="text-purple-200 text-xs md:text-sm hidden sm:block">Learn while having fun!</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => {
+                        setShowGame(false);
+                        setVideoWatched(true);
+                      }}
+                      variant="ghost"
+                      className="text-white hover:bg-white/20 text-xs md:text-sm px-2 md:px-3"
+                    >
+                      ← Back
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowGame(false);
+                        setGameCompleted(true);
+                        // Move to quiz after game
+                        if (currentVideo.quiz?.questions?.length > 0 && !completedQuizzes[currentVideo._id]) {
+                          setShowVideoQuiz(true);
+                        } else {
+                          // Close the video player if no quiz
+                          setShowVideoPlayer(false);
+                          setCurrentVideo(null);
+                        }
+                      }}
+                      className="bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white text-xs md:text-sm px-2 md:px-4"
+                    >
+                      {currentVideo.quiz?.questions?.length > 0 && !completedQuizzes[currentVideo._id] 
+                        ? "Complete & Take Quiz →" 
+                        : "Complete Game ✓"}
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Game Container - Fills remaining space */}
+                <div className="flex-1 overflow-auto bg-gradient-to-b from-gray-900 to-black">
+                  <div className="w-full h-full flex items-center justify-center p-2 md:p-4">
+                    <div className="w-full max-w-5xl mx-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+                      <EcoSnakesLadders />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Game Footer */}
+                <div className="bg-gray-900 p-2 md:p-3 flex items-center justify-between border-t border-gray-700 flex-shrink-0">
+                  <p className="text-gray-400 text-xs md:text-sm hidden sm:block">
+                    🎯 Play the game to earn points! Complete the game to proceed.
+                  </p>
+                  <div className="flex gap-2 md:gap-3 ml-auto">
+                    {currentVideo.quiz?.questions?.length > 0 && !completedQuizzes[currentVideo._id] && (
+                      <Button
+                        onClick={() => {
+                          setShowGame(false);
+                          setGameCompleted(true);
+                          setShowVideoQuiz(true);
+                        }}
+                        className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs md:text-sm"
+                      >
+                        <HelpCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        Start Quiz
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : !showVideoQuiz ? (
               <>
                 <div className="relative bg-black">
                   <video
@@ -582,7 +736,7 @@ const Lessons = () => {
                   />
 
                   {/* Quiz Prompt Overlay - Shows after video ends */}
-                  {videoWatched && (
+                  {videoWatched && !showGame && (
                     <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center">
                       <div className="text-center p-8">
                         <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#237a57] flex items-center justify-center">
@@ -606,25 +760,28 @@ const Lessons = () => {
                         )}
 
                         <p className="text-gray-300 mb-6">
-                          {currentVideo.quiz?.questions?.length > 0 &&
-                          !completedQuizzes[currentVideo._id]
-                            ? "Great job watching the lesson! Now test your knowledge with a quiz."
-                            : "Great job completing this lesson!"}
+                          Great job watching the lesson! Now let's play a fun game to reinforce what you learned!
                         </p>
 
-                        {currentVideo.quiz?.questions?.length > 0 &&
-                          !completedQuizzes[currentVideo._id] && (
-                            <div className="flex items-center justify-center gap-2 mb-6 text-amber-400">
-                              <Sparkles className="w-5 h-5" />
-                              <span>
-                                {currentVideo.quiz.questions.length} Questions
-                              </span>
-                              <span className="text-gray-500">•</span>
-                              <span>
-                                Pass: {currentVideo.quiz.passingScore || 70}%
-                              </span>
-                            </div>
-                          )}
+                        {/* Game & Quiz info */}
+                        <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+                          <div className="flex items-center gap-2 text-purple-400">
+                            <span className="text-2xl">🎮</span>
+                            <span>Play Snake & Ladder</span>
+                          </div>
+                          {currentVideo.quiz?.questions?.length > 0 &&
+                            !completedQuizzes[currentVideo._id] && (
+                              <>
+                                <span className="text-gray-500">→</span>
+                                <div className="flex items-center gap-2 text-amber-400">
+                                  <Sparkles className="w-5 h-5" />
+                                  <span>
+                                    {currentVideo.quiz.questions.length} Quiz Questions
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                        </div>
 
                         <div className="flex gap-4 justify-center">
                           <Button
@@ -634,31 +791,16 @@ const Lessons = () => {
                           >
                             Watch Again
                           </Button>
-                          {currentVideo.quiz?.questions?.length > 0 &&
-                          !completedQuizzes[currentVideo._id] ? (
-                            <Button
-                              onClick={() => {
-                                setVideoWatched(false);
-                                setShowVideoQuiz(true);
-                              }}
-                              className="bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white px-8"
-                            >
-                              <HelpCircle className="w-4 h-4 mr-2" />
-                              Start Quiz
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => {
-                                setShowVideoPlayer(false);
-                                setCurrentVideo(null);
-                                resetVideoQuiz();
-                              }}
-                              className="bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white px-8"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Done
-                            </Button>
-                          )}
+                          <Button
+                            onClick={() => {
+                              setVideoWatched(false);
+                              setShowGame(true);
+                            }}
+                            className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8"
+                          >
+                            <span className="mr-2">🎮</span>
+                            Play Game
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1275,9 +1417,9 @@ const Lessons = () => {
                   <Loader className="w-8 h-8 text-purple-400 animate-spin mr-3" />
                   <span className="text-gray-400">Loading class videos...</span>
                 </div>
-              ) : syllabusVideos.length > 0 ? (
+              ) : [...syllabusVideos, ...uploadedVideos].length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {syllabusVideos.map((syllabus, index) => (
+                  {[...syllabusVideos, ...uploadedVideos].map((syllabus, index) => (
                     <div
                       key={syllabus._id}
                       className="group bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
@@ -1327,6 +1469,13 @@ const Lessons = () => {
                           <Badge className="bg-blue-500/20 text-blue-300 text-xs border border-blue-500/30">
                             {syllabus.grade}
                           </Badge>
+                          {/* Uploaded video badge */}
+                          {syllabus.isUploadedVideo && (
+                            <Badge className="bg-green-500/20 text-green-300 text-xs border border-green-500/30 flex items-center gap-1">
+                              <Video className="w-3 h-3" />
+                              Uploaded
+                            </Badge>
+                          )}
                           {/* Watched badge */}
                           {watchedVideosList[syllabus._id] && (
                             <Badge className="bg-emerald-500/20 text-emerald-300 text-xs border border-emerald-500/30 flex items-center gap-1">

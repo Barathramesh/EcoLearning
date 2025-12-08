@@ -15,6 +15,7 @@ import videoRouter from './routes/videoRoutes.js';
 import syllabusRouter from './routes/syllabusRoutes.js';
 import gameRouter from './routes/gameRoutes.js';
 import achievementRouter from './routes/achievementRoutes.js';
+import videoLessonRouter from './routes/videoLessonRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +28,12 @@ const port = process.env.PORT;
 const uploadsDir = path.join(__dirname, 'uploads/assignments');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Create videos uploads directory
+const videosDir = path.join(__dirname, 'uploads/videos');
+if (!fs.existsSync(videosDir)) {
+  fs.mkdirSync(videosDir, { recursive: true });
 }
 
 await connectDB();
@@ -50,6 +57,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/syllabus', syllabusRouter);
 app.use('/api/game', gameRouter);
 app.use('/api/achievement', achievementRouter);
+app.use('/api/video-lesson', videoLessonRouter);
 
 
 

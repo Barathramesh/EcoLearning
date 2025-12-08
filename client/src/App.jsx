@@ -68,6 +68,7 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import AIVideos from "./pages/admin/AIVideos";
 import SyllabusVideoGenerator from "./pages/admin/SyllabusVideoGenerator";
 import GameManagement from "./pages/admin/GameManagement";
+import VideoUpload from "./pages/admin/VideoUpload";
 
 const queryClient = new QueryClient();
 
@@ -173,6 +174,7 @@ const App = () => (
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/students" element={<ManageStudents />} />
           <Route path="/admin/teachers" element={<ManageTeachers />} />
+          <Route path="/admin/upload-video" element={<VideoUpload />} />
           <Route path="/admin/ai-videos" element={<AIVideos />} />
           <Route
             path="/admin/syllabus-video"

@@ -13,6 +13,7 @@ import {
   BookOpen,
   Sparkles,
   Gamepad2,
+  Upload,
 } from "lucide-react";
 
 const AdminNavbar = () => {
@@ -27,6 +28,7 @@ const AdminNavbar = () => {
     { name: "Users", path: "/admin/users", icon: Users },
     { name: "Students", path: "/admin/students", icon: GraduationCap },
     { name: "Teachers", path: "/admin/teachers", icon: UserCog },
+    { name: "Upload Video", path: "/admin/upload-video", icon: Upload },
     { name: "AI Videos", path: "/admin/ai-videos", icon: Video },
     {
       name: "Syllabus to Video",

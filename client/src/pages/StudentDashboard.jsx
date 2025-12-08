@@ -612,7 +612,7 @@ const StudentDashboard = () => {
 
             {/* Quick Actions */}
             <div
-              className={`grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-700 delay-400 ${
+              className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 transition-all duration-700 delay-400 ${
                 isLoaded
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-10"
@@ -642,6 +642,12 @@ const StudentDashboard = () => {
                   icon: Brain,
                   color: "from-pink-400 to-pink-600",
                   path: "/student/ai",
+                },
+                {
+                  title: "Eco Labs",
+                  icon: FlaskConical,
+                  color: "from-purple-400 to-purple-600",
+                  path: "/student/eco-lab",
                 },
               ].map((action, index) => (
                 <Button
