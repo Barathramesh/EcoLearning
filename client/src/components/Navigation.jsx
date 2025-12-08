@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Leaf, Award, BookOpen, Users, Mail, Globe, Camera, Gamepad2, Brain, LogOut, Trophy, User, Upload, Shield, BarChart3, AlertTriangle, School, Settings, FileCheck, ClipboardCheck } from "lucide-react";
+import { Menu, X, Leaf, Award, BookOpen, Users, Mail, Globe, Camera, Gamepad2, Brain, LogOut, Trophy, User, Upload, Shield, BarChart3, AlertTriangle, School, Settings, FileCheck, ClipboardCheck, Target } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Navigation = ({ userType = null, onLogout = null }) => {
