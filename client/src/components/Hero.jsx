@@ -20,6 +20,7 @@ import {
 
 const Hero = () => {
   const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50 pt-16">
       {/* Header Section */}
@@ -42,19 +43,15 @@ const Hero = () => {
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
             <Leaf className="w-4 h-4 mr-2" />
-            Environmental Education App
+            Interactive Environmental Education Platform
           </Badge>
           
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Learn. Play. 
-            <span className="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
-              Save the Planet
-            </span>
+            Learn About Our Environment
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Transform environmental learning into an exciting adventure. 
-            Earn points, unlock achievements, and make a real difference for our planet.
+            Discover the wonders of nature through interactive games, engaging lessons, and fun activities. Join us on a journey to understand and protect our planet!
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -68,7 +65,7 @@ const Hero = () => {
             </Button>
             <Button variant="outline" size="lg" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 px-8 py-3">
               <Play className="w-5 h-5 mr-2" />
-              Watch Demo
+              Watch Video
             </Button>
           </div>
         </div>

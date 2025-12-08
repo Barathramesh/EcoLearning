@@ -39,14 +39,9 @@ const AI = () => {
   // Rate limiting: minimum 2 seconds between requests
   const MIN_REQUEST_INTERVAL = 2000;
   
-  // Gemini API configuration - Multiple keys for rotation
-  const GEMINI_API_KEYS = import.meta.env.VITE_GEMINI_API_KEY
-    ? import.meta.env.VITE_GEMINI_API_KEY.split(',').map(k => k.trim()).filter(Boolean)
-    : [];
-  
-  const [currentKeyIndex, setCurrentKeyIndex] = useState(0);
-  const GEMINI_API_KEY = GEMINI_API_KEYS[currentKeyIndex] || GEMINI_API_KEYS[0];
-  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // Gemini API configuration - Single key
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   // Quick suggestion chips
   const quickSuggestions = [
@@ -60,17 +55,37 @@ const AI = () => {
 
   // Environmental science topics for validation
   const environmentalKeywords = [
-    'climate', 'weather', 'temperature', 'global warming', 'greenhouse', 'carbon', 'co2',
-    'ecosystem', 'biodiversity', 'species', 'habitat', 'wildlife', 'animal', 'plant', 'tree', 'forest',
-    'ocean', 'sea', 'water', 'river', 'lake', 'marine', 'coral', 'fish', 'pollution',
-    'renewable', 'solar', 'wind', 'energy', 'electricity', 'power', 'sustainable',
-    'recycle', 'waste', 'plastic', 'environment', 'nature', 'conservation', 'ecology',
-    'air quality', 'ozone', 'atmosphere', 'deforestation', 'rainforest', 'earth', 'planet',
-    'agriculture', 'farming', 'organic', 'soil', 'erosion', 'drought', 'flood',
-    'endangered', 'extinct', 'protect', 'preserve', 'green', 'eco', 'natural',
+    // Climate & Weather
+    'climate', 'weather', 'temperature', 'global warming', 'greenhouse', 'carbon', 'co2', 'monsoon', 'heat wave', 'season',
+    // Ecosystems & Biodiversity
+    'ecosystem', 'biodiversity', 'species', 'habitat', 'wildlife', 'animal', 'plant', 'tree', 'forest', 'bird', 'insect',
+    // Water
+    'ocean', 'sea', 'water', 'river', 'lake', 'marine', 'coral', 'fish', 'pollution', 'groundwater', 'rain', 'irrigation',
+    // Energy
+    'renewable', 'solar', 'wind', 'energy', 'electricity', 'power', 'sustainable', 'biogas', 'fuel',
+    // Waste & Recycling
+    'recycle', 'waste', 'plastic', 'garbage', 'compost', 'disposal', 'swachh', 'clean',
+    // General Environment
+    'environment', 'nature', 'conservation', 'ecology', 'green', 'eco', 'natural', 'protect', 'preserve',
+    // Air & Atmosphere
+    'air quality', 'ozone', 'atmosphere', 'smog', 'aqi', 'emission', 'stubble', 'burning',
+    // Land & Forests
+    'deforestation', 'rainforest', 'earth', 'planet', 'afforestation', 'land',
+    // Agriculture & Crops (ENHANCED)
+    'agriculture', 'farming', 'organic', 'soil', 'erosion', 'drought', 'flood', 'crop', 'crops',
+    'wheat', 'rice', 'paddy', 'sugarcane', 'cotton', 'maize', 'vegetable', 'fruit', 'harvest',
+    'fertilizer', 'pesticide', 'seed', 'cultivation', 'grow', 'growing', 'farmer', 'field',
+    'punjab', 'india', 'indian', 'kharif', 'rabi', 'msp', 'yield', 'sowing', 'irrigation',
+    // Wildlife
+    'endangered', 'extinct', 'tiger', 'elephant', 'lion', 'peacock', 'sanctuary', 'national park',
+    // Science
     'photosynthesis', 'oxygen', 'nitrogen', 'cycle', 'food chain', 'food web',
+    // Biomes
     'biome', 'tundra', 'desert', 'grassland', 'wetland', 'mangrove', 'glacier', 'ice',
-    'hurricane', 'tornado', 'earthquake', 'volcano', 'disaster', 'tsunami'
+    // Disasters
+    'hurricane', 'tornado', 'earthquake', 'volcano', 'disaster', 'tsunami',
+    // Trees (Indian)
+    'neem', 'peepal', 'banyan', 'mango', 'bamboo', 'teak', 'eucalyptus'
   ];
 
   // Load student data and chat history on mount
@@ -332,18 +347,37 @@ const AI = () => {
       
       let requestBody = { contents: [{ parts: [] }] };
 
-      const studentFriendlyPrompt = `You are EcoBot, a friendly environmental science tutor for students.
+      const studentFriendlyPrompt = `You are EcoBot, a friendly environmental science tutor for Indian students, with special focus on Punjab and India.
+
+EXPERTISE AREAS:
+🌳 TREES & FORESTS: Afforestation, deforestation, agroforestry, sacred groves, Punjab's forest cover, Shivalik hills, tree plantation drives, benefits of trees
+🌾 CROPS & AGRICULTURE: Punjab's wheat/rice cultivation, organic farming, crop rotation, soil health, pesticide impact, sustainable agriculture, MSP, Green Revolution effects
+🌡️ CLIMATE: Global warming, monsoons, heat waves, Punjab's climate patterns, climate change impact on agriculture, seasonal changes, carbon footprint
+💨 AIR POLLUTION: Stubble burning in Punjab, Delhi NCR pollution, AQI, smog, vehicular emissions, industrial pollution, Graded Response Action Plan (GRAP)
+💧 WATER: Sutlej, Beas, Ravi rivers, groundwater depletion in Punjab, water conservation, rainwater harvesting, canal irrigation, water pollution
+🗑️ WASTE MANAGEMENT: Solid waste, plastic ban, e-waste, composting, swachh bharat, biogas, recycling initiatives
+🐅 WILDLIFE: Punjab's wildlife (Nilgai, Peacock, Black buck), Indian wildlife (Tigers, Elephants, Lions), biodiversity, sanctuaries, national parks
+⚡ RENEWABLE ENERGY: Solar power in Punjab, wind energy, biogas from agricultural waste, green energy policies, rooftop solar schemes
+🌍 ENVIRONMENTAL POLICIES: National Action Plan on Climate Change (NAPCC), Punjab State Action Plan, NGT orders, environment protection acts, Wetland conservation
 
 RULES:
-1. ONLY answer about environmental science, nature, ecology, climate, animals, plants, oceans, renewable energy, sustainability.
-2. If NOT about environment, politely redirect.
-3. Use simple language for students.
-4. Include fun facts with emojis.
-5. Use bullet points and short paragraphs.
+1. ONLY answer about environmental science, nature, ecology, climate, pollution, agriculture, wildlife, water, sustainability topics.
+2. If NOT about environment, politely redirect to environmental topics.
+3. Use simple language suitable for students (ages 10-18).
+4. Include fun facts with emojis 🌿🌍🐘.
+5. Use bullet points and short paragraphs for easy reading.
+6. Keep responses MEDIUM length (4-6 bullet points max, 150-250 words).
+7. ALWAYS prioritize Indian/Punjab context:
+   - Use data from Punjab Government, Central Pollution Control Board, Ministry of Environment
+   - Reference real Indian environmental issues (stubble burning, Ganga cleaning, Project Tiger)
+   - Include Punjab-specific examples (groundwater crisis, paddy straw management, crop diversification)
+   - Mention local flora/fauna (Neem, Peepal, Banyan trees, Punjab's state animal/bird)
+8. Use Indian measurement units (hectares, kilometers, ₹ for costs, lakhs/crores for large numbers)
+9. Suggest actionable tips students can do in their daily life
 
 Student's question: ${message}
 
-Provide a helpful, educational response:`;
+Provide a helpful, educational response with Indian/Punjab focus:`;
 
       if (message.trim()) {
         requestBody.contents[0].parts.push({ text: studentFriendlyPrompt });
@@ -357,10 +391,21 @@ Provide a helpful, educational response:`;
         
         if (!message.trim()) {
           requestBody.contents[0].parts.push({
-            text: `You are EcoBot. Analyze this image from an environmental perspective.
-Identify plants, animals, ecosystems, or environmental features.
+            text: `You are EcoBot, an environmental tutor for Indian students (focus on Punjab/India).
+
+Analyze this image from an environmental perspective:
+🌳 If trees/plants: Identify species (especially Indian trees like Neem, Peepal, Banyan, Mango), their environmental benefits
+🌾 If crops/agriculture: Identify crop type, relate to Punjab's agriculture, sustainable farming practices
+💨 If pollution/urban: Discuss air quality, causes, solutions relevant to Indian cities
+💧 If water bodies: Discuss water conservation, pollution, relate to Punjab's rivers
+🐅 If wildlife: Identify species, conservation status in India, habitat information
+🗑️ If waste/garbage: Discuss proper disposal, recycling, Swachh Bharat initiatives
+
 Provide fun educational facts with emojis.
-Use simple student-friendly language.`
+Use simple student-friendly language.
+Relate to Indian/Punjab context wherever applicable.
+Keep response MEDIUM length (4-6 points, 150-250 words).
+Suggest what students can do to help.`
           });
         }
       }
@@ -373,17 +418,7 @@ Use simple student-friendly language.`
 
       if (!response.ok) {
         if (response.status === 429) {
-          // Try rotating to next API key if available
-          if (GEMINI_API_KEYS.length > 1 && currentKeyIndex < GEMINI_API_KEYS.length - 1) {
-            const nextIndex = currentKeyIndex + 1;
-            setCurrentKeyIndex(nextIndex);
-            console.log(`🔄 Rate limited! Rotating to API key ${nextIndex + 1}/${GEMINI_API_KEYS.length}`);
-            
-            // Automatically retry with the next key
-            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
-            return sendToGemini(message, image); // Recursive retry with new key
-          }
-          throw new Error(`Rate limit exceeded. All ${GEMINI_API_KEYS.length} API key(s) exhausted.`);
+          throw new Error('Rate limit exceeded');
         }
         throw new Error(`API request failed: ${response.status}`);
       }
@@ -395,10 +430,6 @@ Use simple student-friendly language.`
       
       // Provide user-friendly error messages
       if (error.message.includes('429') || error.message.includes('Rate limit')) {
-        // Check if all keys are exhausted
-        if (GEMINI_API_KEYS.length > 1) {
-          return "⏰ **All API Keys Rate Limited!**\n\nAll available API keys have reached their quota.\n\n**Solutions:**\n1. ⏳ Wait 1-2 hours for quotas to reset\n2. 🆕 Add more API keys (ask admin)\n3. 💳 Upgrade to paid tier for unlimited access\n\n📧 Contact: admin@ecolearning.com";
-        }
         return "⏰ **Rate Limit Reached!**\n\nThe AI chat has reached its quota limit.\n\n**Solutions:**\n1. ⏳ Wait 1-2 hours and try again\n2. 🆕 Create a new Google Cloud project with a fresh API key\n3. 💳 Enable billing for unlimited access\n\n💡 Tip: The free tier has strict limits!";
       }
       

@@ -52,9 +52,7 @@ function About() {
                 <span className="bg-gradient-eco bg-clip-text text-transparent"> Environmental Leaders</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                EcoLearn was founded with a simple mission: to make environmental education 
-                engaging, accessible, and impactful through innovative gamification and 
-                interactive learning experiences.
+                EcoLearn was founded with a simple mission: to make environmental education engaging, accessible, and impactful through innovative gamification and interactive learning experiences.
               </p>
             </div>
           </div>
@@ -69,14 +67,10 @@ function About() {
                   Our Mission
                 </h2>
                 <p className="text-lg text-muted-foreground mb-6">
-                  We're on a mission to transform how people learn about environmental 
-                  conservation. By combining gamification with comprehensive educational 
-                  content, we make learning about sustainability fun, engaging, and rewarding.
+                  We're on a mission to transform how people learn about environmental conservation. By combining gamification with comprehensive educational content, we make learning about sustainability fun, engaging, and rewarding.
                 </p>
                 <p className="text-lg text-muted-foreground">
-                  Our platform serves as a bridge between complex environmental concepts 
-                  and practical, actionable knowledge that learners can apply in their 
-                  daily lives to make a positive impact on our planet.
+                  Our platform serves as a bridge between complex environmental concepts and practical, actionable knowledge that learners can apply in their daily lives to make a positive impact on our planet.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -129,8 +123,7 @@ function About() {
                 Built by Environmental Enthusiasts
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-12">
-                Our team combines expertise in education, technology, and environmental science 
-                to create the most effective learning platform for sustainability education.
+                Our team combines expertise in education, technology, and environmental science to create the most effective learning platform for sustainability education.
               </p>
               <div className="bg-gradient-eco p-12 rounded-2xl text-center text-primary-foreground">
                 <h3 className="text-2xl font-bold mb-4">Join Our Mission</h3>

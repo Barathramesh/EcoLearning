@@ -1,26 +1,19 @@
 import fetch from "node-fetch";
 
-/**
- * AI Grading Service - Uses Google Gemini API for assignment verification
- * Fine-tuned for accurate grading with strict evaluation
- * Provides simple, class-level appropriate feedback
- */
-
 class AIGradingService {
   constructor() {
-    // Separate API keys for different purposes
-    this.apiKey = process.env.GEMINI_API_KEY; // For chatbot
+    // API keys for server-side AI features
+    this.apiKey = process.env.GEMINI_API_KEY_GRADING; // Default key for grading
+    this.assignmentApiKey = process.env.GEMINI_API_KEY_ASSIGNMENT; // For assignment OCR/grading
     this.quizApiKey = process.env.GEMINI_API_KEY_QUIZ; // For quiz generation
-    // Using gemini-2.0-flash model (latest stable version as of Dec 2024)
+    // Using gemini-2.5-flash model (latest stable version as of Dec 2025)
     this.apiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
     this.maxRetries = 3;
     this.baseDelay = 2000; // 2 seconds base delay
   }
 
-  /**
-   * Sleep for specified milliseconds
-   */
+
   sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

@@ -22,16 +22,16 @@ const Features = () => {
   const features = [
     {
       icon: Gamepad2,
-      title: "Gamified Learning",
-      description: "Turn environmental education into an engaging adventure with points, levels, and achievements.",
+      title: "Interactive Games",
+      description: "Learn through fun and engaging environmental games",
       image: ecoBadges,
       stats: "50+ Mini Games",
       color: "text-primary"
     },
     {
       icon: BookOpen,
-      title: "Interactive Modules",
-      description: "Comprehensive lessons covering climate change, sustainability, and eco-friendly practices.",
+      title: "AI-Powered Learning",
+      description: "Get personalized learning experience with AI assistance",
       image: learningModules,
       stats: "200+ Lessons",
       color: "text-secondary"
@@ -39,15 +39,15 @@ const Features = () => {
     {
       icon: TrendingUp,
       title: "Progress Tracking",
-      description: "Monitor your learning journey with detailed analytics and personalized insights.",
+      description: "Track your learning journey and achievements",
       image: null,
       stats: "Real-time Analytics",
       color: "text-accent"
     },
     {
       icon: Gift,
-      title: "Rewards System",
-      description: "Earn eco-badges, certificates, and real-world rewards for your environmental achievements.",
+      title: "Earn Certificates",
+      description: "Get certified for your environmental knowledge",
       image: null,
       stats: "100+ Rewards",
       color: "text-success"
@@ -68,15 +68,13 @@ const Features = () => {
         <div className="text-center mb-16">
           <Badge variant="secondary" className="mb-4">
             <Star className="w-4 h-4 mr-2" />
-            Why Choose EcoLearn
+            Amazing Features
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold font-lato mb-6">
-            Features That Make
-            <span className="bg-gradient-eco bg-clip-text text-transparent"> Learning Fun</span>
+            Amazing Features
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our platform combines cutting-edge gamification with comprehensive environmental education 
-            to create an engaging learning experience.
+            Everything you need to learn about the environment
           </p>
         </div>
 

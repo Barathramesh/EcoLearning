@@ -48,6 +48,17 @@ const assignmentSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  expectedAnswer: {
+    type: String,
+    default: ''
+  },
+  keyPoints: [{
+    type: String
+  }],
+  enableAIGrading: {
+    type: Boolean,
+    default: true
+  },
   teacherId: {
     type: String,
     required: true
