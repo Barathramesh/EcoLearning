@@ -464,3 +464,136 @@ export const updateStudent = async (req, res) => {
     });
   }
 };
+
+// Get detailed student information
+export const getStudentDetails = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await Student.findById(studentId)
+      .select('-passwordHash -plainPassword')
+      .populate('watchedVideos.syllabusId', 'title subject grade')
+      .populate('completedQuizzes.syllabusId', 'title subject grade');
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Calculate total points from different sources
+    const totalPoints = student.points || 0;
+    const gamePoints = student.gamePoints || 0;
+    const lessonPoints = student.completedQuizzes.reduce((sum, quiz) => sum + (quiz.pointsAwarded || 0), 0);
+    const videoPoints = student.watchedVideos.reduce((sum, video) => sum + (video.pointsEarned || 0), 0);
+
+    // Calculate completed lessons
+    const completedLessons = student.watchedVideos.length;
+    const completedQuizzes = student.completedQuizzes.length;
+
+    // Get last login from timestamps
+    const lastLogin = student.updatedAt || student.createdAt;
+
+    // Get learning hours
+    const hoursLearned = student.hoursLearned || 0;
+
+    // Recent activity (last 10 activities)
+    const recentActivity = [];
+    
+    // Add completed quizzes
+    student.completedQuizzes.slice(-5).forEach(quiz => {
+      recentActivity.push({
+        type: 'quiz',
+        title: quiz.quizTitle || 'Quiz Completed',
+        points: quiz.pointsAwarded,
+        date: quiz.completedAt,
+        score: quiz.score
+      });
+    });
+
+    // Add watched videos
+    student.watchedVideos.slice(-5).forEach(video => {
+      recentActivity.push({
+        type: 'video',
+        title: video.syllabusId?.title || 'Video Watched',
+        points: video.pointsEarned,
+        date: video.watchedAt
+      });
+    });
+
+    // Add games played
+    student.gamesPlayed.slice(-5).forEach(game => {
+      recentActivity.push({
+        type: 'game',
+        title: game.gameName || 'Game Played',
+        points: game.pointsEarned,
+        date: game.playedAt
+      });
+    });
+
+    // Sort by date and take last 10
+    recentActivity.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const limitedActivity = recentActivity.slice(0, 10);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        student: {
+          _id: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          phone: student.phone,
+          address: student.address,
+          school: student.school,
+          class: student.class,
+          joiningDate: student.joiningDate,
+          lastLogin: lastLogin,
+        },
+        stats: {
+          totalPoints: totalPoints,
+          gamePoints: gamePoints,
+          lessonPoints: lessonPoints,
+          videoPoints: videoPoints,
+          hoursLearned: hoursLearned,
+          completedLessons: completedLessons,
+          completedQuizzes: completedQuizzes,
+          gamesPlayed: student.gamesPlayed.length,
+          level: student.level || 1,
+          currentXP: student.currentXP || 0,
+          nextLevelXP: student.nextLevelXP || 100,
+          streak: student.streak || 0,
+          badges: student.badges.length,
+        },
+        recentActivity: limitedActivity,
+        badges: student.badges,
+        achievements: student.achievements,
+        completedLessons: student.watchedVideos.map(video => ({
+          title: video.syllabusId?.title || 'Unknown Lesson',
+          subject: video.syllabusId?.subject,
+          grade: video.syllabusId?.grade,
+          watchedAt: video.watchedAt,
+          pointsEarned: video.pointsEarned
+        })),
+        completedQuizzes: student.completedQuizzes.map(quiz => ({
+          title: quiz.quizTitle,
+          score: quiz.score,
+          pointsAwarded: quiz.pointsAwarded,
+          completedAt: quiz.completedAt
+        })),
+        gamesPlayed: student.gamesPlayed.map(game => ({
+          gameName: game.gameName,
+          pointsEarned: game.pointsEarned,
+          playedAt: game.playedAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Get student details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching student details'
+    });
+  }
+};

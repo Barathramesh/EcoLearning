@@ -31,6 +31,9 @@ const StudentProgressTracking = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [detailsTab, setDetailsTab] = useState('overview');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [classAssignments, setClassAssignments] = useState({});
@@ -123,10 +126,39 @@ const StudentProgressTracking = () => {
     }
   };
 
+  // Fetch detailed student data
+  const fetchStudentDetails = async (studentId) => {
+    setLoadingDetails(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/teacher/student-details/${studentId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setStudentDetails(data.data);
+      } else {
+        console.error('Failed to fetch student details:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching student details:', error);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchClasses();
   }, []);
+
+  // Fetch details when student is selected
+  useEffect(() => {
+    if (selectedStudent) {
+      fetchStudentDetails(selectedStudent.id);
+      setDetailsTab('overview'); // Reset to overview tab
+    } else {
+      setStudentDetails(null);
+    }
+  }, [selectedStudent]);
 
   // Add class assignment counts to students
   const studentsWithAssignments = students.map(student => ({
@@ -614,8 +646,180 @@ const StudentProgressTracking = () => {
           </>
         )}
 
-        {/* Other views can be implemented similarly */}
-        {selectedView !== 'overview' && (
+        {/* Individual Progress View */}
+        {selectedView === 'individual' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            {filteredStudents.map(student => (
+              <div
+                key={student.id}
+                style={{
+                  backgroundColor: 'white',
+                  padding: '1.5rem',
+                  borderRadius: '0.75rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  border: '1px solid #e5e7eb',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                }}
+                onClick={() => setSelectedStudent(student)}
+              >
+                {/* Student Header */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.75rem' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1.125rem',
+                    flexShrink: 0
+                  }}>
+                    {student.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontWeight: '600', color: '#1f2937', fontSize: '1rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {student.name}
+                    </h3>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>{student.class}</p>
+                  </div>
+                </div>
+
+                {/* Level & Status */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    padding: '0.375rem 0.75rem',
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                    borderRadius: '9999px',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: '600'
+                  }}>
+                    <Star size={12} />
+                    Level {student.level}
+                  </div>
+                  <div style={{
+                    padding: '0.375rem 0.75rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    backgroundColor: getStatusColor(student.status).bg,
+                    color: getStatusColor(student.status).text,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}>
+                    {getPerformanceIcon(student.status)}
+                    {student.status.replace('-', ' ')}
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                    <Trophy size={20} style={{ color: '#f59e0b', margin: '0 auto 0.25rem' }} />
+                    <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>{student.totalPoints}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Points</p>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                    <Target size={20} style={{ color: '#3b82f6', margin: '0 auto 0.25rem' }} />
+                    <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>{student.avgScore}%</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Avg Score</p>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                    <CheckCircle size={20} style={{ color: '#10b981', margin: '0 auto 0.25rem' }} />
+                    <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                      {student.completedAssignments}/{student.totalAssignments}
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Assignments</p>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                    <Clock size={20} style={{ color: '#8b5cf6', margin: '0 auto 0.25rem' }} />
+                    <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>{formatLastActive(student.lastActive)}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Last Active</p>
+                  </div>
+                </div>
+
+                {/* Weekly Points */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Weekly Activity</p>
+                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#10b981', margin: 0 }}>+{student.weeklyPoints || 0} pts</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.25rem', height: '40px', alignItems: 'flex-end' }}>
+                    {student.weeklyActivity && student.weeklyActivity.length > 0 ? (
+                      student.weeklyActivity.map((points, i) => {
+                        const maxPoints = Math.max(...student.weeklyActivity, 1);
+                        const heightPercent = Math.max((points / maxPoints) * 100, 10);
+                        const opacityValue = 0.3 + (points / maxPoints) * 0.7;
+                        return (
+                          <div
+                            key={i}
+                            style={{
+                              flex: 1,
+                              height: `${heightPercent}%`,
+                              backgroundColor: '#10b981',
+                              borderRadius: '0.25rem',
+                              opacity: opacityValue
+                            }}
+                            title={`Day ${i + 1}: ${points} points`}
+                          />
+                        );
+                      })
+                    ) : (
+                      <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0, textAlign: 'center', width: '100%' }}>No activity data</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* View Details Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStudent(student);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    backgroundColor: '#059669',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#047857'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                >
+                  <Eye size={16} />
+                  View Full Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Assignment Tracking View */}
+        {selectedView === 'assignments' && (
           <div style={{
             backgroundColor: 'white',
             padding: '3rem',
@@ -625,81 +829,482 @@ const StudentProgressTracking = () => {
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚧</div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-              {selectedView.charAt(0).toUpperCase() + selectedView.slice(1).replace('-', ' ')} View
+              Assignment Tracking View
             </h3>
             <p style={{ color: '#6b7280' }}>
-              This view is under development. Coming soon with detailed {selectedView.replace('-', ' ')} tracking features.
+              This view is under development. Coming soon with detailed assignment tracking features.
             </p>
           </div>
         )}
       </div>
 
-      {/* Student Detail Modal (placeholder) */}
+      {/* Student Detail Modal */}
       {selectedStudent && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '0.75rem',
-            maxWidth: '800px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                {selectedStudent.name} - Detailed Progress
-              </h2>
-              <button
-                onClick={() => setSelectedStudent(null)}
-                style={{
-                  padding: '0.5rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1.5rem'
-                }}
-              >
-                ×
-              </button>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={() => setSelectedStudent(null)}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.5rem',
+              borderBottom: '1px solid #e5e7eb',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#059669',
+                    fontWeight: 'bold',
+                    fontSize: '1.5rem'
+                  }}>
+                    {selectedStudent.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                      {selectedStudent.name}
+                    </h2>
+                    <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '0.875rem' }}>
+                      {selectedStudent.email} • {selectedStudent.class}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedStudent(null)}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
-            <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-              Detailed progress tracking for {selectedStudent.name} including activity history, strengths, and areas for improvement.
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+
+            {/* Tabs */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              padding: '1rem 1.5rem',
+              borderBottom: '1px solid #e5e7eb',
+              backgroundColor: '#f9fafb'
+            }}>
+              {[
+                { id: 'overview', label: 'Overview', icon: Activity },
+                { id: 'lessons', label: 'Lessons', icon: BookOpen },
+                { id: 'quizzes', label: 'Quizzes', icon: CheckCircle },
+                { id: 'games', label: 'Games', icon: Trophy }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setDetailsTab(tab.id)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    backgroundColor: detailsTab === tab.id ? '#059669' : 'transparent',
+                    color: detailsTab === tab.id ? 'white' : '#6b7280',
+                    cursor: 'pointer',
+                    fontWeight: detailsTab === tab.id ? '600' : '400',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '1.5rem'
+            }}>
+              {loadingDetails ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem' }}>
+                  <div style={{
+                    width: '3rem',
+                    height: '3rem',
+                    border: '4px solid #e5e7eb',
+                    borderTop: '4px solid #059669',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                </div>
+              ) : studentDetails ? (
+                <>
+                  {/* Overview Tab */}
+                  {detailsTab === 'overview' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      {/* Stats Grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                        <div style={{
+                          padding: '1.5rem',
+                          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                          borderRadius: '0.75rem',
+                          color: 'white'
+                        }}>
+                          <Trophy size={32} style={{ marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.5rem 0' }}>
+                            {studentDetails.stats.totalPoints}
+                          </p>
+                          <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Total Points</p>
+                        </div>
+                        <div style={{
+                          padding: '1.5rem',
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          borderRadius: '0.75rem',
+                          color: 'white'
+                        }}>
+                          <BookOpen size={32} style={{ marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.5rem 0' }}>
+                            {studentDetails.stats.completedLessons}
+                          </p>
+                          <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Lessons Completed</p>
+                        </div>
+                        <div style={{
+                          padding: '1.5rem',
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          borderRadius: '0.75rem',
+                          color: 'white'
+                        }}>
+                          <CheckCircle size={32} style={{ marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.5rem 0' }}>
+                            {studentDetails.stats.completedQuizzes}
+                          </p>
+                          <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Quizzes Passed</p>
+                        </div>
+                        <div style={{
+                          padding: '1.5rem',
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          borderRadius: '0.75rem',
+                          color: 'white'
+                        }}>
+                          <Clock size={32} style={{ marginBottom: '0.5rem' }} />
+                          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0.5rem 0' }}>
+                            {studentDetails.stats.hoursLearned}h
+                          </p>
+                          <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Hours Learned</p>
+                        </div>
+                      </div>
+
+                      {/* Recent Activity */}
+                      <div style={{
+                        backgroundColor: '#f9fafb',
+                        padding: '1.5rem',
+                        borderRadius: '0.75rem'
+                      }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Activity size={20} color="#059669" />
+                          Recent Activity
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {studentDetails.recentActivity && studentDetails.recentActivity.length > 0 ? (
+                            studentDetails.recentActivity.map((activity, index) => (
+                              <div key={index} style={{
+                                padding: '1rem',
+                                backgroundColor: 'white',
+                                borderRadius: '0.5rem',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}>
+                                <div>
+                                  <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>{activity.title}</p>
+                                  <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                                    {activity.type} • {new Date(activity.date).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                {activity.points && (
+                                  <div style={{
+                                    padding: '0.25rem 0.75rem',
+                                    backgroundColor: '#dcfce7',
+                                    color: '#166534',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.875rem',
+                                    fontWeight: '600'
+                                  }}>
+                                    +{activity.points} pts
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <p style={{ textAlign: 'center', color: '#6b7280', padding: '1rem' }}>No recent activity</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Badges */}
+                      {studentDetails.badges && studentDetails.badges.length > 0 && (
+                        <div>
+                          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Award size={20} color="#059669" />
+                            Earned Badges
+                          </h3>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
+                            {studentDetails.badges.map((badge, index) => (
+                              <div key={index} style={{
+                                padding: '1rem',
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '0.5rem',
+                                textAlign: 'center',
+                                border: '2px solid #e5e7eb'
+                              }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{badge.icon || '🏆'}</div>
+                                <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+                                  {badge.name}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Lessons Tab */}
+                  {detailsTab === 'lessons' && (
+                    <div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <BookOpen size={20} color="#059669" />
+                        Completed Lessons ({studentDetails.completedLessons?.length || 0})
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {studentDetails.completedLessons && studentDetails.completedLessons.length > 0 ? (
+                          studentDetails.completedLessons.map((lesson, index) => (
+                            <div key={index} style={{
+                              padding: '1rem',
+                              backgroundColor: '#f9fafb',
+                              borderRadius: '0.5rem',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>{lesson.title || 'Lesson'}</p>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                                  {lesson.topic} • Completed {new Date(lesson.completedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <CheckCircle size={20} color="#10b981" />
+                            </div>
+                          ))
+                        ) : (
+                          <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No completed lessons yet</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quizzes Tab */}
+                  {detailsTab === 'quizzes' && (
+                    <div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <CheckCircle size={20} color="#059669" />
+                        Quiz Results ({studentDetails.completedQuizzes?.length || 0})
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {studentDetails.completedQuizzes && studentDetails.completedQuizzes.length > 0 ? (
+                          studentDetails.completedQuizzes.map((quiz, index) => (
+                            <div key={index} style={{
+                              padding: '1rem',
+                              backgroundColor: '#f9fafb',
+                              borderRadius: '0.5rem',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>{quiz.title || 'Quiz'}</p>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                                  {quiz.topic} • Completed {new Date(quiz.completedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div style={{
+                                padding: '0.5rem 1rem',
+                                backgroundColor: quiz.score >= 70 ? '#dcfce7' : '#fee2e2',
+                                color: quiz.score >= 70 ? '#166534' : '#991b1b',
+                                borderRadius: '0.5rem',
+                                fontWeight: '600'
+                              }}>
+                                {quiz.score}%
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No completed quizzes yet</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Games Tab */}
+                  {detailsTab === 'games' && (
+                    <div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Trophy size={20} color="#059669" />
+                        Games Played ({studentDetails.completedGames?.length || 0})
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+                        {studentDetails.completedGames && studentDetails.completedGames.length > 0 ? (
+                          studentDetails.completedGames.map((game, index) => (
+                            <div key={index} style={{
+                              padding: '1.5rem',
+                              backgroundColor: '#f9fafb',
+                              borderRadius: '0.75rem',
+                              border: '2px solid #e5e7eb'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                                <div style={{
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '0.5rem',
+                                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '1.5rem'
+                                }}>
+                                  🎮
+                                </div>
+                                <div>
+                                  <p style={{ fontWeight: '600', color: '#1f2937', margin: 0, fontSize: '0.875rem' }}>
+                                    {game.name || 'Game'}
+                                  </p>
+                                  <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                                    {new Date(game.playedAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                  <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Score</p>
+                                  <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                                    {game.score || 0}
+                                  </p>
+                                </div>
+                                <div style={{
+                                  padding: '0.5rem 0.75rem',
+                                  backgroundColor: '#dcfce7',
+                                  color: '#166534',
+                                  borderRadius: '0.5rem',
+                                  fontSize: '0.875rem',
+                                  fontWeight: '600'
+                                }}>
+                                  +{game.points || 0} pts
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', gridColumn: '1 / -1' }}>
+                            No games played yet
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
+                  Failed to load student details
+                </p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #e5e7eb',
+              backgroundColor: '#f9fafb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: '0.75rem'
+            }}>
               <button
                 onClick={() => setSelectedStudent(null)}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.625rem 1.5rem',
                   border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
+                  borderRadius: '0.5rem',
                   backgroundColor: 'white',
-                  cursor: 'pointer'
+                  color: '#374151',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
               >
                 Close
               </button>
               <button
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.625rem 1.5rem',
                   backgroundColor: '#059669',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer'
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'background-color 0.2s'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#047857'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#059669'}
               >
+                <MessageSquare size={16} />
                 Send Message
               </button>
             </div>

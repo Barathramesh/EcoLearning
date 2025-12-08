@@ -58,6 +58,7 @@ import TeacherAnalytics from "./pages/teacher/TeacherAnalytics";
 import StudentManagement from "./pages/teacher/StudentManagement";
 import AssignmentSubmissions from "./pages/teacher/AssignmentSubmissions";
 import VideoGeneration from "./pages/teacher/VideoGeneration";
+import StudentDetails from "./pages/teacher/StudentDetails";
 
 // Admin module imports
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -157,6 +158,10 @@ const App = () => (
           <Route
             path="/teacher/student-management"
             element={<StudentManagement />}
+          />
+          <Route
+            path="/teacher/student/:studentId"
+            element={<StudentDetails />}
           />
           <Route path="/teacher/assignments" element={<AssignmentCreation />} />
           <Route path="/teacher/analytics" element={<TeacherAnalytics />} />

@@ -28,7 +28,17 @@ import {
     MoreVertical,
     ArrowLeft,
     FileText,
-    ClipboardList
+    ClipboardList,
+    Trophy,
+    Clock,
+    Zap,
+    Target,
+    Award,
+    BookOpen,
+    Gamepad2,
+    Video,
+    Activity,
+    Loader
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -113,6 +123,10 @@ const StudentManagement = () => {
     const [copiedId, setCopiedId] = useState(null);
     const [editingStudent, setEditingStudent] = useState(null);
     const [expandedStudentId, setExpandedStudentId] = useState(null);
+    const [viewingStudent, setViewingStudent] = useState(null);
+    const [studentDetails, setStudentDetails] = useState(null);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+    const [detailsTab, setDetailsTab] = useState('overview');
     const fileInputRef = useRef(null);
     const [assignments, setAssignments] = useState([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
@@ -186,6 +200,35 @@ const StudentManagement = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Fetch student details
+    const fetchStudentDetails = async (studentId) => {
+        console.log('Fetching details for student ID:', studentId);
+        setLoadingDetails(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/teacher/student-details/${studentId}`);
+            const data = await response.json();
+            
+            console.log('Student details response:', data);
+            
+            if (data.success) {
+                setStudentDetails(data.data);
+                console.log('Student details set:', data.data);
+            } else {
+                console.error('Failed to fetch student details:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching student details:', error);
+        } finally {
+            setLoadingDetails(false);
+        }
+    };
+
+    const handleViewDetails = (student) => {
+        console.log('View Details clicked for student:', student);
+        setViewingStudent(student);
+        fetchStudentDetails(student._id);
     };
 
     // Fetch assignments for the class
@@ -789,6 +832,23 @@ const StudentManagement = () => {
                                     </div>
 
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleViewDetails(student); }}
+                                            style={{
+                                                padding: '0.375rem',
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: '#9ca3af',
+                                                borderRadius: '0.25rem',
+                                                transition: 'color 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.color = '#10b981'}
+                                            onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                                            title="View Details"
+                                        >
+                                            <Eye size={16} />
+                                        </button>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setEditingStudent(student); }}
                                             style={{
@@ -1732,6 +1792,517 @@ const StudentManagement = () => {
                                     }}
                                 >
                                     Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Student Details Modal */}
+                {viewingStudent && (
+                    <div 
+                        onClick={(e) => {
+                            // Close modal if clicking on backdrop
+                            if (e.target === e.currentTarget) {
+                                setViewingStudent(null);
+                                setStudentDetails(null);
+                            }
+                        }}
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 9999,
+                            padding: '1rem'
+                        }}>
+                        <div style={{
+                            backgroundColor: 'white',
+                            borderRadius: '1rem',
+                            maxWidth: '900px',
+                            width: '100%',
+                            maxHeight: '90vh',
+                            overflow: 'auto',
+                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                        }}>
+                            {/* Modal Header */}
+                            <div style={{
+                                padding: '1.5rem',
+                                borderBottom: '1px solid #e5e7eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                position: 'sticky',
+                                top: 0,
+                                backgroundColor: 'white',
+                                zIndex: 10
+                            }}>
+                                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                                    {viewingStudent.name} - Detailed Progress
+                                </h2>
+                                <button
+                                    onClick={() => { setViewingStudent(null); setStudentDetails(null); }}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: '#6b7280',
+                                        padding: '0.5rem'
+                                    }}
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div style={{ padding: '1.5rem' }}>
+                                {loadingDetails ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', gap: '1rem' }}>
+                                        <Loader className="animate-spin" size={32} color="#10b981" />
+                                        <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading student details...</p>
+                                    </div>
+                                ) : studentDetails ? (
+                                    <div>
+                                        <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.9375rem', lineHeight: '1.5' }}>
+                                            Detailed progress tracking for {viewingStudent.name} including activity history, strengths, and areas for improvement.
+                                        </p>
+
+                                        {/* Student Info Card */}
+                                        <div style={{
+                                            backgroundColor: '#f9fafb',
+                                            borderRadius: '0.75rem',
+                                            padding: '1.25rem',
+                                            marginBottom: '1.5rem'
+                                        }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Mail size={16} style={{ color: '#10b981' }} />
+                                                    <div>
+                                                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Email</p>
+                                                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937', margin: 0 }}>{studentDetails.student.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Phone size={16} style={{ color: '#10b981' }} />
+                                                    <div>
+                                                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Phone</p>
+                                                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937', margin: 0 }}>{studentDetails.student.phone}</p>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Calendar size={16} style={{ color: '#10b981' }} />
+                                                    <div>
+                                                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Joining Date</p>
+                                                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                                                            {new Date(studentDetails.student.joiningDate).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <Clock size={16} style={{ color: '#10b981' }} />
+                                                    <div>
+                                                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Last Login</p>
+                                                        <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                                                            {new Date(studentDetails.student.lastLogin).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Statistics Grid */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                                borderRadius: '0.75rem',
+                                                padding: '1.25rem',
+                                                color: 'white'
+                                            }}>
+                                                <Trophy size={24} style={{ marginBottom: '0.5rem', opacity: 0.9 }} />
+                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.25rem 0' }}>{studentDetails.stats.totalPoints}</p>
+                                                <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Total Points</p>
+                                            </div>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                                                borderRadius: '0.75rem',
+                                                padding: '1.25rem',
+                                                color: 'white'
+                                            }}>
+                                                <Gamepad2 size={24} style={{ marginBottom: '0.5rem', opacity: 0.9 }} />
+                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.25rem 0' }}>{studentDetails.stats.gamePoints}</p>
+                                                <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Game Points</p>
+                                            </div>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                borderRadius: '0.75rem',
+                                                padding: '1.25rem',
+                                                color: 'white'
+                                            }}>
+                                                <BookOpen size={24} style={{ marginBottom: '0.5rem', opacity: 0.9 }} />
+                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.25rem 0' }}>{studentDetails.stats.lessonPoints}</p>
+                                                <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Lesson Points</p>
+                                            </div>
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                                                borderRadius: '0.75rem',
+                                                padding: '1.25rem',
+                                                color: 'white'
+                                            }}>
+                                                <Clock size={24} style={{ marginBottom: '0.5rem', opacity: 0.9 }} />
+                                                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0.25rem 0' }}>{studentDetails.stats.hoursLearned.toFixed(1)}h</p>
+                                                <p style={{ fontSize: '0.875rem', opacity: 0.9, margin: 0 }}>Hours Learned</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Additional Stats */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', textAlign: 'center' }}>
+                                                <Video size={20} style={{ color: '#10b981', margin: '0 auto 0.5rem' }} />
+                                                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: '0.25rem 0' }}>{studentDetails.stats.completedLessons}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Lessons</p>
+                                            </div>
+                                            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', textAlign: 'center' }}>
+                                                <Target size={20} style={{ color: '#3b82f6', margin: '0 auto 0.5rem' }} />
+                                                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: '0.25rem 0' }}>{studentDetails.stats.completedQuizzes}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Quizzes</p>
+                                            </div>
+                                            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', textAlign: 'center' }}>
+                                                <Gamepad2 size={20} style={{ color: '#8b5cf6', margin: '0 auto 0.5rem' }} />
+                                                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: '0.25rem 0' }}>{studentDetails.stats.gamesPlayed}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Games</p>
+                                            </div>
+                                            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', textAlign: 'center' }}>
+                                                <Award size={20} style={{ color: '#f59e0b', margin: '0 auto 0.5rem' }} />
+                                                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: '0.25rem 0' }}>{studentDetails.stats.badges}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Badges</p>
+                                            </div>
+                                            <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', textAlign: 'center' }}>
+                                                <Zap size={20} style={{ color: '#ef4444', margin: '0 auto 0.5rem' }} />
+                                                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937', margin: '0.25rem 0' }}>{studentDetails.stats.streak}</p>
+                                                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Day Streak</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Tabs */}
+                                        <div style={{ marginBottom: '1.5rem' }}>
+                                            <div style={{ borderBottom: '2px solid #e5e7eb', marginBottom: '1.5rem' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>
+                                                    {['overview', 'lessons', 'quizzes', 'games'].map(tab => (
+                                                        <button
+                                                            key={tab}
+                                                            onClick={() => setDetailsTab(tab)}
+                                                            style={{
+                                                                padding: '0.75rem 1.25rem',
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                borderBottom: detailsTab === tab ? '2px solid #10b981' : '2px solid transparent',
+                                                                color: detailsTab === tab ? '#10b981' : '#6b7280',
+                                                                fontWeight: detailsTab === tab ? '600' : '500',
+                                                                cursor: 'pointer',
+                                                                fontSize: '0.875rem',
+                                                                textTransform: 'capitalize',
+                                                                marginBottom: '-2px',
+                                                                transition: 'all 0.2s',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {tab}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Overview Tab */}
+                                            {detailsTab === 'overview' && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Activity size={20} style={{ color: '#10b981' }} />
+                                                        Recent Activity
+                                                    </h3>
+                                                    {studentDetails.recentActivity && studentDetails.recentActivity.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', maxHeight: '400px', overflowY: 'auto' }}>
+                                                            {studentDetails.recentActivity.map((activity, index) => (
+                                                                <div key={index} style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'space-between',
+                                                                    padding: '0.875rem',
+                                                                    backgroundColor: '#f9fafb',
+                                                                    borderRadius: '0.5rem',
+                                                                    border: '1px solid #e5e7eb',
+                                                                    transition: 'transform 0.2s, box-shadow 0.2s'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                                    e.currentTarget.style.boxShadow = 'none';
+                                                                }}>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                        <div style={{
+                                                                            width: '36px',
+                                                                            height: '36px',
+                                                                            borderRadius: '0.5rem',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            backgroundColor: activity.type === 'quiz' ? '#dbeafe' : activity.type === 'video' ? '#d1fae5' : '#ede9fe'
+                                                                        }}>
+                                                                            {activity.type === 'quiz' && <Target size={18} style={{ color: '#3b82f6' }} />}
+                                                                            {activity.type === 'video' && <Video size={18} style={{ color: '#10b981' }} />}
+                                                                            {activity.type === 'game' && <Gamepad2 size={18} style={{ color: '#8b5cf6' }} />}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937', margin: 0 }}>{activity.title}</p>
+                                                                            <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                                                                                {new Date(activity.date).toLocaleString()}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                                                        {activity.score !== undefined && (
+                                                                            <span style={{
+                                                                                padding: '0.375rem 0.625rem',
+                                                                                backgroundColor: '#dbeafe',
+                                                                                color: '#1e40af',
+                                                                                borderRadius: '0.375rem',
+                                                                                fontSize: '0.75rem',
+                                                                                fontWeight: '600'
+                                                                            }}>
+                                                                                {activity.score}%
+                                                                            </span>
+                                                                        )}
+                                                                        <span style={{
+                                                                            padding: '0.375rem 0.625rem',
+                                                                            backgroundColor: '#fef3c7',
+                                                                            color: '#92400e',
+                                                                            borderRadius: '0.375rem',
+                                                                            fontSize: '0.75rem',
+                                                                            fontWeight: '600',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '0.25rem'
+                                                                        }}>
+                                                                            <Trophy size={12} />
+                                                                            +{activity.points}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                                                            <Activity size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                                                            <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No recent activity</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Lessons Tab */}
+                                            {detailsTab === 'lessons' && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Video size={20} style={{ color: '#10b981' }} />
+                                                        Completed Lessons ({studentDetails.completedLessons?.length || 0})
+                                                    </h3>
+                                                    {studentDetails.completedLessons && studentDetails.completedLessons.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto' }}>
+                                                            {studentDetails.completedLessons.map((lesson, index) => (
+                                                                <div key={index} style={{
+                                                                    padding: '1rem',
+                                                                    backgroundColor: '#ecfdf5',
+                                                                    borderRadius: '0.5rem',
+                                                                    border: '1px solid #a7f3d0'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <p style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#065f46', margin: '0 0 0.25rem 0' }}>{lesson.title}</p>
+                                                                            <p style={{ fontSize: '0.75rem', color: '#047857', margin: 0 }}>{lesson.subject} • {lesson.grade}</p>
+                                                                        </div>
+                                                                        <span style={{
+                                                                            padding: '0.375rem 0.625rem',
+                                                                            backgroundColor: '#d1fae5',
+                                                                            color: '#065f46',
+                                                                            borderRadius: '0.375rem',
+                                                                            fontSize: '0.75rem',
+                                                                            fontWeight: '600'
+                                                                        }}>
+                                                                            +{lesson.pointsEarned} pts
+                                                                        </span>
+                                                                    </div>
+                                                                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                                                                        {new Date(lesson.watchedAt).toLocaleString()}
+                                                                    </p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                                                            <Video size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                                                            <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No completed lessons yet</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Quizzes Tab */}
+                                            {detailsTab === 'quizzes' && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Target size={20} style={{ color: '#3b82f6' }} />
+                                                        Completed Quizzes ({studentDetails.completedQuizzes?.length || 0})
+                                                    </h3>
+                                                    {studentDetails.completedQuizzes && studentDetails.completedQuizzes.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto' }}>
+                                                            {studentDetails.completedQuizzes.map((quiz, index) => (
+                                                                <div key={index} style={{
+                                                                    padding: '1rem',
+                                                                    backgroundColor: '#eff6ff',
+                                                                    borderRadius: '0.5rem',
+                                                                    border: '1px solid #bfdbfe'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <p style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#1e40af', margin: '0 0 0.25rem 0' }}>{quiz.title}</p>
+                                                                        </div>
+                                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                            <span style={{
+                                                                                padding: '0.375rem 0.625rem',
+                                                                                backgroundColor: '#dbeafe',
+                                                                                color: '#1e40af',
+                                                                                borderRadius: '0.375rem',
+                                                                                fontSize: '0.75rem',
+                                                                                fontWeight: '600'
+                                                                            }}>
+                                                                                Score: {quiz.score}%
+                                                                            </span>
+                                                                            <span style={{
+                                                                                padding: '0.375rem 0.625rem',
+                                                                                backgroundColor: '#fef3c7',
+                                                                                color: '#92400e',
+                                                                                borderRadius: '0.375rem',
+                                                                                fontSize: '0.75rem',
+                                                                                fontWeight: '600'
+                                                                            }}>
+                                                                                +{quiz.pointsAwarded} pts
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                                                                        {new Date(quiz.completedAt).toLocaleString()}
+                                                                    </p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                                                            <Target size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                                                            <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No completed quizzes yet</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Games Tab */}
+                                            {detailsTab === 'games' && (
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Gamepad2 size={20} style={{ color: '#8b5cf6' }} />
+                                                        Games Played ({studentDetails.gamesPlayed?.length || 0})
+                                                    </h3>
+                                                    {studentDetails.gamesPlayed && studentDetails.gamesPlayed.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '400px', overflowY: 'auto' }}>
+                                                            {studentDetails.gamesPlayed.map((game, index) => (
+                                                                <div key={index} style={{
+                                                                    padding: '1rem',
+                                                                    backgroundColor: '#faf5ff',
+                                                                    borderRadius: '0.5rem',
+                                                                    border: '1px solid #e9d5ff'
+                                                                }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <p style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#6b21a8', margin: 0 }}>{game.gameName}</p>
+                                                                        </div>
+                                                                        <span style={{
+                                                                            padding: '0.375rem 0.625rem',
+                                                                            backgroundColor: '#ede9fe',
+                                                                            color: '#6b21a8',
+                                                                            borderRadius: '0.375rem',
+                                                                            fontSize: '0.75rem',
+                                                                            fontWeight: '600'
+                                                                        }}>
+                                                                            +{game.pointsEarned} pts
+                                                                        </span>
+                                                                    </div>
+                                                                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                                                                        {new Date(game.playedAt).toLocaleString()}
+                                                                    </p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
+                                                            <Gamepad2 size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                                                            <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No games played yet</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem' }}>No data available</p>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div style={{
+                                padding: '1rem 1.5rem',
+                                borderTop: '1px solid #e5e7eb',
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: '0.75rem',
+                                position: 'sticky',
+                                bottom: 0,
+                                backgroundColor: 'white'
+                            }}>
+                                <button
+                                    onClick={() => { setViewingStudent(null); setStudentDetails(null); }}
+                                    style={{
+                                        padding: '0.625rem 1.25rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '0.5rem',
+                                        backgroundColor: 'white',
+                                        color: '#374151',
+                                        cursor: 'pointer',
+                                        fontWeight: '500',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => navigate(`/teacher/student/${viewingStudent._id}`)}
+                                    style={{
+                                        padding: '0.625rem 1.25rem',
+                                        border: 'none',
+                                        borderRadius: '0.5rem',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        fontWeight: '500',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    View Full Details
                                 </button>
                             </div>
                         </div>

@@ -7,7 +7,8 @@ import {
   getStudentsByTeacher, 
   generateCredentials,
   deleteStudent,
-  updateStudent
+  updateStudent,
+  getStudentDetails
 } from '../controllers/teacherController.js';
 
 const teacherRouter = express.Router();
@@ -39,6 +40,7 @@ teacherRouter.post('/login', teacherLogin);
 teacherRouter.post('/create-students', createStudent);
 teacherRouter.post('/import-students-file', upload.single('file'), importStudentsFromFile);
 teacherRouter.get('/students/:teacherId', getStudentsByTeacher);
+teacherRouter.get('/student-details/:studentId', getStudentDetails);
 teacherRouter.post('/generate-credentials', generateCredentials);
 teacherRouter.delete('/students/:studentId', deleteStudent);
 teacherRouter.put('/students/:studentId', updateStudent);
