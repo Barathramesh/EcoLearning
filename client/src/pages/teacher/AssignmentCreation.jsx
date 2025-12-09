@@ -10,8 +10,10 @@ import {
   X,
   HelpCircle,
   Wand2,
-  Loader2
+  Loader2,
+  BookOpen
 } from 'lucide-react';
+import { predefinedAssignments } from '../../data/predefinedAssignments';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -22,6 +24,7 @@ const AssignmentCreation = () => {
   const [classes, setClasses] = useState([]);
   const [showAISettings, setShowAISettings] = useState(true);
   const [generatingAnswer, setGeneratingAnswer] = useState(false);
+  const [selectedPredefinedAssignment, setSelectedPredefinedAssignment] = useState('');
   
   // Get class info from URL params
   const classFilter = {
@@ -124,6 +127,54 @@ const AssignmentCreation = () => {
     setAssignmentData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Handle predefined assignment selection
+  const handlePredefinedAssignmentChange = (e) => {
+    const selectedIndex = e.target.value;
+    setSelectedPredefinedAssignment(selectedIndex);
+    
+    if (selectedIndex !== '' && assignmentData.type !== 'traditional') {
+      const assignments = predefinedAssignments[assignmentData.type];
+      if (assignments && assignments[selectedIndex]) {
+        const selected = assignments[selectedIndex];
+        setAssignmentData(prev => ({
+          ...prev,
+          title: selected.title,
+          description: selected.description,
+          projectInstructions: selected.instructions || '',
+          requireLocation: selected.requireLocation || false,
+          locationInstructions: selected.locationInstructions || '',
+          requireVideoDuration: selected.minVideoDuration ? true : false,
+          minVideoDuration: selected.minVideoDuration || 2,
+          maxVideoDuration: selected.maxVideoDuration || 5
+        }));
+      }
+    } else if (selectedIndex === '') {
+      // Clear title when deselecting for pollution projects
+      setAssignmentData(prev => ({
+        ...prev,
+        title: '',
+        description: '',
+        projectInstructions: '',
+        requireLocation: false,
+        locationInstructions: '',
+        requireVideoDuration: false,
+        minVideoDuration: 2,
+        maxVideoDuration: 5
+      }));
+    }
+  };
+
+  // Reset predefined selection when assignment type changes
+  const handleTypeChange = (e) => {
+    const newType = e.target.value;
+    setAssignmentData(prev => ({ 
+      ...prev, 
+      type: newType,
+      title: newType === 'traditional' ? prev.title : '' // Clear title for pollution projects
+    }));
+    setSelectedPredefinedAssignment('');
+  };
+
   const handleClassChange = (e) => {
     const classId = e.target.value;
     const selectedClass = classes.find(c => c._id === classId);
@@ -219,14 +270,19 @@ const AssignmentCreation = () => {
   };
 
   const handlePublish = async () => {
+    // Check if it's a pollution project
+    const isPollutionProject = ['land-pollution', 'air-pollution', 'water-pollution'].includes(assignmentData.type);
+
     // Validate required fields
+    if (isPollutionProject && selectedPredefinedAssignment === '') {
+      alert('Please select an assignment from the dropdown for pollution projects');
+      return;
+    }
+
     if (!assignmentData.title || !assignmentData.classId || !assignmentData.subject || !assignmentData.dueDate) {
       alert('Please fill in all required fields: Title, Class, Subject, and Due Date');
       return;
     }
-
-    // Check if it's a pollution project
-    const isPollutionProject = ['land-pollution', 'air-pollution', 'water-pollution'].includes(assignmentData.type);
 
     // Validate AI grading fields only for traditional assignments
     if (assignmentData.type === 'traditional' && assignmentData.enableAIGrading && !assignmentData.expectedAnswer.trim()) {
@@ -330,27 +386,6 @@ const AssignmentCreation = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           border: '1px solid #e5e7eb'
         }}>
-          {/* Assignment Title */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-              Assignment Title <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={assignmentData.title}
-              onChange={handleInputChange}
-              placeholder="Enter assignment title"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                fontSize: '1rem'
-              }}
-            />
-          </div>
-
           {/* Subject Dropdown */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
@@ -376,29 +411,44 @@ const AssignmentCreation = () => {
           </div>
 
           {/* Description */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-              Description <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <textarea
-              name="description"
-              value={assignmentData.description}
-              onChange={handleInputChange}
-              placeholder="Enter assignment description and instructions..."
-              rows={4}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                resize: 'vertical',
-                backgroundColor: 'white',
-                cursor: 'text'
-              }}
-            />
-          </div>
+          {(assignmentData.type === 'traditional' || assignmentData.title) && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
+                Description <span style={{ color: '#ef4444' }}>*</span>
+                {selectedPredefinedAssignment !== '' && assignmentData.type !== 'traditional' && (
+                  <span style={{ 
+                    marginLeft: '0.5rem',
+                    fontSize: '0.75rem',
+                    color: '#059669',
+                    fontWeight: '600',
+                    backgroundColor: '#d1fae5',
+                    padding: '0.125rem 0.5rem',
+                    borderRadius: '0.25rem'
+                  }}>
+                    Auto-filled from template
+                  </span>
+                )}
+              </label>
+              <textarea
+                name="description"
+                value={assignmentData.description}
+                onChange={handleInputChange}
+                placeholder="Enter assignment description and instructions..."
+                rows={4}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: selectedPredefinedAssignment !== '' && assignmentData.type !== 'traditional' ? '2px solid #86efac' : '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  backgroundColor: 'white',
+                  cursor: 'text'
+                }}
+              />
+            </div>
+          )}
 
           {/* Class Dropdown */}
           <div style={{ marginBottom: '1.5rem' }}>
@@ -457,7 +507,7 @@ const AssignmentCreation = () => {
             <select
               name="type"
               value={assignmentData.type}
-              onChange={handleInputChange}
+              onChange={handleTypeChange}
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -472,6 +522,111 @@ const AssignmentCreation = () => {
               ))}
             </select>
           </div>
+
+          {/* Predefined Assignment Dropdown - Only for Pollution Projects */}
+          {assignmentData.type !== 'traditional' && (
+            <div style={{ 
+              marginBottom: '1.5rem',
+              backgroundColor: '#f0fdf4',
+              padding: '1rem',
+              borderRadius: '0.75rem',
+              border: '2px solid #86efac'
+            }}>
+              <label style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '0.75rem', 
+                fontWeight: '600', 
+                color: '#166534',
+                fontSize: '1.05rem'
+              }}>
+                <BookOpen size={20} />
+                Select Assignment <span style={{ color: '#ef4444' }}>*</span>
+              </label>
+              <select
+                value={selectedPredefinedAssignment}
+                onChange={handlePredefinedAssignmentChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '2px solid #86efac',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem',
+                  backgroundColor: 'white',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                <option value="">-- Choose from 10 Real-World Assignments --</option>
+                {predefinedAssignments[assignmentData.type]?.map((assignment, index) => (
+                  <option key={index} value={index}>
+                    {index + 1}. {assignment.title}
+                  </option>
+                ))}
+              </select>
+              <p style={{ 
+                fontSize: '0.875rem', 
+                color: '#166534', 
+                marginTop: '0.5rem',
+                marginBottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}>
+                💡 The selected assignment title will be used as the assignment name. All details will be auto-filled.
+              </p>
+            </div>
+          )}
+
+          {/* Assignment Title - Only for Traditional Assignments */}
+          {assignmentData.type === 'traditional' && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
+                Assignment Title <span style={{ color: '#ef4444' }}>*</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={assignmentData.title}
+                onChange={handleInputChange}
+                placeholder="Enter assignment title"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+          )}
+
+          {/* Selected Assignment Title Display - For Pollution Projects */}
+          {assignmentData.type !== 'traditional' && assignmentData.title && (
+            <div style={{ 
+              marginBottom: '1.5rem',
+              padding: '1rem',
+              backgroundColor: '#e0f2fe',
+              borderRadius: '0.5rem',
+              border: '1px solid #0ea5e9'
+            }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#075985', fontSize: '0.875rem' }}>
+                Selected Assignment:
+              </label>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '1.125rem', 
+                fontWeight: '600', 
+                color: '#0c4a6e',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                ✓ {assignmentData.title}
+              </p>
+            </div>
+          )}
 
           {/* Due Date */}
           <div style={{ marginBottom: '2rem' }}>
@@ -777,6 +932,56 @@ const AssignmentCreation = () => {
               }}>
                 Project Requirements
               </h3>
+
+              {/* Project Instructions */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '0.5rem', 
+                  fontWeight: '500', 
+                  color: '#374151' 
+                }}>
+                  Detailed Project Instructions
+                  {selectedPredefinedAssignment !== '' && (
+                    <span style={{ 
+                      marginLeft: '0.5rem',
+                      fontSize: '0.75rem',
+                      color: '#059669',
+                      fontWeight: '600',
+                      backgroundColor: '#d1fae5',
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '0.25rem'
+                    }}>
+                      Auto-filled from template
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  value={assignmentData.projectInstructions || ''}
+                  onChange={(e) => setAssignmentData(prev => ({ 
+                    ...prev, 
+                    projectInstructions: e.target.value 
+                  }))}
+                  placeholder="Enter detailed instructions for students on how to complete this project (steps, requirements, documentation needed, etc.)..."
+                  rows={5}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: selectedPredefinedAssignment !== '' ? '2px solid #86efac' : '1px solid #d1d5db',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.95rem',
+                    resize: 'vertical',
+                    backgroundColor: 'white'
+                  }}
+                />
+                <p style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#6b7280', 
+                  marginTop: '0.25rem' 
+                }}>
+                  Provide step-by-step guidance on how students should approach and complete this real-world project.
+                </p>
+              </div>
 
               {/* Location Required Checkbox */}
               <div style={{ marginBottom: '1.5rem' }}>
