@@ -22,6 +22,7 @@ import Achievements from "./pages/student/Achievements";
 import Badges from "./pages/student/Badges";
 import UploadAssignment from "./pages/student/UploadAssignment";
 import ChangePassword from "./pages/student/ChangePassword";
+import RewardsStore from "./pages/student/RewardsStore";
 import SaveTheTreesGame from "./pages/student/SaveTheTreesGame";
 import EcoQuestAdventure from "./pages/student/EcoQuestAdventure";
 import OceanCleanupHero from "./pages/student/OceanCleanupHero";
@@ -103,6 +104,7 @@ const App = () => (
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/leaderboard" element={<Leaderboard />} />
           <Route path="/student/achievements" element={<Achievements />} />
+          <Route path="/student/rewards-store" element={<RewardsStore />} />
           <Route
             path="/student/save-the-trees"
             element={<SaveTheTreesGame />}

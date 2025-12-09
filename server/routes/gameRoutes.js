@@ -12,7 +12,9 @@ import {
   toggleGameStatus,
   completeGame,
   getGameHistory,
-  getStudentRewards
+  getStudentRewards,
+  redeemReward,
+  getRedemptionHistory
 } from '../controllers/gameController.js';
 
 const gameRouter = express.Router();
@@ -22,6 +24,8 @@ gameRouter.get('/class/:studentClass', getGamesForClass);
 gameRouter.post('/complete', completeGame);
 gameRouter.get('/history/:studentId', getGameHistory);
 gameRouter.get('/rewards/:studentId', getStudentRewards);
+gameRouter.post('/redeem', redeemReward);
+gameRouter.get('/redemptions/:studentId', getRedemptionHistory);
 
 // Admin routes
 gameRouter.get('/all', getAllGames);

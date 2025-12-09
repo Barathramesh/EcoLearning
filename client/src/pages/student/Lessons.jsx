@@ -11,6 +11,7 @@ import {
   checkQuizCompletion,
 } from "../../services/syllabusService";
 import { getVideosByGrade } from "../../services/videoLessonService";
+import { completeGame } from "../../services/gameRewardsService";
 import api from "../../services/api";
 import EcoSnakesLadders from "../../games/SnakeAndLadder";
 import {
@@ -303,10 +304,11 @@ const Lessons = () => {
           [currentVideo._id]: { completed: true, score },
         }));
 
-        // Award points for completing quiz (if passed)
-        if (score >= (currentVideo.quiz?.passingScore || 70)) {
-          await awardQuizPoints(currentVideo._id, currentVideo.title, score);
-        }
+        console.log('Quiz score:', score);
+        console.log('Awarding 10 coins for quiz completion');
+
+        // Award coins for completing quiz (regardless of score to encourage learning)
+        await awardQuizPoints(currentVideo._id, currentVideo.title, score);
       }
     } catch (error) {
       console.error("Error submitting quiz:", error);
@@ -425,6 +427,26 @@ const Lessons = () => {
           localStorage.setItem("user", JSON.stringify(storedUser));
 
           console.log(`Quiz completed! +${pointsAwarded} points awarded`);
+
+          // Award 10 coins for completing quiz
+          try {
+            const coinResponse = await completeGame({
+              studentId: user.id,
+              gameId: `quiz-${syllabusId}`,
+              gameName: `Quiz: ${quizTitle}`,
+              pointsEarned: 0,
+              coinsEarned: 10
+            });
+            
+            if (coinResponse.success && coinResponse.data) {
+              // Update coins in localStorage
+              storedUser.coins = coinResponse.data.coins;
+              localStorage.setItem("user", JSON.stringify(storedUser));
+              console.log('Quiz completed! +10 coins awarded');
+            }
+          } catch (coinError) {
+            console.error('Error awarding quiz coins:', coinError);
+          }
 
           // Show daily challenge completion message
           if (dailyChallengeCompleted) {

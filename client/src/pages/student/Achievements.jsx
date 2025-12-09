@@ -1,7 +1,9 @@
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getStudentAchievements } from "../../services/achievementService";
 import "@/styles/animations.css";
 import {
@@ -13,9 +15,11 @@ import {
   TrendingUp,
   Lock,
   CheckCircle2,
+  Gift,
 } from "lucide-react";
 
 const Achievements = () => {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -166,19 +170,28 @@ const Achievements = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-yellow-500/30 animate-float">
-                <Trophy className="w-10 h-10 text-white" />
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-yellow-500/30 animate-float">
+                  <Trophy className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+                    Achievements
+                    <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
+                  </h1>
+                  <p className="text-gray-400">
+                    Track your progress and unlock rewards
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-                  Achievements
-                  <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
-                </h1>
-                <p className="text-gray-400">
-                  Track your progress and unlock rewards
-                </p>
-              </div>
+              <Button
+                onClick={() => navigate("/student/rewards-store")}
+                className="bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-600 hover:to-cyan-700 text-white font-semibold px-6 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              >
+                <Gift className="w-5 h-5" />
+                <span className="hidden sm:inline">Rewards Store</span>
+              </Button>
             </div>
 
             {/* Stats Overview */}

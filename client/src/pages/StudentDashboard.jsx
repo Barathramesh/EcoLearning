@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import WallOfFrame from "@/components/WallOfFrame";
 import "@/styles/animations.css";
 import {
   GraduationCap,
@@ -205,14 +206,6 @@ const StudentDashboard = () => {
       gradient: "bg-[#f59e0b]",
       bgGradient: "bg-[#f59e0b]/20",
     },
-    {
-      label: "Hours Learned",
-      value: studentData.hoursLearned,
-      icon: BookOpen,
-      gradient: "bg-[#237a57]",
-      bgGradient: "bg-[#237a57]/20",
-      suffix: "h",
-    },
   ];
 
   // Leaderboard data - would be fetched from backend
@@ -382,78 +375,183 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div
-          className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8 transition-all duration-700 delay-100 ${
-            isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          {quickStats.map((stat, index) => (
-            <Card
-              key={index}
-              className={`glass border-0 hover-lift cursor-pointer group overflow-hidden`}
-              style={{ animationDelay: `${index * 100}ms` }}
-              onClick={() => {
-                if (stat.label === "Badges Earned") {
-                  navigate("/student/badges");
-                }
-              }}
-            >
-              <CardContent className="p-6 relative">
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                />
-                <div className="relative">
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-white">
-                    <AnimatedCounter
-                      value={stat.value}
-                      duration={1500 + index * 200}
-                    />
-                    {stat.suffix}
-                  </p>
-                  {stat.label === "Badges Earned" && (
-                    <p className="text-xs text-[#f59e0b] mt-2">Click to view →</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Daily Challenges */}
+        {/* Quick Stats, Action Buttons, and Wall of Frame */}
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Left Side - Stats and Action Buttons */}
+          <div className="space-y-4">
+            {/* Quick Stats - Compact Version */}
             <div
-              className={`transition-all duration-700 delay-200 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
+              className={`grid grid-cols-3 gap-3 transition-all duration-700 delay-100 ${
+                isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
             >
-              <Card className="glass border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
-                      <Target className="w-5 h-5 text-white" />
+              {quickStats.map((stat, index) => (
+                <Card
+                  key={index}
+                  className={`glass border-0 hover-lift cursor-pointer group overflow-hidden`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => {
+                    if (stat.label === "Badges Earned") {
+                      navigate("/student/badges");
+                    }
+                  }}
+                >
+                  <CardContent className="p-3 sm:p-4 relative">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                    />
+                    <div className="relative">
+                      <div
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300`}
+                      >
+                        <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-white">
+                        <AnimatedCounter
+                          value={stat.value}
+                          duration={1500 + index * 200}
+                        />
+                        {stat.suffix}
+                      </p>
+                      {stat.label === "Badges Earned" && (
+                        <p className="text-xs text-[#f59e0b] mt-1">Click to view →</p>
+                      )}
                     </div>
-                    Daily Challenges
-                    <Badge className="ml-auto bg-amber-500/20 text-amber-300 border-amber-500/30">
-                      <Gift className="w-3 h-3 mr-1" /> +
-                      {dailyChallenges
-                        .filter((c) => !c.completed)
-                        .reduce((sum, c) => sum + c.reward, 0)}{" "}
-                      XP Available
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div
+              className={`space-y-3 transition-all duration-700 delay-200 ${
+                isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+            >
+              {/* Continue Learning */}
+              <button
+                onClick={() => navigate("/student/lessons")}
+                className="w-full p-3 sm:p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all duration-300 hover:scale-[1.02] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base">Continue Learning</h3>
+                    <p className="text-emerald-100 text-xs sm:text-sm">Resume your lessons</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Play Games */}
+              <button
+                onClick={() => navigate("/student/games")}
+                className="w-full p-3 sm:p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all duration-300 hover:scale-[1.02] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base">Play Games</h3>
+                    <p className="text-amber-100 text-xs sm:text-sm">Learn while having fun</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* My Badges */}
+              <button
+                onClick={() => navigate("/student/achievements")}
+                className="w-full p-3 sm:p-4 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 hover:scale-[1.02] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Award className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base">My Badges</h3>
+                    <p className="text-pink-100 text-xs sm:text-sm">View your achievements</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* AI Tutor */}
+              <button
+                onClick={() => navigate("/student/ai")}
+                className="w-full p-3 sm:p-4 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base">AI Tutor</h3>
+                    <p className="text-violet-100 text-xs sm:text-sm">Get personalized help</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              {/* Eco Labs */}
+              <button
+                onClick={() => navigate("/student/eco-lab")}
+                className="w-full p-3 sm:p-4 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 transition-all duration-300 hover:scale-[1.02] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FlaskConical className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="font-bold text-white text-sm sm:text-base">Eco Labs</h3>
+                    <p className="text-cyan-100 text-xs sm:text-sm">Interactive experiments</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Wall of Frame - Right Side */}
+          <div
+            className={`transition-all duration-700 delay-300 ${
+              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            <WallOfFrame />
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+          {/* Left Column - Daily Challenges */}
+          <div
+            className={`transition-all duration-700 delay-200 ${
+              isLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-10"
+            }`}
+          >
+            <Card className="glass border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 rounded-xl bg-[#f59e0b] flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  Daily Challenges
+                  <Badge className="ml-auto bg-amber-500/20 text-amber-300 border-amber-500/30">
+                    <Gift className="w-3 h-3 mr-1" /> +
+                    {dailyChallenges
+                      .filter((c) => !c.completed)
+                      .reduce((sum, c) => sum + c.reward, 0)}{" "}
+                    XP Available
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                   {dailyChallenges.map((challenge, index) => {
                     // Determine navigation path based on challenge type
                     const getChallengePath = () => {
@@ -546,14 +644,14 @@ const StudentDashboard = () => {
               </Card>
             </div>
 
-            {/* Achievement Progress */}
-            <div
-              className={`transition-all duration-700 delay-300 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-            >
+          {/* Right Column - Achievement Progress */}
+          <div
+            className={`transition-all duration-700 delay-300 ${
+              isLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-10"
+            }`}
+          >
               <Card className="glass border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-white">
@@ -609,140 +707,6 @@ const StudentDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          {/* Right Column - Sidebar */}
-          <div className="space-y-4">
-            {/* Quick Action Buttons */}
-            <div
-              className={`transition-all duration-700 delay-300 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-            >
-              {/* Continue Learning */}
-              <button
-                onClick={() => navigate("/student/lessons")}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25 mb-3 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-white text-lg">Continue Learning</h3>
-                    <p className="text-emerald-100 text-sm">Resume your lessons</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              {/* Play Games */}
-              <button
-                onClick={() => navigate("/student/games")}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/25 mb-3 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Gamepad2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-white text-lg">Play Games</h3>
-                    <p className="text-amber-100 text-sm">Learn while having fun</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              {/* My Badges */}
-              <button
-                onClick={() => navigate("/student/achievements")}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/25 mb-3 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-white text-lg">My Badges</h3>
-                    <p className="text-pink-100 text-sm">View your achievements</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              {/* AI Tutor */}
-              <button
-                onClick={() => navigate("/student/ai")}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-violet-500/25 mb-3 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Brain className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-white text-lg">AI Tutor</h3>
-                    <p className="text-violet-100 text-sm">Get personalized help</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-
-              {/* Eco Labs */}
-              <button
-                onClick={() => navigate("/student/eco-lab")}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25 group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <FlaskConical className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <h3 className="font-bold text-white text-lg">Eco Labs</h3>
-                    <p className="text-cyan-100 text-sm">Interactive experiments</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
-            </div>
-
-            {/* Motivational Card */}
-            <div
-              className={`transition-all duration-700 delay-500 ${
-                isLoaded
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
-              }`}
-            >
-              <Card className="border-0 bg-[#237a57] relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-                </div>
-                <CardContent className="p-6 relative">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl animate-float">🌱</div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg mb-1">
-                        Start Your Journey!
-                      </h3>
-                      <p className="text-emerald-100 text-sm">
-                        Begin learning today and help build a greener, more
-                        sustainable future!
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-white/80" />
-                    <span className="text-sm text-white/80">
-                      Every lesson counts towards a better planet!
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </main>
 

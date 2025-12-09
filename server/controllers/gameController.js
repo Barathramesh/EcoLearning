@@ -486,7 +486,14 @@ export const toggleGameStatus = async (req, res) => {
  */
 export const completeGame = async (req, res) => {
   try {
-    const { studentId, gameId, gameName, pointsEarned } = req.body;
+    const { studentId, gameId, gameName, pointsEarned, coinsEarned } = req.body;
+    
+    console.log('=== Complete Game Request ===');
+    console.log('Request body:', req.body);
+    console.log('Student ID:', studentId);
+    console.log('Game ID:', gameId);
+    console.log('Points Earned:', pointsEarned);
+    console.log('Coins Earned:', coinsEarned);
 
     if (!studentId || !gameId || !gameName || pointsEarned === undefined) {
       return res.status(400).json({
@@ -542,6 +549,13 @@ export const completeGame = async (req, res) => {
     // Update GAME POINTS (not eco points) and XP
     student.gamePoints += pointsEarned;
     student.currentXP += pointsEarned;
+    
+    // Add coins if provided
+    if (coinsEarned && coinsEarned > 0) {
+      console.log('Adding coins - Before:', student.coins);
+      student.coins = (student.coins || 0) + coinsEarned;
+      console.log('Adding coins - After:', student.coins);
+    }
 
     // Check for level up and award badges
     const levelUpRewards = [];
@@ -585,12 +599,16 @@ export const completeGame = async (req, res) => {
     }
 
     await student.save();
+    
+    console.log('Student saved successfully');
+    console.log('Final coin count:', student.coins);
 
     res.status(200).json({
       success: true,
       message: "Game completed successfully!",
       data: {
         pointsEarned,
+        coinsEarned,
         gamePoints: student.gamePoints,
         ecoPoints: student.points,
         currentLevel: student.level,
@@ -687,3 +705,107 @@ export const getStudentRewards = async (req, res) => {
     });
   }
 };
+
+/**
+ * Redeem reward item with coins
+ */
+export const redeemReward = async (req, res) => {
+  try {
+    const { studentId, itemId, itemName, category, coinsSpent } = req.body;
+
+    // Validate required fields
+    if (!studentId || !itemId || !itemName || !coinsSpent) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // Find student
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // Check if student has enough coins
+    if (student.coins < coinsSpent) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient coins",
+        currentCoins: student.coins,
+        required: coinsSpent,
+      });
+    }
+
+    // Deduct coins and add redemption record
+    student.coins -= coinsSpent;
+    student.redemptions.push({
+      itemId,
+      itemName,
+      category,
+      coinsSpent,
+      redeemedAt: new Date(),
+    });
+
+    await student.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Reward redeemed successfully",
+      data: {
+        remainingCoins: student.coins,
+        redemption: student.redemptions[student.redemptions.length - 1],
+      },
+    });
+  } catch (error) {
+    console.error("Redeem reward error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error redeeming reward",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get student's redemption history
+ */
+export const getRedemptionHistory = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // Sort redemptions by most recent first
+    const redemptions = student.redemptions.sort((a, b) => 
+      new Date(b.redeemedAt) - new Date(a.redeemedAt)
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        redemptions,
+        totalRedemptions: redemptions.length,
+        totalCoinsSpent: redemptions.reduce((sum, r) => sum + r.coinsSpent, 0),
+        currentCoins: student.coins,
+      },
+    });
+  } catch (error) {
+    console.error("Get redemption history error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error getting redemption history",
+      error: error.message,
+    });
+  }
+};
+

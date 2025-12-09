@@ -559,7 +559,7 @@ export const getGlobalLeaderboard = async (req, res) => {
     const { limit = 50 } = req.query;
 
     const students = await Student.find({})
-      .select('name school class points level streak badges gamePoints')
+      .select('name school class points level streak badges gamePoints coins')
       .sort({ points: -1 })
       .limit(parseInt(limit));
 
@@ -571,6 +571,7 @@ export const getGlobalLeaderboard = async (req, res) => {
       class: student.class,
       totalPoints: student.points || 0,
       gamePoints: student.gamePoints || 0,
+      coins: student.coins || 0,
       level: student.level || 1,
       streak: student.streak || 0,
       badgeCount: student.badges?.length || 0,
@@ -607,7 +608,7 @@ export const getSchoolLeaderboard = async (req, res) => {
     }
 
     const students = await Student.find({ school })
-      .select('name school class points level streak badges gamePoints')
+      .select('name school class points level streak badges gamePoints coins')
       .sort({ points: -1 })
       .limit(parseInt(limit));
 
@@ -618,6 +619,8 @@ export const getSchoolLeaderboard = async (req, res) => {
       school: student.school,
       class: student.class,
       totalPoints: student.points || 0,
+      gamePoints: student.gamePoints || 0,
+      coins: student.coins || 0,
       gamePoints: student.gamePoints || 0,
       level: student.level || 1,
       streak: student.streak || 0,

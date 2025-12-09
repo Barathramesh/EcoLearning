@@ -1,57 +1,45 @@
 import React, { useEffect } from "react";
+import { completeGame } from "../services/gameRewardsService";
 
 const EvWordSearchGame = () => {
   useEffect(() => {
-    // ===== WORD DATA =====
+    // ===== LAND POLLUTION WORD DATA =====
     const WORD_DATA = {
       easy: [
-        { word: "EV", icon: "🚗", hint: "Electric Vehicle" },
-        { word: "CAR", icon: "🚙", hint: "Transportation" },
-        { word: "SUN", icon: "☀", hint: "Solar source" },
-        { word: "AIR", icon: "💨", hint: "Clean breathing" },
-        { word: "ECO", icon: "🌿", hint: "Environmental" },
-        { word: "GREEN", icon: "🌱", hint: "Sustainable color" },
-        { word: "WIND", icon: "🌬", hint: "Turbine power" },
-        { word: "BIKE", icon: "🚲", hint: "Two wheels" },
+        { word: "SOIL", icon: "🌍", hint: "Earth's surface layer", fact: "Healthy soil takes 500-1000 years to form just 1 inch! Once polluted, it can take decades to recover.", category: "impact" },
+        { word: "WASTE", icon: "🗑", hint: "Discarded materials", fact: "The world generates 2 billion tons of waste annually. About 33% is not managed properly!", category: "impact" },
+        { word: "TOXIC", icon: "☠", hint: "Poisonous substance", fact: "Toxic chemicals can stay in soil for over 100 years, affecting multiple generations of plants and animals.", category: "impact" },
+        { word: "DUMP", icon: "🏭", hint: "Waste disposal site", fact: "Open dumps release methane gas which is 25 times more harmful than CO2 for global warming.", category: "impact" },
+        { word: "CROP", icon: "🌾", hint: "Farm produce", fact: "Polluted soil can reduce crop yields by up to 50% and make food unsafe to eat.", category: "impact" },
+        { word: "CLEAN", icon: "✨", hint: "Free from dirt", fact: "Regular soil testing and cleanup programs can restore land health within 5-10 years.", category: "control" },
+        { word: "TREE", icon: "🌳", hint: "Tall plant", fact: "Trees act as natural filters! One tree can absorb pollutants and clean the surrounding soil.", category: "control" },
+        { word: "REUSE", icon: "♻", hint: "Use again", fact: "Reusing items reduces landfill waste by 30% and prevents soil contamination.", category: "control" },
       ],
       medium: [
-        { word: "TESLA", icon: "🚗", hint: "EV brand" },
-        { word: "BATTERY", icon: "🔋", hint: "Stores energy" },
-        { word: "SOLAR", icon: "☀", hint: "Panel power" },
-        { word: "CHARGE", icon: "⚡", hint: "Power up" },
-        { word: "HYBRID", icon: "🚙", hint: "Gas + Electric" },
-        { word: "MOTOR", icon: "⚙", hint: "Engine type" },
-        { word: "ENERGY", icon: "💡", hint: "Power source" },
-        { word: "CLEAN", icon: "✨", hint: "No pollution" },
-        { word: "ZERO", icon: "0️⃣", hint: "No emissions" },
-        { word: "PLUG", icon: "🔌", hint: "Connect to charge" },
+        { word: "LANDFILL", icon: "🗑", hint: "Waste burial site", fact: "Modern landfills use liners to prevent toxic leachate from contaminating groundwater and soil.", category: "impact" },
+        { word: "PLASTIC", icon: "🧴", hint: "Synthetic material", fact: "Plastic takes 400-1000 years to decompose and releases harmful chemicals into the soil as it breaks down.", category: "impact" },
+        { word: "EROSION", icon: "💨", hint: "Soil wearing away", fact: "Deforestation causes 75% of soil erosion. We lose 24 billion tons of fertile soil every year!", category: "impact" },
+        { word: "COMPOST", icon: "🍂", hint: "Organic fertilizer", fact: "Composting reduces landfill waste by 30% and creates nutrient-rich soil without chemicals.", category: "control" },
+        { word: "RECYCLE", icon: "♻", hint: "Convert waste", fact: "Recycling one ton of paper saves 17 trees and prevents harmful inks from polluting soil.", category: "control" },
+        { word: "ORGANIC", icon: "🌱", hint: "Natural farming", fact: "Organic farming improves soil health by 25% and eliminates harmful pesticide contamination.", category: "control" },
+        { word: "SEWAGE", icon: "🚿", hint: "Waste water", fact: "Untreated sewage contains pathogens that can contaminate soil for years, affecting crops and water.", category: "impact" },
+        { word: "MINING", icon: "⛏", hint: "Earth extraction", fact: "Mining waste covers 1% of Earth's land and can make soil toxic for centuries.", category: "impact" },
+        { word: "FILTER", icon: "🔬", hint: "Remove impurities", fact: "Phytoremediation uses plants to filter and remove up to 80% of soil contaminants naturally!", category: "control" },
+        { word: "MULCH", icon: "🍃", hint: "Ground cover", fact: "Mulching prevents erosion, retains moisture, and adds nutrients back to the soil.", category: "control" },
       ],
       hard: [
-        { word: "ELECTRIC", icon: "⚡", hint: "Power type" },
-        { word: "RENEWABLE", icon: "♻", hint: "Sustainable" },
-        { word: "CHARGING", icon: "🔌", hint: "Getting power" },
-        { word: "EMISSION", icon: "💨", hint: "Output gas" },
-        { word: "LITHIUM", icon: "🔋", hint: "Battery element" },
-        { word: "TURBINE", icon: "🌀", hint: "Wind power" },
-        { word: "SUSTAINABLE", icon: "🌍", hint: "Long-lasting" },
-        { word: "HYDROGEN", icon: "💧", hint: "Fuel cell" },
-        { word: "AUTOPILOT", icon: "🤖", hint: "Self-driving" },
-        { word: "REGENERATE", icon: "🔄", hint: "Brake energy" },
+        { word: "PESTICIDE", icon: "🧪", hint: "Insect killer", fact: "Pesticides can persist in soil for 10+ years. Over 95% of pesticides reach non-target destinations including soil and water.", category: "impact" },
+        { word: "LEACHATE", icon: "💧", hint: "Liquid waste", fact: "Leachate from landfills contains 200+ toxic compounds that can contaminate soil and groundwater for miles.", category: "impact" },
+        { word: "DEGRADATION", icon: "📉", hint: "Quality decline", fact: "Land degradation affects 3.2 billion people globally and costs $10 trillion annually in lost ecosystem services.", category: "impact" },
+        { word: "BIOREMEDIATE", icon: "🦠", hint: "Bio cleanup", fact: "Bioremediation uses bacteria to break down pollutants - it's cleaned up over 100,000 contaminated sites worldwide!", category: "control" },
+        { word: "SUSTAINABLE", icon: "🌍", hint: "Long-term viable", fact: "Sustainable land management can restore 12 million hectares of degraded land annually by 2030.", category: "control" },
+        { word: "CONTAMINATE", icon: "☢", hint: "Make impure", fact: "Industrial contamination affects 10 million hectares globally. Cleanup costs can exceed $1 million per acre.", category: "impact" },
+        { word: "FERTILIZER", icon: "🧪", hint: "Plant food", fact: "Excess chemical fertilizers pollute 40% of rivers and lakes through soil runoff.", category: "impact" },
+        { word: "RESTORATION", icon: "🔄", hint: "Bring back health", fact: "Soil restoration projects can sequester 1.5 billion tons of carbon annually, fighting climate change!", category: "control" },
+        { word: "ECOSYSTEM", icon: "🌿", hint: "Living system", fact: "Healthy soil ecosystems contain 25% of Earth's biodiversity - more species than rainforests!", category: "control" },
+        { word: "GROUNDWATER", icon: "💧", hint: "Underground water", fact: "Soil pollution threatens groundwater for 2 billion people who depend on it for drinking water.", category: "impact" },
       ],
     };
-
-    const EV_FACTS = [
-      "Electric vehicles can save you up to $1,000 per year on fuel costs!",
-      "EVs have 90% fewer moving parts than gas cars, meaning less maintenance.",
-      "The first electric car was built in 1832 - before gas cars existed!",
-      "Norway leads the world with over 80% of new car sales being electric.",
-      "EV batteries can be recycled to recover valuable materials like lithium.",
-      "One wind turbine can generate enough power to charge 1,000 EVs daily.",
-      "Solar panels on your roof can charge your EV for nearly free!",
-      "EVs produce zero direct emissions, improving city air quality.",
-      "Fast chargers can add 200 miles of range in just 15 minutes.",
-      "By 2030, EVs are expected to be cheaper than gas cars to manufacture.",
-    ];
 
     const GRID_SIZE = 12;
     let grid = [];
@@ -61,22 +49,23 @@ const EvWordSearchGame = () => {
     let selectedCells = [];
     let startCell = null;
     let difficulty = "medium";
-    let score = 0;
+    let coins = 0;
     let seconds = 0;
     let timerInterval = null;
+    let knowledgeCards = [];
 
     const gridEl = document.getElementById("word-grid");
     const wordListEl = document.getElementById("word-list");
     const foundCountEl = document.getElementById("found-count");
     const totalCountEl = document.getElementById("total-count");
     const timerEl = document.getElementById("timer");
-    const scoreEl = document.getElementById("score");
-    const winPopup = document.getElementById("win-popup");
+    const coinsEl = document.getElementById("coins");
+    const knowledgeCardsEl = document.getElementById("knowledge-cards");
+    const impactCountEl = document.getElementById("impact-count");
+    const controlCountEl = document.getElementById("control-count");
 
     const newGameBtn = document.getElementById("new-game-btn");
     const hintBtn = document.getElementById("hint-btn");
-    const playAgainBtn = document.getElementById("play-again-btn");
-    const diffBtns = document.querySelectorAll(".diff-btn");
 
     if (!gridEl || !wordListEl) return;
 
@@ -85,17 +74,21 @@ const EvWordSearchGame = () => {
     function init() {
       words = [...WORD_DATA[difficulty]];
       foundWords = [];
-      score = 0;
+      knowledgeCards = [];
+      coins = 0;
       seconds = 0;
-      scoreEl.textContent = "0";
+      coinsEl.textContent = "0";
       timerEl.textContent = "0:00";
       foundCountEl.textContent = "0";
       totalCountEl.textContent = String(words.length);
+      if (impactCountEl) impactCountEl.textContent = "0";
+      if (controlCountEl) controlCountEl.textContent = "0";
 
       if (timerInterval) clearInterval(timerInterval);
 
       generateGrid();
       renderWordList();
+      renderKnowledgeCards();
       startTimer();
     }
 
@@ -199,6 +192,7 @@ const EvWordSearchGame = () => {
       words.forEach((wordObj, index) => {
         const item = document.createElement("div");
         item.className = "word-item";
+        // FIX: proper string template for id
         item.id = `word-${index}`;
         item.innerHTML = `
           <span class="icon">${wordObj.icon}</span>
@@ -207,6 +201,55 @@ const EvWordSearchGame = () => {
         `;
         wordListEl.appendChild(item);
       });
+    }
+
+    function renderKnowledgeCards() {
+      if (!knowledgeCardsEl) return;
+      knowledgeCardsEl.innerHTML = "";
+      
+      words.forEach((wordObj, index) => {
+        const card = document.createElement("div");
+        // FIX: proper className string
+        card.className = `knowledge-card ${wordObj.category}`;
+        // FIX: proper id string
+        card.id = `card-${index}`;
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">
+              <span class="card-icon">${wordObj.icon}</span>
+              <span class="card-word">?</span>
+              <span class="card-category-badge ${wordObj.category}">${wordObj.category === 'impact' ? '⚠ Impact' : '✅ Control'}</span>
+            </div>
+            <div class="card-back">
+              <div class="card-header">
+                <span class="card-icon-small">${wordObj.icon}</span>
+                <span class="card-title">${wordObj.word}</span>
+              </div>
+              <p class="card-fact">${wordObj.fact}</p>
+              <span class="card-category-badge ${wordObj.category}">${wordObj.category === 'impact' ? '⚠ Pollution Impact' : '✅ Control Measure'}</span>
+            </div>
+          </div>
+        `;
+        knowledgeCardsEl.appendChild(card);
+      });
+    }
+
+    function flipCard(index) {
+      // FIX: proper id string
+      const card = document.getElementById(`card-${index}`);
+      if (card && !card.classList.contains("flipped")) {
+        card.classList.add("flipped");
+        
+        // Update category counts
+        const wordObj = words[index];
+        if (wordObj.category === "impact") {
+          const currentCount = parseInt(impactCountEl.textContent) || 0;
+          impactCountEl.textContent = String(currentCount + 1);
+        } else {
+          const currentCount = parseInt(controlCountEl.textContent) || 0;
+          controlCountEl.textContent = String(currentCount + 1);
+        }
+      }
     }
 
     // ===== SELECTION / MOUSE LOGIC =====
@@ -308,15 +351,20 @@ const EvWordSearchGame = () => {
           gridEl.children[index].classList.add("found");
         });
 
+        // FIX: proper getElementById usage
         const wordItem = document.getElementById(`word-${foundIndex}`);
         if (wordItem) wordItem.classList.add("found");
 
-        score += words[foundIndex].word.length * 10;
-        scoreEl.textContent = String(score);
+        // Flip the knowledge card to reveal the fact
+        flipCard(foundIndex);
+
+        // Award 3 coins per word, max 30 coins total
+        coins = Math.min(30, coins + 3);
+        coinsEl.textContent = String(coins);
         foundCountEl.textContent = String(foundWords.length);
 
         if (foundWords.length === words.length) {
-          setTimeout(showWin, 500);
+          setTimeout(showCompletion, 500);
         }
       } else if (selectedCells.length > 1) {
         selectedCells.forEach(({ row, col }) => {
@@ -328,26 +376,79 @@ const EvWordSearchGame = () => {
       }
     }
 
-    // ===== TIMER & WIN =====
+    // ===== TIMER & COMPLETION =====
 
     function startTimer() {
       timerInterval = setInterval(() => {
         seconds++;
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
+        // FIX: proper template literal for time string
         timerEl.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
       }, 1000);
     }
 
-    function showWin() {
+    function showCompletion() {
       clearInterval(timerInterval);
+      
+      // Add celebration effect to all cards
+      const allCards = document.querySelectorAll(".knowledge-card");
+      allCards.forEach((card, i) => {
+        setTimeout(() => {
+          card.classList.add("celebration");
+        }, i * 100);
+      });
 
-      document.getElementById("win-time").textContent = timerEl.textContent;
-      document.getElementById("win-score").textContent = String(score);
-      document.getElementById("win-fact").textContent =
-        EV_FACTS[Math.floor(Math.random() * EV_FACTS.length)];
-
-      winPopup.style.display = "flex";
+      // Show completion banner
+      const completionBanner = document.getElementById("completion-banner");
+      if (completionBanner) {
+        document.getElementById("final-coins").textContent = String(coins);
+        document.getElementById("final-time").textContent = timerEl.textContent;
+        const impactLearned = parseInt(impactCountEl.textContent) || 0;
+        const controlLearned = parseInt(controlCountEl.textContent) || 0;
+        document.getElementById("facts-learned").textContent = String(impactLearned + controlLearned);
+        completionBanner.classList.add("show");
+        
+        // Save coins to database
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const studentId = user.id || user._id;
+        console.log('User data:', user);
+        console.log('Student ID:', studentId);
+        console.log('Coins to save:', coins);
+        
+        if (studentId && coins > 0) {
+          console.log('Calling completeGame with:', {
+            studentId: studentId,
+            gameId: 'word-search',
+            gameName: 'Land Pollution Word Search',
+            pointsEarned: 10,
+            coinsEarned: coins
+          });
+          
+          completeGame({
+            studentId: studentId,
+            gameId: 'word-search',
+            gameName: 'Land Pollution Word Search',
+            pointsEarned: 10,
+            coinsEarned: coins
+          })
+            .then((response) => {
+              console.log('Complete game response:', response);
+              console.log(`Saved ${coins} coins to student account`);
+              if (response.success && response.data) {
+                const updatedUser = { ...user, coins: response.data.coins };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                console.log('Updated user coins in localStorage:', response.data.coins);
+              }
+            })
+            .catch(err => {
+              console.error('Error saving coins:', err);
+              console.error('Full error details:', err.response || err);
+            });
+        } else {
+          console.log('Not saving coins - studentId:', studentId, 'coins:', coins);
+        }
+      }
     }
 
     function showHint() {
@@ -372,8 +473,8 @@ const EvWordSearchGame = () => {
               }
             }, 1500);
 
-            score = Math.max(0, score - 5);
-            scoreEl.textContent = String(score);
+            coins = Math.max(0, coins - 1);
+            coinsEl.textContent = String(coins);
             return;
           }
         }
@@ -382,23 +483,24 @@ const EvWordSearchGame = () => {
 
     // ===== EVENT LISTENERS =====
 
-    const newGameHandler = () => init();
-    const hintHandler = () => showHint();
-    const playAgainHandler = () => {
-      winPopup.style.display = "none";
+    const newGameHandler = () => {
+      const completionBanner = document.getElementById("completion-banner");
+      if (completionBanner) completionBanner.classList.remove("show");
       init();
     };
+    const hintHandler = () => showHint();
 
     if (newGameBtn) newGameBtn.addEventListener("click", newGameHandler);
     if (hintBtn) hintBtn.addEventListener("click", hintHandler);
-    if (playAgainBtn)
-      playAgainBtn.addEventListener("click", playAgainHandler);
 
+    const diffBtns = document.querySelectorAll(".diff-btn");
     diffBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         diffBtns.forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         difficulty = btn.dataset.diff || "medium";
+        const completionBanner = document.getElementById("completion-banner");
+        if (completionBanner) completionBanner.classList.remove("show");
         init();
       });
     });
@@ -415,8 +517,6 @@ const EvWordSearchGame = () => {
       if (newGameBtn)
         newGameBtn.removeEventListener("click", newGameHandler);
       if (hintBtn) hintBtn.removeEventListener("click", hintHandler);
-      if (playAgainBtn)
-        playAgainBtn.removeEventListener("click", playAgainHandler);
       diffBtns.forEach((btn) => {
         btn.replaceWith(btn.cloneNode(true)); // quick way to drop listeners
       });
@@ -439,62 +539,48 @@ const EvWordSearchGame = () => {
           flex-direction: column;
           align-items: center;
           padding: 70px 20px 20px;
-          background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+          background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 50%, #ffcc80 100%);
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .ev-root h1 {
-          color: #1b5e20;
+          color: #e65100;
           text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
           margin-bottom: 3px;
-          font-size: 1.8rem;
+          font-size: 1.6rem;
         }
 
         .subtitle {
-          color: #2e7d32;
-          margin-bottom: 15px;
-          font-size: 0.9rem;
+          color: #bf360c;
+          margin-bottom: 12px;
+          font-size: 0.85rem;
+          text-align: center;
         }
 
-        .game-wrapper {
-          display: flex;
-          gap: 20px;
-          flex-wrap: nowrap;
-          justify-content: center;
-          align-items: flex-start;
-          width: auto;
-        }
-
-        .game-container {
+        .main-container {
           background: rgba(255,255,255,0.97);
-          border-radius: 16px;
+          border-radius: 20px;
           padding: 20px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-          flex: 0 0 auto;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+          max-width: 720px;
+          width: 100%;
         }
 
-        .word-list-container {
-          background: rgba(255,255,255,0.97);
-          border-radius: 16px;
-          padding: 15px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-          width: 240px;
-          flex: 0 0 auto;
-          max-height: 520px;
-          overflow-y: auto;
+        .top-stats {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          gap: 10px;
+          flex-wrap: wrap;
         }
 
         .stats-bar {
           display: flex;
-          justify-content: space-between;
-          margin-bottom: 12px;
-          padding: 10px 15px;
-          background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+          gap: 15px;
+          padding: 8px 15px;
+          background: linear-gradient(135deg, #fff3e0, #ffe0b2);
           border-radius: 10px;
-          gap: 12px;
         }
 
         .stat {
@@ -502,21 +588,83 @@ const EvWordSearchGame = () => {
         }
 
         .stat-label {
-          font-size: 0.7rem;
-          color: #2e7d32;
+          font-size: 0.65rem;
+          color: #e65100;
           font-weight: 600;
           text-transform: uppercase;
         }
 
         .stat-value {
-          font-size: 1.1rem;
-          color: #1b5e20;
+          font-size: 1rem;
+          color: #bf360c;
           font-weight: bold;
         }
 
+        .learning-stats {
+          display: flex;
+          gap: 12px;
+          padding: 8px 12px;
+          background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+          border-radius: 10px;
+        }
+
+        .learning-stat {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .learning-stat.impact {
+          color: #c62828;
+        }
+
+        .learning-stat.control {
+          color: #2e7d32;
+        }
+
+        .difficulty-selector {
+          display: flex;
+          gap: 6px;
+          justify-content: center;
+          margin-bottom: 12px;
+        }
+
+        .diff-btn {
+          padding: 5px 12px;
+          font-size: 0.7rem;
+          border: 2px solid #e65100;
+          background: white;
+          color: #e65100;
+          border-radius: 15px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .diff-btn.active {
+          background: #e65100;
+          color: white;
+        }
+
+        .diff-btn:hover {
+          background: #fff3e0;
+        }
+
+        .diff-btn.active:hover {
+          background: #bf360c;
+        }
+
+        .game-layout {
+          display: flex;
+          gap: 15px;
+          justify-content: center;
+          align-items: flex-start;
+        }
+
         .grid-container {
-          background: #263238;
-          padding: 8px;
+          background: #5d4037;
+          padding: 6px;
           border-radius: 10px;
           display: flex;
           justify-content: center;
@@ -524,39 +672,39 @@ const EvWordSearchGame = () => {
 
         .word-grid {
           display: grid;
-          grid-template-columns: repeat(12, 32px);
-          grid-template-rows: repeat(12, 32px);
+          grid-template-columns: repeat(12, 30px);
+          grid-template-rows: repeat(12, 30px);
           gap: 2px;
         }
 
         .grid-cell {
-          width: 32px;
-          height: 32px;
+          width: 30px;
+          height: 30px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1rem;
+          font-size: 0.9rem;
           font-weight: bold;
           background: #fff;
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
           user-select: none;
           transition: all 0.15s ease;
-          color: #37474f;
+          color: #5d4037;
         }
 
         .grid-cell:hover {
-          background: #e3f2fd;
+          background: #ffe0b2;
           transform: scale(1.08);
         }
 
         .grid-cell.selecting {
-          background: #bbdefb;
-          color: #1565c0;
+          background: #ffcc80;
+          color: #e65100;
         }
 
         .grid-cell.found {
-          background: linear-gradient(135deg, #66bb6a, #43a047);
+          background: linear-gradient(135deg, #8bc34a, #689f38);
           color: white;
           animation: foundPulse 0.4s ease;
         }
@@ -578,10 +726,20 @@ const EvWordSearchGame = () => {
           75% { transform: translateX(4px); }
         }
 
+        .word-list-panel {
+          background: linear-gradient(135deg, #fafafa, #f5f5f5);
+          border-radius: 10px;
+          padding: 10px;
+          width: 140px;
+          max-height: 390px;
+          overflow-y: auto;
+          border: 1px solid #e0e0e0;
+        }
+
         .word-list-title {
-          font-size: 1rem;
-          color: #2e7d32;
-          margin-bottom: 10px;
+          font-size: 0.8rem;
+          color: #e65100;
+          margin-bottom: 8px;
           text-align: center;
           font-weight: bold;
         }
@@ -589,16 +747,16 @@ const EvWordSearchGame = () => {
         .word-list {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 4px;
         }
 
         .word-item {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 10px;
-          background: linear-gradient(135deg, #f5f5f5, #eeeeee);
-          border-radius: 8px;
+          gap: 6px;
+          padding: 5px 8px;
+          background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+          border-radius: 6px;
           transition: all 0.2s ease;
         }
 
@@ -608,13 +766,13 @@ const EvWordSearchGame = () => {
         }
 
         .word-item .icon {
-          font-size: 1rem;
+          font-size: 0.85rem;
         }
 
         .word-item .word {
           font-weight: 600;
-          color: #37474f;
-          font-size: 0.8rem;
+          color: #5d4037;
+          font-size: 0.7rem;
         }
 
         .word-item.found .word {
@@ -629,26 +787,26 @@ const EvWordSearchGame = () => {
           display: flex;
           gap: 8px;
           justify-content: center;
-          margin-top: 15px;
+          margin-top: 12px;
         }
 
         .btn {
-          padding: 10px 20px;
-          font-size: 0.9rem;
+          padding: 8px 16px;
+          font-size: 0.8rem;
           font-weight: 600;
           border: none;
-          border-radius: 20px;
+          border-radius: 18px;
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
         .btn-primary {
-          background: linear-gradient(135deg, #43a047, #2e7d32);
+          background: linear-gradient(135deg, #8bc34a, #689f38);
           color: white;
         }
 
         .btn-secondary {
-          background: linear-gradient(135deg, #42a5f5, #1976d2);
+          background: linear-gradient(135deg, #ff9800, #f57c00);
           color: white;
         }
 
@@ -657,151 +815,255 @@ const EvWordSearchGame = () => {
           box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .difficulty-selector {
-          display: flex;
-          gap: 6px;
-          justify-content: center;
+        /* Knowledge Cards Section */
+        .knowledge-section {
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 2px dashed #ffe0b2;
+        }
+
+        .knowledge-title {
+          font-size: 0.9rem;
+          color: #e65100;
+          text-align: center;
           margin-bottom: 12px;
+          font-weight: bold;
         }
 
-        .diff-btn {
-          padding: 6px 12px;
-          font-size: 0.75rem;
-          border: 2px solid #43a047;
-          background: white;
-          color: #43a047;
-          border-radius: 15px;
-          cursor: pointer;
-          transition: all 0.2s ease;
+        .knowledge-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 10px;
         }
 
-        .diff-btn.active {
-          background: #43a047;
+        .knowledge-card {
+          perspective: 1000px;
+          height: 130px;
+          cursor: default;
+        }
+
+        .card-inner {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          transform-style: preserve-3d;
+        }
+
+        .knowledge-card.flipped .card-inner {
+          transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          backface-visibility: hidden;
+          border-radius: 10px;
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .card-front {
+          background: linear-gradient(135deg, #eceff1, #cfd8dc);
+          border: 2px dashed #90a4ae;
+        }
+
+        .card-front .card-icon {
+          font-size: 1.5rem;
+          opacity: 0.5;
+        }
+
+        .card-front .card-word {
+          font-size: 1.5rem;
+          color: #90a4ae;
+          font-weight: bold;
+        }
+
+        .card-back {
+          transform: rotateY(180deg);
+          text-align: center;
+        }
+
+        .knowledge-card.impact .card-back {
+          background: linear-gradient(135deg, #ffebee, #ffcdd2);
+          border: 2px solid #ef5350;
+        }
+
+        .knowledge-card.control .card-back {
+          background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+          border: 2px solid #66bb6a;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          margin-bottom: 5px;
+        }
+
+        .card-icon-small {
+          font-size: 1rem;
+        }
+
+        .card-title {
+          font-size: 0.85rem;
+          font-weight: bold;
+          color: #37474f;
+        }
+
+        .card-fact {
+          font-size: 0.65rem;
+          color: #455a64;
+          line-height: 1.3;
+          flex: 1;
+          overflow: hidden;
+        }
+
+        .card-category-badge {
+          font-size: 0.55rem;
+          padding: 2px 6px;
+          border-radius: 8px;
+          font-weight: 600;
+          margin-top: 4px;
+        }
+
+        .card-category-badge.impact {
+          background: #ffcdd2;
+          color: #c62828;
+        }
+
+        .card-category-badge.control {
+          background: #c8e6c9;
+          color: #2e7d32;
+        }
+
+        .knowledge-card.celebration {
+          animation: celebrate 0.5s ease;
+        }
+
+        @keyframes celebrate {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+
+        /* Completion Banner */
+        .completion-banner {
+          position: fixed;
+          bottom: -200px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, #4caf50, #2e7d32);
           color: white;
+          padding: 15px 30px;
+          border-radius: 20px 20px 0 0;
+          box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+          transition: bottom 0.5s ease;
+          z-index: 100;
+          text-align: center;
         }
 
-        .diff-btn:hover {
-          background: #e8f5e9;
+        .completion-banner.show {
+          bottom: 0;
         }
 
-        .diff-btn.active:hover {
-          background: #2e7d32;
+        .completion-banner h2 {
+          font-size: 1.2rem;
+          margin-bottom: 8px;
+        }
+
+        .completion-stats {
+          display: flex;
+          gap: 25px;
+          justify-content: center;
+        }
+
+        .completion-stat {
+          text-align: center;
+        }
+
+        .completion-stat-value {
+          font-size: 1.3rem;
+          font-weight: bold;
+        }
+
+        .completion-stat-label {
+          font-size: 0.7rem;
+          opacity: 0.9;
         }
 
         .info-box {
           display: none;
         }
 
-        .win-popup {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0,0,0,0.7);
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-
-        .win-content {
-          background: white;
-          padding: 40px;
-          border-radius: 20px;
-          text-align: center;
-          max-width: 420px;
-          animation: popIn 0.3s ease;
-        }
-
-        @keyframes popIn {
-          0% { transform: scale(0.5); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-
-        .win-content .trophy {
-          font-size: 4rem;
-          margin-bottom: 15px;
-        }
-
-        .win-content h2 {
-          color: #2e7d32;
-          font-size: 1.8rem;
-          margin-bottom: 10px;
-        }
-
-        .win-content p {
-          color: #455a64;
-          margin-bottom: 15px;
-          font-size: 1rem;
-        }
-
-        .win-stats {
-          display: flex;
-          justify-content: center;
-          gap: 30px;
-          margin-bottom: 20px;
-        }
-
-        .win-stat-value {
-          font-size: 1.8rem;
-          color: #43a047;
-          font-weight: bold;
-        }
-
-        .win-stat-label {
-          font-size: 0.8rem;
-          color: #78909c;
-        }
-
-        .fun-fact {
-          background: #e8f5e9;
-          padding: 12px;
-          border-radius: 10px;
-          margin-bottom: 20px;
-          font-style: italic;
-          color: #2e7d32;
-          font-size: 0.9rem;
-        }
-
-        @media (max-width: 900px) {
-          .game-wrapper {
-            flex-wrap: wrap;
+        @media (max-width: 700px) {
+          .main-container {
+            padding: 15px;
           }
-          
-          .game-container, .word-list-container {
+
+          .game-layout {
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .word-list-panel {
             width: 100%;
-            max-width: 500px;
-            flex: 1 1 100%;
+            max-height: 150px;
           }
-          
-          .word-list-container {
-            max-height: none;
+
+          .word-list {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+
+          .word-item {
+            flex: 0 0 auto;
+          }
+
+          .top-stats {
+            flex-direction: column;
+            align-items: center;
           }
         }
         
-        @media (max-width: 500px) {
+        @media (max-width: 450px) {
           .word-grid {
-            grid-template-columns: repeat(12, 28px);
-            grid-template-rows: repeat(12, 28px);
+            grid-template-columns: repeat(12, 24px);
+            grid-template-rows: repeat(12, 24px);
           }
           
           .grid-cell {
-            width: 28px;
-            height: 28px;
-            font-size: 0.9rem;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+          }
+
+          .knowledge-cards {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .knowledge-card {
+            height: 120px;
+          }
+
+          .card-fact {
+            font-size: 0.6rem;
           }
         }
       `}</style>
 
       <div className="ev-root">
-        <h1>🔍 EV Word Search</h1>
+        <h1>🌍 Land Pollution Word Search</h1>
         <p className="subtitle">
-          Find all the electric vehicle & green energy words!
+          Find words to learn about land pollution impacts & control measures!
         </p>
 
-        <div className="game-wrapper">
-          <div className="game-container">
+        <div className="main-container">
+          <div className="top-stats">
             <div className="stats-bar">
               <div className="stat">
                 <div className="stat-label">Found</div>
@@ -811,84 +1073,71 @@ const EvWordSearchGame = () => {
               </div>
               <div className="stat">
                 <div className="stat-label">Time</div>
-                <div className="stat-value" id="timer">
-                  0:00
-                </div>
+                <div className="stat-value" id="timer">0:00</div>
               </div>
               <div className="stat">
-                <div className="stat-label">Score</div>
-                <div className="stat-value" id="score">
-                  0
-                </div>
+                <div className="stat-label">Coins</div>
+                <div className="stat-value" id="coins">0</div>
               </div>
             </div>
 
-            <div className="difficulty-selector">
-              <button className="diff-btn" data-diff="easy">
-                Easy
-              </button>
-              <button className="diff-btn active" data-diff="medium">
-                Medium
-              </button>
-              <button className="diff-btn" data-diff="hard">
-                Hard
-              </button>
+            <div className="learning-stats">
+              <div className="learning-stat impact">
+                <span>⚠ Impacts:</span>
+                <span id="impact-count">0</span>
+              </div>
+              <div className="learning-stat control">
+                <span>✅ Controls:</span>
+                <span id="control-count">0</span>
+              </div>
             </div>
+          </div>
 
+          <div className="difficulty-selector">
+            <button className="diff-btn" data-diff="easy">Easy</button>
+            <button className="diff-btn active" data-diff="medium">Medium</button>
+            <button className="diff-btn" data-diff="hard">Hard</button>
+          </div>
+
+          <div className="game-layout">
             <div className="grid-container">
               <div className="word-grid" id="word-grid">{/* JS fills */}</div>
             </div>
 
-            <div className="controls">
-              <button className="btn btn-primary" id="new-game-btn">
-                🔄 New Game
-              </button>
-              <button className="btn btn-secondary" id="hint-btn">
-                💡 Hint
-              </button>
+            <div className="word-list-panel">
+              <div className="word-list-title">🔍 Find These</div>
+              <div className="word-list" id="word-list">{/* JS fills */}</div>
             </div>
           </div>
 
-          <div className="word-list-container">
-            <div className="word-list-title">🔋 Words to Find</div>
-            <div className="word-list" id="word-list">{/* JS fills */}</div>
+          <div className="controls">
+            <button className="btn btn-primary" id="new-game-btn">🔄 New Game</button>
+            <button className="btn btn-secondary" id="hint-btn">💡 Hint</button>
+          </div>
 
-            <div className="info-box">
-              <h4>💡 How to Play</h4>
-              <p>
-                Click and drag across letters to select a word. Words can be
-                horizontal, vertical, or diagonal!
-              </p>
-            </div>
+          {/* Knowledge Cards Section */}
+          <div className="knowledge-section">
+            <div className="knowledge-title">📚 Knowledge Cards - Find words to flip and learn!</div>
+            <div className="knowledge-cards" id="knowledge-cards">{/* JS fills */}</div>
           </div>
         </div>
 
-        <div className="win-popup" id="win-popup">
-          <div className="win-content">
-            <div className="trophy">🏆</div>
-            <h2>Congratulations!</h2>
-            <p>You found all the EV words!</p>
-            <div className="win-stats">
-              <div>
-                <div className="win-stat-value" id="win-time">
-                  0:00
-                </div>
-                <div className="win-stat-label">Time</div>
-              </div>
-              <div>
-                <div className="win-stat-value" id="win-score">
-                  0
-                </div>
-                <div className="win-stat-label">Score</div>
-              </div>
+        {/* Completion Banner (slides up from bottom) */}
+        <div className="completion-banner" id="completion-banner">
+          <h2>🎉 Congratulations! You're a Land Pollution Expert!</h2>
+          <div className="completion-stats">
+            <div className="completion-stat">
+              <div className="completion-stat-value" id="final-coins">0</div>
+              <div className="completion-stat-label">🪙 Coins Earned</div>
             </div>
-            <div className="fun-fact" id="win-fact">
-              Electric vehicles can save you up to $1,000 per year on fuel
-              costs!
+            <div className="completion-stat">
+              <div className="completion-stat-value" id="final-time">0:00</div>
+              <div className="completion-stat-label">Time</div>
             </div>
-            <button className="btn btn-primary" id="play-again-btn">
-              🎮 Play Again
-            </button>
+            <div className="completion-stat">
+              <div className="completion-stat-value" id="facts-learned">0</div>
+              <div className="completion-stat-label">Facts Learned</div>
+            </div>
           </div>
         </div>
       </div>

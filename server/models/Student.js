@@ -134,6 +134,17 @@ const studentSchema = new mongoose.Schema(
       },
     ],
 
+    // Rewards store redemptions
+    redemptions: [
+      {
+        itemId: { type: String, required: true },
+        itemName: { type: String, required: true },
+        category: { type: String },
+        coinsSpent: { type: Number, required: true },
+        redeemedAt: { type: Date, default: Date.now },
+      },
+    ],
+
     createdAt: { type: Date, default: Date.now },
   },
   {
