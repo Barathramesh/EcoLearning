@@ -182,7 +182,7 @@ const Achievements = () => {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               <Card className="bg-gray-800/60 backdrop-blur-sm border border-gray-700/50 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 group overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
@@ -257,7 +257,7 @@ const Achievements = () => {
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {items.map((achievement) => {
                   const colors = getRarityColor(achievement.rarity);
                   return (

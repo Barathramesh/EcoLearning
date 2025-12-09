@@ -79,7 +79,7 @@ const Features = () => {
         </div>
 
         {/* Main Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
           {features.map((feature, index) => (
             <Card 
               key={feature.title} 

@@ -318,34 +318,34 @@ const StudentDashboard = () => {
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#3b9b8f]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-            <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6">
               {/* User Info */}
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-2xl bg-[#f59e0b] flex items-center justify-center animate-pulse-glow">
-                    <span className="text-5xl">🦸</span>
+              <div className="flex items-center gap-3 sm:gap-6 w-full lg:w-auto">
+                <div className="relative flex-shrink-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-[#f59e0b] flex items-center justify-center animate-pulse-glow">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl">🦸</span>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-[#f59e0b] flex items-center justify-center text-white font-bold text-sm border-4 border-[#1a3a2e]">
+                  <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#f59e0b] flex items-center justify-center text-white font-bold text-xs sm:text-sm border-2 sm:border-4 border-[#1a3a2e]">
                     {studentData.level}
                   </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-3xl lg:text-4xl font-bold text-white">
-                      Welcome back, {studentData.name}!
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white truncate">
+                      Welcome, {studentData.name}!
                     </h1>
-                    <span className="text-3xl animate-wave">👋</span>
+                    <span className="text-2xl sm:text-3xl animate-wave flex-shrink-0">👋</span>
                   </div>
-                  <p className="text-emerald-300 text-lg">
+                  <p className="text-emerald-300 text-sm sm:text-base lg:text-lg truncate">
                     {studentData.institution}
                   </p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0 px-4 py-1">
-                      <Crown className="w-4 h-4 mr-1" /> Level{" "}
+                  <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-3 flex-wrap">
+                    <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0 px-2 sm:px-4 py-1 text-xs sm:text-sm">
+                      <Crown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> Level{" "}
                       {studentData.level}
                     </Badge>
-                    <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 px-4 py-1">
-                      <Flame className="w-4 h-4 mr-1" /> {studentData.streak}{" "}
+                    <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 px-2 sm:px-4 py-1 text-xs sm:text-sm">
+                      <Flame className="w-3 h-3 sm:w-4 sm:h-4 mr-1" /> {studentData.streak}{" "}
                       Day Streak
                     </Badge>
                   </div>
@@ -353,26 +353,26 @@ const StudentDashboard = () => {
               </div>
 
               {/* XP Progress */}
-              <div className="flex items-center gap-6">
-                <ProgressRing progress={xpProgress} size={100}>
+              <div className="flex items-center gap-4 sm:gap-6 w-full lg:w-auto justify-center lg:justify-end">
+                <ProgressRing progress={xpProgress} size={80} className="sm:w-24 sm:h-24 lg:w-[100px] lg:h-[100px]">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
                       {Math.round(xpProgress)}%
                     </div>
-                    <div className="text-xs text-emerald-300">
+                    <div className="text-[10px] sm:text-xs text-emerald-300">
                       to Lv.{studentData.level + 1}
                     </div>
                   </div>
                 </ProgressRing>
-                <div>
-                  <p className="text-emerald-300 text-sm mb-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-emerald-300 text-xs sm:text-sm mb-1">
                     Experience Points
                   </p>
-                  <p className="text-white text-2xl font-bold">
+                  <p className="text-white text-lg sm:text-xl lg:text-2xl font-bold">
                     <AnimatedCounter value={studentData.currentXP} /> /{" "}
                     {studentData.nextLevelXP}
                   </p>
-                  <p className="text-cyan-300 text-sm mt-1">
+                  <p className="text-cyan-300 text-xs sm:text-sm mt-1">
                     {studentData.nextLevelXP - studentData.currentXP} XP to next
                     level
                   </p>
@@ -384,7 +384,7 @@ const StudentDashboard = () => {
 
         {/* Quick Stats */}
         <div
-          className={`grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 transition-all duration-700 delay-100 ${
+          className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8 transition-all duration-700 delay-100 ${
             isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >

@@ -29,7 +29,7 @@ const assignmentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['traditional', 'project-based', 'quiz-assessment', 'multimedia'],
+    enum: ['traditional', 'land-pollution', 'air-pollution', 'water-pollution'],
     default: 'traditional'
   },
   dueDate: {
@@ -58,6 +58,31 @@ const assignmentSchema = new mongoose.Schema({
   enableAIGrading: {
     type: Boolean,
     default: true
+  },
+  // Pollution Project fields
+  requireLocation: {
+    type: Boolean,
+    default: false
+  },
+  requireVideoDuration: {
+    type: Boolean,
+    default: false
+  },
+  minVideoDuration: {
+    type: Number,
+    default: 2
+  },
+  maxVideoDuration: {
+    type: Number,
+    default: 5
+  },
+  projectInstructions: {
+    type: String,
+    default: ''
+  },
+  locationInstructions: {
+    type: String,
+    default: ''
   },
   teacherId: {
     type: String,

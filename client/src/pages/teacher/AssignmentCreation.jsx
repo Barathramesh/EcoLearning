@@ -48,7 +48,15 @@ const AssignmentCreation = () => {
       contentAccuracy: 40,
       relevance: 20,
       quality: 15
-    }
+    },
+    // Pollution Project fields
+    requireDescription: false,
+    requireLocation: false,
+    requireVideoDuration: false,
+    minVideoDuration: 2,
+    maxVideoDuration: 5,
+    projectInstructions: '',
+    locationInstructions: ''
   });
 
   const subjects = [
@@ -65,9 +73,9 @@ const AssignmentCreation = () => {
 
   const assignmentTypes = [
     { id: 'traditional', name: 'Traditional Assignment' },
-    { id: 'project-based', name: 'Project-Based' },
-    { id: 'quiz-assessment', name: 'Quiz & Assessment' },
-    { id: 'multimedia', name: 'Multimedia Project' }
+    { id: 'land-pollution', name: 'Land Pollution Project' },
+    { id: 'air-pollution', name: 'Air Pollution Project' },
+    { id: 'water-pollution', name: 'Water Pollution Project' }
   ];
 
   // Get teacher info from localStorage
@@ -185,7 +193,15 @@ const AssignmentCreation = () => {
 
       const data = await response.json();
 
+      console.log('=== AI GENERATION RESPONSE ===');
+      console.log('Success:', data.success);
+      console.log('Expected Answer Length:', data.expectedAnswer?.length);
+      console.log('Key Points:', data.keyPoints);
+      console.log('Key Points Count:', data.keyPoints?.length);
+      console.log('============================');
+
       if (data.success) {
+        console.log('Setting key points:', data.keyPoints);
         setAssignmentData(prev => ({
           ...prev,
           expectedAnswer: data.expectedAnswer,
@@ -209,8 +225,11 @@ const AssignmentCreation = () => {
       return;
     }
 
-    // Validate AI grading fields if enabled
-    if (assignmentData.enableAIGrading && !assignmentData.expectedAnswer.trim()) {
+    // Check if it's a pollution project
+    const isPollutionProject = ['land-pollution', 'air-pollution', 'water-pollution'].includes(assignmentData.type);
+
+    // Validate AI grading fields only for traditional assignments
+    if (assignmentData.type === 'traditional' && assignmentData.enableAIGrading && !assignmentData.expectedAnswer.trim()) {
       alert('Please provide an Expected Answer for AI grading, or disable AI grading.');
       return;
     }
@@ -267,7 +286,7 @@ const AssignmentCreation = () => {
         <button
           onClick={() => {
             if (classFilter.classId) {
-              navigate(`/teacher/student-management?classId=${classFilter.classId}&grade=${classFilter.grade}&section=${classFilter.section}`);
+              navigate(`/teacher/student-management?classId=${classFilter.classId}&grade=${classFilter.grade}&section=${classFilter.section}#assignments`);
             } else {
               navigate('/teacher/classes');
             }
@@ -359,7 +378,7 @@ const AssignmentCreation = () => {
           {/* Description */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#374151' }}>
-              Description
+              Description <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <textarea
               name="description"
@@ -367,13 +386,16 @@ const AssignmentCreation = () => {
               onChange={handleInputChange}
               placeholder="Enter assignment description and instructions..."
               rows={4}
+              required
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '0.5rem',
                 fontSize: '1rem',
-                resize: 'vertical'
+                resize: 'vertical',
+                backgroundColor: 'white',
+                cursor: 'text'
               }}
             />
           </div>
@@ -471,32 +493,34 @@ const AssignmentCreation = () => {
             />
           </div>
 
-          {/* AI Grading Section */}
-          <div style={{
-            backgroundColor: '#f5f3ff',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            border: '1px solid #c4b5fd'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#5b21b6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sparkles size={24} />
-                AI Auto-Grading Settings
-              </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={assignmentData.enableAIGrading}
-                  onChange={(e) => setAssignmentData(prev => ({ ...prev, enableAIGrading: e.target.checked }))}
-                  style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
-                />
-                <span style={{ fontWeight: '500', color: '#374151' }}>Enable AI Grading</span>
-              </label>
-            </div>
+          {/* Conditional Sections Based on Assignment Type */}
+          {assignmentData.type === 'traditional' ? (
+            // AI Grading Section - Only for Traditional Assignments
+            <div style={{
+              backgroundColor: '#f5f3ff',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              border: '1px solid #c4b5fd'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#5b21b6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Sparkles size={24} />
+                  AI Auto-Grading Settings
+                </h3>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={assignmentData.enableAIGrading}
+                    onChange={(e) => setAssignmentData(prev => ({ ...prev, enableAIGrading: e.target.checked }))}
+                    style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontWeight: '500', color: '#374151' }}>Enable AI Grading</span>
+                </label>
+              </div>
 
-            {assignmentData.enableAIGrading && (
-              <>
+              {assignmentData.enableAIGrading && (
+                <>
                 {/* Expected Answer */}
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -711,7 +735,202 @@ const AssignmentCreation = () => {
                 </div>
               </>
             )}
-          </div>
+            </div>
+          ) : (
+            // Pollution Project Section - For Land/Air/Water Pollution Projects
+            <div style={{
+              backgroundColor: '#fef3c7',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              border: '2px solid #fbbf24'
+            }}>
+              <div style={{ 
+                backgroundColor: '#fef3c7',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem',
+                border: '1px solid #f59e0b'
+              }}>
+                <p style={{ 
+                  color: '#92400e',
+                  fontSize: '0.95rem',
+                  fontWeight: '500',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <HelpCircle size={20} />
+                  AI Auto-Grading & OCR are disabled for real-world pollution projects. Manual teacher evaluation is required.
+                </p>
+              </div>
+
+              <h3 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: '600', 
+                color: '#92400e', 
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                Project Requirements
+              </h3>
+
+              {/* Location Required Checkbox */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.75rem', 
+                  cursor: 'pointer',
+                  padding: '1rem',
+                  backgroundColor: 'white',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #d1d5db'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={assignmentData.requireLocation}
+                    onChange={(e) => setAssignmentData(prev => ({ 
+                      ...prev, 
+                      requireLocation: e.target.checked 
+                    }))}
+                    style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontWeight: '500', color: '#374151' }}>Location Required</span>
+                </label>
+                
+                {assignmentData.requireLocation && (
+                  <div style={{ marginTop: '0.75rem', paddingLeft: '0.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                      Location Instructions for Students
+                    </label>
+                    <textarea
+                      value={assignmentData.locationInstructions || ''}
+                      onChange={(e) => setAssignmentData(prev => ({ ...prev, locationInstructions: e.target.value }))}
+                      placeholder="Enter location requirements (e.g., Visit a polluted area in your locality, provide area name, city/town, and type of pollution observed)..."
+                      rows={3}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.95rem',
+                        resize: 'vertical',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Video Duration Required Checkbox */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.75rem', 
+                  cursor: 'pointer',
+                  padding: '1rem',
+                  backgroundColor: 'white',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #d1d5db'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={assignmentData.requireVideoDuration}
+                    onChange={(e) => setAssignmentData(prev => ({ 
+                      ...prev, 
+                      requireVideoDuration: e.target.checked 
+                    }))}
+                    style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontWeight: '500', color: '#374151' }}>Video Duration Required</span>
+                </label>
+                
+                {assignmentData.requireVideoDuration && (
+                  <div style={{ 
+                    marginTop: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'white',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #d1d5db'
+                  }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                          Minimum Duration (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={assignmentData.minVideoDuration}
+                          onChange={(e) => setAssignmentData(prev => ({ 
+                            ...prev, 
+                            minVideoDuration: parseInt(e.target.value) || 1 
+                          }))}
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '0.5rem',
+                            fontSize: '0.95rem'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                          Maximum Duration (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={assignmentData.maxVideoDuration}
+                          onChange={(e) => setAssignmentData(prev => ({ 
+                            ...prev, 
+                            maxVideoDuration: parseInt(e.target.value) || 5 
+                          }))}
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '0.5rem',
+                            fontSize: '0.95rem'
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem', marginBottom: 0 }}>
+                      Students will upload videos between {assignmentData.minVideoDuration} and {assignmentData.maxVideoDuration} minutes
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Evaluation Criteria Info */}
+              <div style={{
+                backgroundColor: '#dbeafe',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #3b82f6'
+              }}>
+                <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
+                  📊 Manual Evaluation Criteria:
+                </p>
+                <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#1e3a8a', fontSize: '0.875rem' }}>
+                  <li>Effort & Initiative</li>
+                  <li>Environmental Awareness</li>
+                  <li>Real-World Action & Impact</li>
+                  <li>Creativity & Presentation</li>
+                  <li>Documentation Quality</li>
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* Publish Button */}
           <button

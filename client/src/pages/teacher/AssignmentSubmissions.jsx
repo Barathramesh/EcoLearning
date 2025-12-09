@@ -531,6 +531,72 @@ const AssignmentSubmissions = () => {
                                                         </p>
                                                     </div>
                                                     
+                                                    {/* Submitted Files */}
+                                                    {submission.files && submission.files.length > 0 && (
+                                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                                            <h5 className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-2">
+                                                                <FileText className="w-4 h-4" />
+                                                                Submitted Files ({submission.files.length})
+                                                            </h5>
+                                                            <div className="space-y-2">
+                                                                {submission.files.map((file, idx) => {
+                                                                    const isVideo = file.fileType?.startsWith('video/') || file.fileName?.match(/\.(mp4|mov|avi|mkv|webm)$/i);
+                                                                    const isImage = file.fileType?.startsWith('image/');
+                                                                    // Ensure the fileUrl starts with a forward slash
+                                                                    const cleanFileUrl = file.fileUrl?.startsWith('/') ? file.fileUrl : `/${file.fileUrl}`;
+                                                                    const fileUrl = `http://localhost:5000${cleanFileUrl}`;
+                                                                    
+                                                                    return (
+                                                                        <div key={idx} className="bg-blue-50 rounded-lg p-3">
+                                                                            <div className="flex items-center justify-between mb-2">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <FileText className="w-4 h-4 text-blue-600" />
+                                                                                    <span className="text-sm font-medium text-gray-700">{file.fileName}</span>
+                                                                                    <span className="text-xs text-gray-500">({(file.fileSize / (1024 * 1024)).toFixed(2)} MB)</span>
+                                                                                </div>
+                                                                                <div className="flex gap-2">
+                                                                                    <a
+                                                                                        href={fileUrl}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="px-3 py-1 text-xs font-medium bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                                                                    >
+                                                                                        View
+                                                                                    </a>
+                                                                                    <a
+                                                                                        href={fileUrl}
+                                                                                        download={file.fileName}
+                                                                                        className="px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                                                                    >
+                                                                                        Download
+                                                                                    </a>
+                                                                                </div>
+                                                                            </div>
+                                                                            {isVideo && (
+                                                                                <video 
+                                                                                    controls 
+                                                                                    className="w-full rounded-lg mt-2"
+                                                                                    style={{ maxHeight: '300px' }}
+                                                                                >
+                                                                                    <source src={fileUrl} type={file.fileType} />
+                                                                                    Your browser does not support video playback.
+                                                                                </video>
+                                                                            )}
+                                                                            {isImage && (
+                                                                                <img 
+                                                                                    src={fileUrl} 
+                                                                                    alt={file.fileName}
+                                                                                    className="w-full rounded-lg mt-2"
+                                                                                    style={{ maxHeight: '300px', objectFit: 'contain' }}
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
                                                     {/* Feedback */}
                                                     {submission.feedback && (
                                                         <div className="mt-4 pt-4 border-t border-gray-100">

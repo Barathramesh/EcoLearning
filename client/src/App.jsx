@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import Games from "./pages/student/Games";
 import Lessons from "./pages/student/Lessons";
+import EnvironmentalStories from "./pages/student/EnvironmentalStories";
 import AI from "./pages/student/AI";
 import Profile from "./pages/student/Profile";
 import Leaderboard from "./pages/student/Leaderboard";
@@ -92,6 +93,7 @@ const App = () => (
           <Route path="/student/games" element={<Games />} />
           <Route path="/student/badges" element={<Badges />} />
           <Route path="/student/lessons" element={<Lessons />} />
+          <Route path="/environmental-stories" element={<EnvironmentalStories />} />
           <Route
             path="/student/upload-assignment"
             element={<UploadAssignment />}

@@ -60,10 +60,10 @@ function About() {
 
         {/* Mission Section */}
         <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold font-lato mb-6">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-lato mb-4 sm:mb-6 px-4 sm:px-0">
                   Our Mission
                 </h2>
                 <p className="text-lg text-muted-foreground mb-6">
@@ -90,16 +90,16 @@ function About() {
 
         {/* Values Section */}
         <section className="py-20 bg-gradient-subtle">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold font-lato mb-6">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-lato mb-4 sm:mb-6 px-4">
                 Our Core Values
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                 These principles guide everything we do at EcoLearn
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
               {values.map((value, index) => (
                 <Card key={value.title} className={`card-interactive ${index % 2 === 0 ? 'md:translate-y-4' : ''}`}>
                   <CardHeader>

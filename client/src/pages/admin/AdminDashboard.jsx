@@ -100,21 +100,21 @@ const AdminDashboard = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
       <AdminNavbar />
       
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1rem', paddingTop: '5rem' }}>
         {/* Welcome Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h1 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.875rem)', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
             Welcome back, {admin?.name || 'Admin'}! 👋
           </h1>
-          <p style={{ color: '#6b7280' }}>Here's an overview of your EcoLearn platform.</p>
+          <p style={{ color: '#6b7280', fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}>Here's an overview of your EcoLearn platform.</p>
         </div>
 
         {/* Stats Cards */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '1.5rem',
-          marginBottom: '2rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', 
+          gap: 'clamp(0.75rem, 2vw, 1.5rem)',
+          marginBottom: 'clamp(1rem, 3vw, 2rem)'
         }}>
           {statCards.map((card, index) => {
             const Icon = card.icon;
@@ -176,7 +176,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions & Info */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: 'clamp(1rem, 2vw, 1.5rem)' }}>
           {/* Quick Actions */}
           <div style={{
             backgroundColor: 'white',

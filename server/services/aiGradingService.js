@@ -26,6 +26,14 @@ class AIGradingService {
    */
   async callGeminiAPI(prompt, retryCount = 0, apiKeyOverride = null) {
     const apiKey = apiKeyOverride || this.apiKey;
+    
+    if (!apiKey) {
+      console.error('❌ No API key available for Gemini!');
+      throw new Error('Gemini API key not configured');
+    }
+    
+    console.log('🔑 Using API key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NONE');
+    
     try {
       const response = await fetch(`${this.apiUrl}?key=${apiKey}`, {
         method: "POST",
@@ -64,7 +72,13 @@ class AIGradingService {
       }
 
       if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Gemini API Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(`Gemini API error: ${response.status} - ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
@@ -183,7 +197,7 @@ Respond in this exact JSON format only:
   ) {
     const keyPointsList =
       keyPoints && keyPoints.length > 0
-        ? keyPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")
+        ? keyPoints.map((p, i) =>`${i + 1}. ${p}`).join("\n")
         : "No specific key points provided";
 
     const prompt = `
@@ -601,7 +615,7 @@ Respond in this exact JSON format only:
 
     // Start with what went wrong (if anything)
     if (!answerVerification.isCorrect || contentScore < 50) {
-      feedback += `⚠ **Your answer needs improvement.**\n\n`;
+      feedback +=`⚠ **Your answer needs improvement.**\n\n`;
 
       if (!topicRelevance.isRelevant) {
         feedback += `❌ **Problem:** Your answer was about "${topicRelevance.topicMatch}" but the question asked about something different.\n\n`;

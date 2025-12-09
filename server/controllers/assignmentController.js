@@ -187,7 +187,7 @@ const callGeminiWithRetry = async (prompt, apiKey, maxRetries = 3) => {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1024
+            maxOutputTokens: 2048
           }
         })
       }
@@ -259,17 +259,45 @@ Focus on environmental science concepts and ensure the answer is educational and
       throw new Error('No response from Gemini API');
     }
 
+    console.log('=== AI RESPONSE DEBUG ===');
+    console.log('Raw AI text length:', aiText.length);
+    console.log('First 500 chars:', aiText.substring(0, 500));
+    console.log('========================');
+
     // Parse the JSON response from AI
     let parsedResponse;
+    let cleanText = '';
     try {
-      // Extract JSON from the response (handle markdown code blocks)
-      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in response');
+      // Remove markdown code blocks if present
+      cleanText = aiText.replace(/json\s*/g, '').replace(/\s*/g, '').trim();
+      
+      console.log('Clean text length:', cleanText.length);
+      console.log('Clean text preview:', cleanText.substring(0, 100));
+      
+      // Try to parse the entire cleanText as JSON first
+      try {
+        parsedResponse = JSON.parse(cleanText);
+        console.log('✅ Successfully parsed entire text as JSON');
+      } catch (directParseError) {
+        // If that fails, try to extract JSON object
+        console.log('Direct parse failed, trying to extract JSON...');
+        const jsonMatch = cleanText.match(/(\{[\s\S]*\})/);
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[1]);
+          console.log('✅ Successfully parsed extracted JSON');
+        } else {
+          throw new Error('No JSON found in response');
+        }
       }
+      
+      console.log('Expected Answer length:', parsedResponse.expectedAnswer?.length || 0);
+      console.log('Key Points:', parsedResponse.keyPoints);
+      console.log('Key Points count:', parsedResponse.keyPoints?.length || 0);
+      
     } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError.message);
+      console.log('Clean text sample:', cleanText.substring(0, 500));
+      
       // If parsing fails, use the raw text as expected answer
       parsedResponse = {
         expectedAnswer: aiText,
@@ -277,10 +305,15 @@ Focus on environmental science concepts and ensure the answer is educational and
       };
     }
 
+    // Ensure keyPoints is an array
+    if (!Array.isArray(parsedResponse.keyPoints)) {
+      parsedResponse.keyPoints = [];
+    }
+
     res.status(200).json({
       success: true,
       expectedAnswer: parsedResponse.expectedAnswer || aiText,
-      keyPoints: parsedResponse.keyPoints || []
+      keyPoints: parsedResponse.keyPoints
     });
 
   } catch (error) {

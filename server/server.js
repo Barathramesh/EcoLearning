@@ -42,10 +42,26 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files with proper headers
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => res.send("API is Working"));
+
+// Debug endpoint to list uploaded files
+app.get('/api/files/list', (req, res) => {
+  const uploadsPath = path.join(__dirname, 'uploads/assignments');
+  fs.readdir(uploadsPath, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ files, path: uploadsPath });
+  });
+});
+
 app.use('/api/teacher', teacherRouter);
 app.use('/api/student', studentRoutes);
 app.use('/api/class', classRouter);
@@ -64,4 +80,3 @@ app.use('/api/video-lesson', videoLessonRouter);
 app.listen(port, ()=>{
     console.log(`Server is running on http://localhost:${port}`)
 })
-

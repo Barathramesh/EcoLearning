@@ -148,9 +148,13 @@ const UploadAssignment = () => {
   };
 
   const handleFiles = (files) => {
+    const isPollutionProject = selectedAssignment?.type?.includes('pollution');
+    const maxSize = isPollutionProject ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+    const maxSizeLabel = isPollutionProject ? '100MB' : '10MB';
+    
     const validFiles = files.filter(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large. Maximum size is ${maxSizeLabel}.`);
         return false;
       }
       return true;
@@ -382,9 +386,18 @@ const UploadAssignment = () => {
   };
 
   const handleSubmit = async () => {
-    if (!submissionContent.trim() && submissionFiles.length === 0) {
-      alert("Please add some content or upload files to submit.");
-      return;
+    const isPollutionProject = selectedAssignment?.type?.includes('pollution');
+    
+    if (isPollutionProject) {
+      if (submissionFiles.length === 0) {
+        alert("Please upload your project video/files to submit.");
+        return;
+      }
+    } else {
+      if (!submissionContent.trim() && submissionFiles.length === 0) {
+        alert("Please add some content or upload files to submit.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -402,30 +415,43 @@ const UploadAssignment = () => {
     }, 200);
 
     try {
-      // Prepare file data (in real app, you'd upload to storage and get URLs)
-      const filesData = submissionFiles.map(f => ({
-        fileName: f.name,
-        fileUrl: `uploads/${f.name}`, // Placeholder URL
-        fileType: f.type,
-        fileSize: f.size
-      }));
+      // Create FormData to upload files
+      const formData = new FormData();
+      formData.append('assignmentId', selectedAssignment._id);
+      formData.append('studentId', studentData.id);
+      formData.append('studentName', studentData.name);
+      formData.append('studentRollNumber', studentData.rollNumber);
+      formData.append('content', submissionContent);
+      
+      // Append all files
+      submissionFiles.forEach(fileObj => {
+        formData.append('files', fileObj.file);
+      });
 
       setSubmitProgress(75);
       
-      const response = await axios.post(`${API_URL}/submission/submit`, {
-        assignmentId: selectedAssignment._id,
-        studentId: studentData.id,
-        studentName: studentData.name,
-        studentRollNumber: studentData.rollNumber,
-        content: submissionContent,
-        files: filesData
+      const response = await axios.post(`${API_URL}/submission/submit`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setSubmitProgress(Math.min(75 + (percentCompleted * 0.2), 95));
+        }
       });
 
       clearInterval(progressInterval);
       setSubmitProgress(100);
 
+      console.log('=== SUBMISSION RESPONSE ===');
+      console.log('Full response:', response.data);
+      console.log('AI Grading:', response.data.aiGrading);
+      console.log('Is Graded:', response.data.aiGrading?.graded);
+      console.log('========================');
+
       // Check if AI grading result is available
       if (response.data.aiGrading && response.data.aiGrading.graded) {
+        console.log('✅ Showing AI grading result');
         setGradingResult(response.data.aiGrading);
         setShowGradingResult(true);
         setIsSubmitDialogOpen(false);
@@ -453,6 +479,9 @@ const UploadAssignment = () => {
 
   const getTypeColor = (type) => {
     switch(type) {
+      case 'land-pollution': return 'bg-amber-100 text-amber-800';
+      case 'air-pollution': return 'bg-sky-100 text-sky-800';
+      case 'water-pollution': return 'bg-blue-100 text-blue-800';
       case 'project-based': return 'bg-[#3b9b8f]/20 text-[#3b9b8f]';
       case 'quiz-assessment': return 'bg-blue-100 text-blue-800';
       case 'multimedia': return 'bg-pink-100 text-pink-800';
@@ -782,25 +811,39 @@ const UploadAssignment = () => {
                 )}
               </div>
 
-              {/* Mode Toggle */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
-                <Button
-                  variant={!isOcrMode ? "default" : "ghost"}
-                  className={`flex-1 ${!isOcrMode ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                  onClick={() => { setIsOcrMode(false); stopCamera(); }}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Type Answer
-                </Button>
-                <Button
-                  variant={isOcrMode ? "default" : "ghost"}
-                  className={`flex-1 ${isOcrMode ? 'bg-[#f59e0b] hover:bg-[#237a57]' : ''}`}
-                  onClick={() => setIsOcrMode(true)}
-                >
-                  <ScanLine className="w-4 h-4 mr-2" />
+              {/* Pollution Project Instructions */}
+              {selectedAssignment.type?.includes('pollution') && (
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Info className="w-4 h-4" />
+                  <AlertDescription className="text-sm">
+                    <strong>Pollution Project Submission:</strong> Upload your video documentation (max 100MB) and any supporting files. 
+                    {selectedAssignment.requireLocation && ' Include location details in your video.'}
+                    {selectedAssignment.requireVideoDuration && ` Video must be ${selectedAssignment.minVideoDuration}-${selectedAssignment.maxVideoDuration} minutes long.`}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Mode Toggle - Only show for traditional assignments */}
+              {selectedAssignment.type === 'traditional' && (
+                <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                  <Button
+                    variant={!isOcrMode ? "default" : "ghost"}
+                    className={`flex-1 ${!isOcrMode ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    onClick={() => { setIsOcrMode(false); stopCamera(); }}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Type Answer
+                  </Button>
+                  <Button
+                    variant={isOcrMode ? "default" : "ghost"}
+                    className={`flex-1 ${isOcrMode ? 'bg-[#f59e0b] hover:bg-[#237a57]' : ''}`}
+                    onClick={() => setIsOcrMode(true)}
+                  >
+                    <ScanLine className="w-4 h-4 mr-2" />
                   Scan Handwritten
-                </Button>
-              </div>
+                  </Button>
+                </div>
+              )}
 
               {/* OCR Mode */}
               {isOcrMode ? (
@@ -997,31 +1040,37 @@ const UploadAssignment = () => {
                 </div>
               ) : null}
 
-              {/* Content Input (shown in both modes) */}
-              <div className="space-y-2">
-                <Label className="text-lg font-semibold">
-                  {isOcrMode ? 'Extracted & Additional Text' : 'Your Answer / Notes'}
-                </Label>
-                <Textarea
-                  placeholder={isOcrMode 
-                    ? "Text extracted from your handwritten pages will appear here. You can also edit or add more content..."
-                    : "Write your assignment answer, notes, or description here..."
-                  }
-                  value={submissionContent}
-                  onChange={(e) => setSubmissionContent(e.target.value)}
-                  className="min-h-32"
-                />
-                {submissionContent && (
-                  <p className="text-xs text-gray-500 text-right">
-                    {submissionContent.split(/\s+/).filter(w => w).length} words
-                  </p>
-                )}
-              </div>
+              {/* Content Input (shown in both modes) - Hide for pollution projects */}
+              {!selectedAssignment.type?.includes('pollution') && (
+                <div className="space-y-2">
+                  <Label className="text-lg font-semibold">
+                    {isOcrMode ? 'Extracted & Additional Text' : 'Your Answer / Notes'}
+                  </Label>
+                  <Textarea
+                    placeholder={isOcrMode 
+                      ? "Text extracted from your handwritten pages will appear here. You can also edit or add more content..."
+                      : "Write your assignment answer, notes, or description here..."
+                    }
+                    value={submissionContent}
+                    onChange={(e) => setSubmissionContent(e.target.value)}
+                    className="min-h-32"
+                  />
+                  {submissionContent && (
+                    <p className="text-xs text-gray-500 text-right">
+                      {submissionContent.split(/\s+/).filter(w => w).length} words
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* File Upload (not in OCR mode) */}
               {!isOcrMode && (
                 <div className="space-y-2">
-                  <Label className="text-lg font-semibold">Upload Files (Optional)</Label>
+                  <Label className="text-lg font-semibold">
+                    {selectedAssignment.type?.includes('pollution') 
+                      ? 'Upload Project Files (Required)' 
+                      : 'Upload Files (Optional)'}
+                  </Label>
                   <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
                       dragActive 
@@ -1038,14 +1087,18 @@ const UploadAssignment = () => {
                     <p className="text-gray-600 mb-1">
                       Drag and drop files or <span className="text-green-600 font-semibold">browse</span>
                     </p>
-                    <p className="text-sm text-gray-500">Max 10MB per file</p>
+                    <p className="text-sm text-gray-500">
+                      {selectedAssignment.type?.includes('pollution') 
+                        ? 'Max 100MB per file (videos, images, documents)' 
+                        : 'Max 10MB per file'}
+                    </p>
                     <input
                       ref={fileInputRef}
                       type="file"
                       multiple
                       onChange={handleFileInput}
                       className="hidden"
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mov"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mov,.avi,.mkv"
                     />
                   </div>
                 </div>
@@ -1559,7 +1612,7 @@ const AssignmentCard = ({ assignment, isOverdue, onSubmit, getTypeColor, getDays
   const daysRemaining = getDaysRemaining(assignment.dueDate);
 
   return (
-    <Card className={`mb-4 shadow-lg border-2 ${isOverdue ? 'border-red-300' : 'border-yellow-200'} hover:shadow-xl transition-shadow`}>
+    <Card className={`mb-4 shadow-lg border-2 ${isOverdue ? 'border-red-300' : 'border-yellow-200'} hover:shadow-xl transition-shadow`  }>
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="flex-1">

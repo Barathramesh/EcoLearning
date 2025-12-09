@@ -22,39 +22,39 @@ const Hero = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50 pt-16">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-cyan-50 pt-12 sm:pt-16">
       {/* Header Section */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
         {/* Top Navigation Stats */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center space-x-6 text-sm">
+        <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="flex items-center space-x-3 sm:space-x-6 text-xs sm:text-sm flex-wrap justify-center">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
               <span className="text-gray-600">Live Users: 12,450</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Trophy className="w-4 h-4 text-yellow-500" />
+              <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
               <span className="text-gray-600">Rewards Available</span>
             </div>
           </div>
         </div>
 
         {/* Main Hero Content */}
-        <div className="text-center mb-12">
-          <Badge variant="secondary" className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
-            <Leaf className="w-4 h-4 mr-2" />
+        <div className="text-center mb-8 sm:mb-12">
+          <Badge variant="secondary" className="mb-3 sm:mb-4 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs sm:text-sm">
+            <Leaf className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
             Interactive Environmental Education Platform
           </Badge>
           
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight px-4">
             Learn About Our Environment
           </h1>
           
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed px-4">
             Discover the wonders of nature through interactive games, engaging lessons, and fun activities. Join us on a journey to understand and protect our planet!
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4">
             <Button 
               size="lg" 
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3"
@@ -71,7 +71,7 @@ const Hero = () => {
         </div>
 
         {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
           {/* Gamified Learning Card */}
           <Card className="bg-white/80 backdrop-blur-sm border-emerald-100 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
@@ -126,8 +126,8 @@ const Hero = () => {
         </div>
 
         {/* Achievement Showcase */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-emerald-100">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-emerald-100">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
             <div>
               <Badge variant="secondary" className="mb-4 bg-emerald-100 text-emerald-700">
                 <Trophy className="w-4 h-4 mr-2" />

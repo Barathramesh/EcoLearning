@@ -118,17 +118,17 @@ const TeacherDashboard = () => {
   return (
     <div className="min-h-screen bg-amber-50">
       <Navigation />
-      <main className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="pt-16 sm:pt-20 pb-12 sm:pb-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-[#237a57] rounded-full flex items-center justify-center">
-                <Users className="w-8 h-8 text-white" />
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-[#237a57] rounded-full flex items-center justify-center flex-shrink-0">
+                <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Welcome, {teacherData.name}</h1>
-                <p className="text-gray-600">{teacherData.institution}</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 truncate">Welcome, {teacherData.name}</h1>
+                <p className="text-sm sm:text-base text-gray-600 truncate">{teacherData.institution}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ const TeacherDashboard = () => {
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
             <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">

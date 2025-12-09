@@ -91,14 +91,41 @@ const awardAssignmentPoints = async (studentId, grade, score) => {
 // Submit an assignment with AI grading
 export const submitAssignment = async (req, res) => {
   try {
+    console.log('=== SUBMISSION REQUEST ===');
+    console.log('Body:', req.body);
+    console.log('Files:', req.files);
+    console.log('========================');
+    
     const {
       assignmentId,
       studentId,
       studentName,
       studentRollNumber,
       content,
-      files,
     } = req.body;
+
+    // Handle uploaded files from multer
+    const uploadedFiles = req.files ? req.files.map(file => {
+      console.log('Processing uploaded file:', {
+        originalName: file.originalname,
+        savedAs: file.filename,
+        path: file.path,
+        size: file.size,
+        mimetype: file.mimetype
+      });
+      return {
+        fileName: `${file.originalname}`,
+        fileUrl: `/uploads/assignments/${file.filename}`,
+        fileType: file.mimetype,
+        fileSize: file.size
+      };
+    }) : [];
+    
+    console.log('Total files processed:', uploadedFiles.length);
+    
+    if (uploadedFiles.length === 0 && !content) {
+      console.log('WARNING: No files or content submitted');
+    }
 
     // Check if assignment exists
     const assignment = await Assignment.findById(assignmentId);
@@ -127,7 +154,7 @@ export const submitAssignment = async (req, res) => {
       studentName,
       studentRollNumber,
       content,
-      files: files || [],
+      files: uploadedFiles,
       status: isLate ? "late" : "submitted",
     });
 
@@ -140,6 +167,14 @@ export const submitAssignment = async (req, res) => {
 
     // AI Grading (if enabled and content exists)
     let aiGradingResult = null;
+    
+    console.log('AI Grading check:', {
+      enableAIGrading: assignment.enableAIGrading,
+      hasContent: !!content,
+      contentLength: content?.trim().length || 0,
+      willGrade: assignment.enableAIGrading !== false && content && content.trim().length > 10
+    });
+    
     if (
       assignment.enableAIGrading !== false &&
       content &&

@@ -300,7 +300,7 @@ const Leaderboard = () => {
             </div>
 
             {/* Current User Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               <Card className="glass border-0 hover-lift overflow-hidden group">
                 <div className="absolute inset-0 bg-[#237a57]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 text-center relative">
@@ -352,7 +352,7 @@ const Leaderboard = () => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Main Leaderboards */}
             <div className="lg:col-span-2 space-y-8">
               {/* Quiz Leaderboard */}

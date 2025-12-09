@@ -79,6 +79,15 @@ const Navigation = ({ userType = null, onLogout = null }) => {
   };
 
   return (
+    <>
+      {/* Backdrop overlay for mobile menu */}
+      {isOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 top-16"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      
     <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-gray-800 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -103,14 +112,14 @@ const Navigation = ({ userType = null, onLogout = null }) => {
           </div>
 
           {/* Desktop Navigation - Centered and responsive */}
-          <div className="hidden xl:flex items-center justify-center flex-1 mx-4 overflow-x-auto">
+          <div className="hidden lg:flex items-center justify-center flex-1 mx-2 lg:mx-4 overflow-x-auto scrollbar-hide">
             <div className="flex items-center space-x-1">
               {navItems.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center space-x-1 px-2 py-2 rounded-lg transition-all duration-300 text-sm whitespace-nowrap flex-shrink-0 ${
+                    `flex items-center space-x-1 px-2 lg:px-3 py-2 rounded-lg transition-all duration-300 text-xs lg:text-sm whitespace-nowrap flex-shrink-0 ${
                       isActive 
                         ? "text-emerald-400 font-medium bg-emerald-500/20 shadow-lg shadow-emerald-500/10" 
                         : "text-gray-400 hover:text-emerald-400 hover:bg-gray-800"
@@ -118,30 +127,30 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   }
                 >
                   <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span>{item.name}</span>
+                  <span className="hidden lg:inline">{item.name}</span>
+                  <span className="lg:hidden">{item.name.slice(0, 4)}</span>
                 </NavLink>
               ))}
             </div>
           </div>
 
           {/* Right side - Language Switcher & Auth button */}
-          <div className="flex-shrink-0 flex items-center space-x-3">
+          <div className="flex-shrink-0 flex items-center space-x-2 lg:space-x-3">
             {/* Language Switcher - Desktop */}
-            <div className="hidden xl:block">
+            <div className="hidden lg:block">
               <LanguageSwitcher variant="minimal" />
             </div>
             
             {/* Desktop Auth Button */}
-            <div className="hidden xl:block">
+            <div className="hidden lg:block">
               {isLoggedIn ? (
                 <Button 
                   className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30" 
                   size="sm"
                   onClick={handleLogout}
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span className="hidden xl:inline">Logout</span>
-                  <span className="xl:hidden">Exit</span>
+                  <LogOut className="w-3 h-3 lg:w-4 lg:h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Logout</span>
                 </Button>
               ) : (
                 <Button 
@@ -149,20 +158,20 @@ const Navigation = ({ userType = null, onLogout = null }) => {
                   size="sm"
                   onClick={() => navigate('/login')}
                 >
-                  <span className="hidden xl:inline">Get Started</span>
-                  <span className="xl:hidden">Login</span>
+                  <span className="hidden lg:inline">Get Started</span>
+                  <span className="lg:hidden text-xs">Login</span>
                 </Button>
               )}
             </div>
 
             {/* Mobile menu button */}
-            <div className="xl:hidden">
+            <div className="lg:hidden">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle menu"
-                className="hover:bg-gray-800 text-gray-400"
+                className="hover:bg-gray-800 text-gray-400 h-9 w-9"
               >
                 {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
@@ -172,8 +181,8 @@ const Navigation = ({ userType = null, onLogout = null }) => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="xl:hidden absolute left-0 right-0 top-16 bg-slate-900/98 backdrop-blur-lg border-b border-gray-800 shadow-2xl max-w-full overflow-x-hidden">
-            <div className="px-4 py-3 space-y-2 max-h-96 overflow-y-auto">
+          <div className="lg:hidden absolute left-0 right-0 top-16 bg-slate-900 border-b border-gray-800 shadow-2xl max-w-full overflow-x-hidden z-40">
+            <div className="px-3 sm:px-4 py-3 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin">
               {currentUserType === 'student' ? (
                 // Grouped navigation for students
                 <>
@@ -494,6 +503,7 @@ const Navigation = ({ userType = null, onLogout = null }) => {
         )}
       </div>
     </nav>
+    </>
   );
 };
 
