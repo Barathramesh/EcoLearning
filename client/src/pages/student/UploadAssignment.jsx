@@ -1783,7 +1783,6 @@ const GradedTableRow = ({ assignment, index, getTypeColor, getGradeColor, format
             <span className="text-gray-400">-</span>
           )}
         </td>
-        
         {/* Score */}
         <td className="px-4 py-4">
           <div className="flex flex-col items-center gap-1">
@@ -1802,7 +1801,6 @@ const GradedTableRow = ({ assignment, index, getTypeColor, getGradeColor, format
           </div>
         </td>
         
-        {/* Status */}
         <td className="px-4 py-4 text-center">
           {isAIGraded ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">

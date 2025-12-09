@@ -1378,6 +1378,179 @@ const Lessons = () => {
           </div>
         )}
 
+        {/* Environmental Story Lessons - Featured Section */}
+        <div className="mb-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+              <TreePine className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Environmental Adventures</h1>
+              <p className="text-gray-400">
+                Explore Air, Water, and Land Management through animated stories
+              </p>
+            </div>
+          </div>
+
+          {/* Story Categories */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Air Management */}
+            <div className="bg-gradient-to-br from-sky-600 to-blue-700 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 border-4 border-sky-400/30 cursor-pointer group">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-5xl mb-4 shadow-lg group-hover:scale-110 transition-transform mx-auto backdrop-blur-sm">
+                  💨
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Air Management</h3>
+                <p className="text-white/90 text-sm mb-4 leading-relaxed">
+                  Learn about air quality, pollution, and protecting our atmosphere
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      Videos:
+                    </span>
+                    <span className="text-sm font-bold text-white">5</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4" />
+                      Quizzes:
+                    </span>
+                    <span className="text-sm font-bold text-white">10</span>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => window.open('/environmental-stories?category=air-management', '_blank')}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 backdrop-blur-sm border border-white/30"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Learning
+                </Button>
+              </div>
+            </div>
+
+            {/* Water Management */}
+            <div className="bg-gradient-to-br from-blue-600 to-cyan-700 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 border-4 border-cyan-400/30 cursor-pointer group">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-5xl mb-4 shadow-lg group-hover:scale-110 transition-transform mx-auto backdrop-blur-sm">
+                  💧
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Water Management</h3>
+                <p className="text-white/90 text-sm mb-4 leading-relaxed">
+                  Discover water conservation, the water cycle, and preserving resources
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      Videos:
+                    </span>
+                    <span className="text-sm font-bold text-white">5</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4" />
+                      Quizzes:
+                    </span>
+                    <span className="text-sm font-bold text-white">10</span>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => window.open('/environmental-stories?category=water-management', '_blank')}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 backdrop-blur-sm border border-white/30"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Learning
+                </Button>
+              </div>
+            </div>
+
+            {/* Land Management */}
+            <div className="bg-gradient-to-br from-emerald-600 to-green-700 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 border-4 border-emerald-400/30 cursor-pointer group">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-5xl mb-4 shadow-lg group-hover:scale-110 transition-transform mx-auto backdrop-blur-sm">
+                  🌍
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Land Management</h3>
+                <p className="text-white/90 text-sm mb-4 leading-relaxed">
+                  Understand soil health, deforestation, and sustainable practices
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      Videos:
+                    </span>
+                    <span className="text-sm font-bold text-white">5</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4" />
+                      Quizzes:
+                    </span>
+                    <span className="text-sm font-bold text-white">10</span>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => window.open('/environmental-stories?category=land-management', '_blank')}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 backdrop-blur-sm border border-white/30"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Learning
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* How It Works Section */}
+          <div className="bg-gradient-to-r from-amber-900/30 to-yellow-900/30 rounded-3xl p-6 border-2 border-amber-500/30 backdrop-blur-sm">
+            <h2 className="text-xl font-bold text-center text-white mb-4 flex items-center justify-center gap-2">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+              How It Works
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 text-white font-bold shadow-lg">
+                  1
+                </div>
+                <h3 className="font-bold text-white mb-2">Watch Videos</h3>
+                <p className="text-gray-300 text-sm">
+                  Watch animated videos with voice narration about environment
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 text-white font-bold shadow-lg">
+                  2
+                </div>
+                <h3 className="font-bold text-white mb-2">Take Quiz</h3>
+                <p className="text-gray-300 text-sm">
+                  Answer 2 questions after each video to test your knowledge
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-14 h-14 bg-purple-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 text-white font-bold shadow-lg">
+                  3
+                </div>
+                <h3 className="font-bold text-white mb-2">Master Topics</h3>
+                <p className="text-gray-300 text-sm">
+                  Questions repeat until you answer correctly with encouragement!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="relative my-12">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-700/50"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 text-gray-400 bg-[#1a3a2e]">Teacher Video Lessons</span>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
@@ -1402,7 +1575,7 @@ const Lessons = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center">
                   <Video className="w-5 h-5 text-white" />
                 </div>
-                Your Video Lessons {user?.class && `- ${user.class}`}
+                Your Video Lessons {user?.class && - `${user.class}`}
                 <Badge className="ml-auto bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   <Sparkles className="w-3 h-3 mr-1" /> AI Generated
                 </Badge>

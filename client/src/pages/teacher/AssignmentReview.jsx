@@ -133,7 +133,6 @@ const AssignmentReview = () => {
     return 'bg-red-100 text-red-800';
   };
 
-  // Sample data for demo
   const sampleFlaggedAssignments = [
     {
       id: '1',
@@ -343,6 +342,7 @@ const AssignmentReview = () => {
           </CardContent>
         </Card>
 
+        
         {/* Review Dialog */}
         <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
           <DialogContent className="max-w-2xl">
